@@ -3,7 +3,6 @@ package mg.fizanakara.api.services;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mg.fizanakara.api.dto.contributions.ContributionResponseDto;
 import mg.fizanakara.api.dto.person.PersonDto;
 import mg.fizanakara.api.dto.person.PersonResponseDto;
 import mg.fizanakara.api.exceptions.PersonNotFoundException;
@@ -14,8 +13,6 @@ import mg.fizanakara.api.models.enums.MemberStatus;
 import mg.fizanakara.api.repository.DistrictRepository;
 import mg.fizanakara.api.repository.PersonRepository;
 import mg.fizanakara.api.repository.TributeRepository;
-import mg.fizanakara.api.services.ContributionService;
-import mg.fizanakara.api.services.SequenceService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
