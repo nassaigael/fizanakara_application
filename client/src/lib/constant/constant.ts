@@ -1,4 +1,3 @@
-// src/constants/index.ts
 import { 
     AiOutlineUser, AiOutlineSetting, AiOutlineLogout, 
     AiOutlineMessage, AiOutlineDashboard, 
@@ -6,11 +5,8 @@ import {
     AiOutlineCheckCircle, AiOutlineClockCircle,
     AiOutlineInfoCircle, AiOutlineWarning
 } from "react-icons/ai";
-import { MemberStatus } from "../types/enum.types";
+import { MemberStatus } from "../types";
 
-// ==========================================
-// 1. CONFIGURATION GITHUB ASSETS
-// ==========================================
 const GITHUB_ACCOUNT = "mekill404";
 const REPO_NAME = "image_membre_fizankara";
 const BASE_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_ACCOUNT}/${REPO_NAME}/main`;
@@ -21,17 +17,12 @@ export const GITHUB_URLS = {
     ASSETS: `${BASE_RAW_URL}/assets/images`
 } as const;
 
-/**
- * Génère l'URL de l'image avec fallback automatique vers UI-Avatars
- */
 export const getImageUrl = (
     imagePath: string | null | undefined,
-    nameForAvatar?: string,
     category: 'admin' | 'member' | 'assets' = 'member'
 ): string => {
-    if (!imagePath || imagePath.trim() === "") {
-        const initials = nameForAvatar ? encodeURIComponent(nameForAvatar) : "User";
-        return `https://ui-avatars.com/api/?name=${initials}&background=FF4B4B&color=fff&bold=true`;
+    if (!imagePath) {
+        return '';
     }
 
     if (imagePath.startsWith('http')) return imagePath;
@@ -49,14 +40,23 @@ export const getImageUrl = (
     return `${base}/${cleanPath}`;
 };
 
-// ==========================================
-// 2. DESIGN TOKENS (COULEURS & UI)
-// ==========================================
+export const FONT = {
+    h1: "font-black text-4xl",
+    h2: "font-bold text-2xl",
+    small: "text-sm",
+    muted: "text-sm text-gray-500",
+    default: "",
+} as const;
+
+export const CARD = {
+    default: "bg-white rounded-2xl shadow-md border border-gray-100",
+} as const;
+
 export const THEME = {
     colors: {
-        primary: "#FF4B4B",     // Rouge Fizanakara
-        secondary: "#1A1A1A",   // Noir SideBar
-        accent: "#F5F5F7",      // Fond de page gris clair
+        primary: "#FF4B4B",
+        secondary: "#1A1A1A",
+        accent: "#F5F5F7",
         text: "#2D2D2D",
         muted: "#6B7280",
         white: "#FFFFFF"
@@ -67,12 +67,11 @@ export const THEME = {
     },
     shadows: {
         card: "shadow-sm border border-gray-100 hover:shadow-md",
-    }
+    },
+    font: FONT,
+    card: CARD,
 } as const;
 
-// ==========================================
-// 3. ÉTATS DES COTISATIONS & SITUATIONS
-// ==========================================
 export const COTISATION_UI = {
     PAID: { 
         label: "Payé", 
@@ -105,18 +104,15 @@ export const COTISATION_UI = {
 } as const;
 
 export const SITUATIONS = [
-    { label: "Étudiant", value: "STUDENT" as MemberStatus },
-    { label: "Travailleur", value: "WORKER" as MemberStatus }
+    { label: "Étudiant", value: MemberStatus.STUDENT },
+    { label: "Travailleur", value: MemberStatus.WORKER }
 ] as const;
 
-// ==========================================
-// 4. NAVIGATION CONFIGURATION
-// ==========================================
 export const SIDEBAR_LINKS = [
     { title: "Tableau de bord", path: "/admin/dashboard", icon: AiOutlineDashboard },
     { title: "Membres", path: "/admin/members", icon: AiOutlineUsergroupAdd },
     { title: "Cotisations", path: "/admin/cotisations", icon: AiOutlineWallet },
-    { title: "Parametre", path: "/admin/profile", icon: AiOutlineSetting },
+    { title: "Paramètre", path: "/admin/profile", icon: AiOutlineSetting },
 ] as const;
 
 export const PROFILE_MENU = [
@@ -126,13 +122,10 @@ export const PROFILE_MENU = [
     { label: "Déconnexion", path: "/logout", icon: AiOutlineLogout, isDestructive: true },
 ] as const;
 
-// ==========================================
-// 5. STYLES RÉUTILISABLES (TAILWIND)
-// ==========================================
 export const UI_CLASSES = {
     container: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
     card: `bg-white rounded-2xl ${THEME.shadows.card} ${THEME.animations.transition}`,
     input: "w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF4B4B] focus:border-transparent outline-none transition-all",
-    buttonPrimary: `bg-[#FF4B4B] text-white px-6 py-2 rounded-lg font-medium ${THEME.animations.hoverScale} ${THEME.animations.transition} disabled:bg-gray-400`,
+    buttonPrimary: `bg-[#FF4B4B] text-white px-6 py-2 rounded-lg font-medium ${THEME.animations.hoverScale} ${THEME.animations.transition} disabled:bg-gray-400 disabled:cursor-not-allowed`,
     buttonOutline: `border-2 border-[#FF4B4B] text-[#FF4B4B] px-6 py-2 rounded-lg font-medium hover:bg-red-50 ${THEME.animations.transition}`,
 } as const;
