@@ -1,42 +1,25 @@
-// src/lib/validators/finance.validator.ts
 import { z } from "zod";
-import { ContributionStatus, PaymentStatus } from "../types/enum.types";
+import { ContributionStatus, PaymentStatus } from "../types/index";
 
-/**
- * Validateur pour créer un paiement
- * Utilité : Valider le montant, date et statut avant enregistrement
- */
 export const paymentSchema = z.object({
-    amountPayed: z.number().positive("Le montant doit être positif"),
+    amountPayed: z.number().positive("Montant positif requis"),
     paymentDate: z.string().refine(date => !isNaN(Date.parse(date)), "Date invalide"),
     paymentStatus: z.nativeEnum(PaymentStatus),
-    contributionId: z.string().min(1, "Cotisation ID requis")
+    contributionId: z.string().min(1, "ID cotisation requis")
 });
 
-/**
- * Validateur pour mettre à jour une cotisation
- * Utilité : Valider les changements de statut ou montant
- */
 export const updateContributionSchema = z.object({
-    amount: z.number().positive("Le montant doit être positif").optional(),
+    amount: z.number().positive().optional(),
     contributionStatus: z.nativeEnum(ContributionStatus),
     memberId: z.string().optional()
 });
 
-/**
- * Validateur pour générer les cotisations annuelles
- * Utilité : Valider l'année avant génération en masse
- */
 export const generateContributionSchema = z.object({
     year: z.number()
-        .min(2000, "L'année doit être >= 2000")
-        .max(new Date().getFullYear() + 5, "L'année dépasse le maximum autorisé")
+        .min(2000, "Année minimum: 2000")
+        .max(new Date().getFullYear() + 5, "Année maximum: " + (new Date().getFullYear() + 5))
 });
 
-/**
- * Validateur pour filtrer les cotisations
- * Utilité : Valider les paramètres de recherche
- */
 export const filterContributionSchema = z.object({
     personId: z.string().optional(),
     year: z.number().optional(),
