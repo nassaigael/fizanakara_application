@@ -1,29 +1,24 @@
 import { z } from "zod";
-import { Gender, MemberStatus } from "../types/enum.types";
+import { Gender, MemberStatus } from "../types/index";
 
-/**
- * Validateur pour créer/modifier un membre
- * Utilité : Valider les infos personnelles avant création ou mise à jour
- */
 export const personSchema = z.object({
-    firstName: z.string().min(2, "Le prénom est requis"),
-    lastName: z.string().min(2, "Le nom est requis"),
-    birthDate: z.string().refine(date => !isNaN(Date.parse(date)), "Date invalide"),
+    firstName: z.string().min(2, "Prénom requis (min 2 caractères)"),
+    lastName: z.string().min(2, "Nom requis (min 2 caractères)"),
+    birthDate: z.string().refine(date => !isNaN(Date.parse(date)), "Date invalide (format YYYY-MM-DD)"),
     gender: z.nativeEnum(Gender),
-    phoneNumber: z.string().min(10, "Numéro invalide"),
-    districtId: z.number().positive("Sélectionnez un district"),
-    tributeId: z.number().positive("Sélectionnez un hommage"),
+    phoneNumber: z.string()
+        .min(8, "Téléphone: minimum 8 chiffres")
+        .regex(/^[0-9+\-\s]+$/, "Format de téléphone invalide"),
+    districtId: z.number().positive("District requis"),
+    tributeId: z.number().positive("Tribu requise"),
     status: z.nativeEnum(MemberStatus),
-    imageUrl: z.string()
-        .max(255, "Le nom du fichier est trop long")
-        .or(z.literal(""))
-        .optional(),});
+    imageUrl: z.string().max(500).optional().nullable(),
+    parentId: z.string().optional().nullable(),
+});
 
-/**
- * Validateur pour ajouter un enfant
- * Utilité : Valider les données de l'enfant et l'ID parent
- */
 export const addChildSchema = z.object({
-    parentId: z.string().min(1, "Parent ID requis"),
+    parentId: z.string().min(1, "Parent requis"),
     childData: personSchema
 });
+
+export type PersonFormData = z.infer<typeof personSchema>;
