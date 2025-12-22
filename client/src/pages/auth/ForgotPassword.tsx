@@ -1,162 +1,144 @@
-import React, { useState, memo } from 'react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
-	AiOutlineMail, AiOutlineLock, AiOutlineArrowLeft,
-	AiOutlineSecurityScan
+    AiOutlineMail,
+    AiOutlineArrowLeft,
+    AiOutlineCheckCircle
 } from 'react-icons/ai';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useForm } from '../../hooks/useForm';
+import { forgotPasswordSchema } from '../../lib/validators/admin.validator';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import Alert from '../../components/ui/Alert';
-import { getErrorMessage } from '../../lib/helper/errorHelpers';
-import { useAdmin } from '../../hooks/useAdmin';
 import { THEME } from '../../styles/theme';
 
 const ForgotPassword: React.FC = () => {
-	const navigate = useNavigate();
-	const [searchParams] = useSearchParams();
-	const token = searchParams.get('token');
-	const { forgotPassword, resetPassword } = useAdmin();
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [confirmPassword, setConfirmPassword] = useState('');
-	const [isAlertOpen, setIsAlertOpen] = useState(false);
-	const [alertConfig, setAlertConfig] = useState<{ title: string; text: string; type: 'success' | 'error' }>({
-		title: '',
-		text: '',
-		type: 'success'
-	});
-	const isResetMode = !!token;
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+    const { forgotPassword } = useAuth();
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
-		if (isResetMode) {
-			if (password !== confirmPassword) {
-				setAlertConfig({ title: 'ERREUR', text: 'Les mots de passe ne correspondent pas.', type: 'error' });
-				setIsAlertOpen(true);
-				return;
-			}
-			try {
-				await resetPassword.mutateAsync({ token: token!, newPassword: password });
-				setAlertConfig({ title: 'SUCCÈS', text: 'Mot de passe mis à jour avec succès.', type: 'success' });
-				setIsAlertOpen(true);
-			} catch (err: any) {
-				setAlertConfig({ title: 'ERREUR', text: getErrorMessage(err) || 'Lien invalide ou expiré.', type: 'error' });
-				setIsAlertOpen(true);
-			}
-		} else {
-			try {
-				await forgotPassword.mutateAsync(email);
-				setAlertConfig({ title: 'SUCCÈS', text: 'Un lien de récupération a été envoyé à votre adresse.', type: 'success' });
-				setIsAlertOpen(true);
-			} catch (err: any) {
-				setAlertConfig({ title: 'ERREUR', text: getErrorMessage(err) || 'Email non trouvé.', type: 'error' });
-				setIsAlertOpen(true);
-			}
-		}
-	};
+    const form = useForm<{ email: string }>({
+        initialValues: {
+            email: ''
+        },
+        validationSchema: forgotPasswordSchema,
+        onSubmit: async (data) => {
+            await forgotPassword(data.email);
+            setIsSubmitted(true);
+        }
+    });
 
-	const handleAlertConfirm = () => {
-		setIsAlertOpen(false);
-		if (alertConfig.type === 'success') {
-			navigate('/');
-		}
-	};
+    if (isSubmitted) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute inset-0" style={{
+                        backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+                        backgroundSize: '40px 40px'
+                    }} />
+                </div>
 
-	return (
-		<div className="min-h-screen flex flex-col items-center justify-center p-6 bg-brand-bg dark:bg-brand-bg-dark relative overflow-hidden transition-colors duration-500">
-			<div className="absolute inset-0 z-0 pointer-events-none">
-				<div className="absolute -top-[10%] -right-[10%] w-[40%] h-[40%] bg-brand-primary/10 rounded-full blur-[120px]" />
-				<div className="absolute -bottom-[10%] -left-[10%] w-[40%] h-[40%] bg-brand-primary/10 rounded-full blur-[120px]" />
-			</div>
-			<div className="w-full max-w-md z-10 animate-in fade-in zoom-in-95 duration-500">
-				<Link
-					to="/"
-					className="inline-flex items-center text-[10px] font-black text-brand-muted hover:text-brand-primary mb-6 transition-all group tracking-[0.2em] uppercase"
-				>
-					<AiOutlineArrowLeft className="mr-2 group-hover:-translate-x-2 transition-transform duration-300" size={16} />
-					Retour à la connexion
-				</Link>
-				<div className={`bg-white dark:bg-brand-border-dark rounded-[3rem] border-2 border-brand-border border-b-8 p-10 lg:p-12 shadow-2xl`}>
-					<header className="mb-10 text-center md:text-left">
-						<div className="flex flex-col md:flex-row items-center gap-4 mb-6">
-							<div className="p-4 bg-brand-primary rounded-2xl text-white shadow-lg rotate-3 border-b-4 border-black/10">
-								<AiOutlineSecurityScan size={28} />
-							</div>
-							<div>
-								<h1 className={`${THEME.font.black} text-2xl tracking-tighter uppercase leading-none`}>
-									{isResetMode ? "Sécurité" : "Récupération"}
-								</h1>
-								<p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mt-1">
-									{isResetMode ? "Nouveau mot de passe" : "Accès oublié"}
-								</p>
-							</div>
-						</div>
-						<p className="text-brand-muted text-[10px] font-bold uppercase tracking-wider leading-relaxed opacity-70">
-							{isResetMode
-								? "Veuillez définir votre nouveau mot de passe pour sécuriser votre accès administrateur."
-								: "Entrez votre adresse email professionnelle pour recevoir les instructions de réinitialisation."}
-						</p>
-					</header>
+                {/* Success Card */}
+                <div className="relative w-full max-w-md">
+                    <div className="bg-white rounded-[3rem] border-4 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+                        <div className="bg-green-500 p-8 text-center">
+                            <AiOutlineCheckCircle size={64} className="mx-auto text-white mb-4" />
+                            <h1 className="text-2xl font-black text-white uppercase tracking-tighter">
+                                Email envoyé !
+                            </h1>
+                        </div>
+                        <div className="p-8 text-center">
+                            <p className="text-sm font-bold text-gray-600 mb-6">
+                                Si un compte existe avec cette adresse email, vous recevrez un lien pour réinitialiser votre mot de passe.
+                            </p>
+                            <Link to="/login">
+                                <Button variant="primary" className="w-full">
+                                    <AiOutlineArrowLeft className="mr-2" />
+                                    RETOUR À LA CONNEXION
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
-					<form onSubmit={handleSubmit} className="space-y-6">
-						{!isResetMode ? (
-							<div className="animate-in slide-in-from-bottom-2 duration-300">
-								<Input
-									label="Email Administrateur"
-									type="email"
-									placeholder="ex: admin@fizanakara.mg"
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									icon={<AiOutlineMail size={20} />}
-									required
-								/>
-							</div>
-						) : (
-							<div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
-								<Input
-									label="Nouveau Mot de Passe"
-									type="password"
-									placeholder="••••••••"
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									icon={<AiOutlineLock size={20} />}
-									required
-								/>
-								<Input
-									label="Confirmation"
-									type="password"
-									placeholder="••••••••"
-									value={confirmPassword}
-									onChange={(e) => setConfirmPassword(e.target.value)}
-									icon={<AiOutlineLock size={20} />}
-									required
-								/>
-							</div>
-						)}
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0" style={{
+                    backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+                    backgroundSize: '40px 40px'
+                }} />
+            </div>
 
-						<div className="pt-4">
-							<Button
-								type="submit"
-								className="w-full py-5 text-[11px] tracking-[0.2em]"
-								isLoading={forgotPassword.isPending || resetPassword.isPending}
-							>
-								{isResetMode ? "RÉINITIALISER" : "ENVOYER LE LIEN"}
-							</Button>
-						</div>
-					</form>
-				</div>
-			</div>
-			<Alert
-				isOpen={isAlertOpen}
-				title={alertConfig.title}
-				message={alertConfig.text}
-				variant={alertConfig.type === 'success' ? 'info' : 'danger'}
-				onClose={() => setIsAlertOpen(false)}
-				onConfirm={handleAlertConfirm}
-				confirmText={alertConfig.type === 'success' ? "RETOUR À LA CONNEXION" : "RÉESSAYER"}
-			/>
-		</div>
-	);
+            {/* Forgot Password Card */}
+            <div className="relative w-full max-w-md">
+                <div className="bg-white rounded-[3rem] border-4 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-black p-8">
+                        <Link to="/login" className="inline-block mb-4">
+                            <Button variant="ghost" className="!p-2 !text-white hover:!bg-white/10">
+                                <AiOutlineArrowLeft size={20} />
+                            </Button>
+                        </Link>
+                        <h1 className="text-2xl font-black text-white uppercase tracking-tighter">
+                            Mot de passe oublié ?
+                        </h1>
+                        <p className="text-gray-400 text-xs font-bold mt-2">
+                            Entrez votre email pour recevoir un lien de réinitialisation
+                        </p>
+                    </div>
+
+                    {/* Form */}
+                    <div className="p-8">
+                        <form onSubmit={form.handleSubmit} className="space-y-6">
+                            <Input
+                                label="Email"
+                                name="email"
+                                type="email"
+                                value={form.values.email}
+                                onChange={form.handleChange}
+                                onBlur={form.handleBlur}
+                                error={form.touched.email ? form.errors.email : undefined}
+                                icon={<AiOutlineMail size={18} />}
+                                placeholder="admin@fizanakara.mg"
+                                required
+                            />
+
+                            {form.submitError && (
+                                <div className="p-4 bg-red-50 border-2 border-red-200 rounded-2xl">
+                                    <p className="text-red-600 text-xs font-black text-center">
+                                        {form.submitError}
+                                    </p>
+                                </div>
+                            )}
+
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                isLoading={form.isSubmitting}
+                                className="w-full py-4 text-sm"
+                            >
+                                ENVOYER LE LIEN
+                            </Button>
+
+                            <div className="text-center">
+                                <Link
+                                    to="/login"
+                                    className="text-xs font-black text-gray-400 hover:text-brand-primary transition-colors uppercase tracking-widest"
+                                >
+                                    Retour à la connexion
+                                </Link>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
-export default memo(ForgotPassword);
+export default ForgotPassword;
