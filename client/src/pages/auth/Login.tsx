@@ -1,124 +1,127 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { AiOutlineMail, AiOutlineLock, AiOutlineSafetyCertificate } from 'react-icons/ai';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+    AiOutlineMail,
+    AiOutlineLock,
+    AiOutlineEye,
+    AiOutlineEyeInvisible,
+    AiOutlineArrowRight
+} from 'react-icons/ai';
 import { useAuth } from '../../context/AuthContext';
+import { useForm } from '../../hooks/useForm';
 import { loginSchema } from '../../lib/validators/admin.validator';
-import type { LoginRequestModel } from '../../lib/types/models/admin.models.types';
-import { getErrorMessage } from '../../lib/helper/errorHelpers';
-
+import { LoginRequest } from '../../lib/types';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import Alert from '../../components/ui/Alert';
-import { THEME } from '../../styles/theme';
 
 const Login: React.FC = () => {
-	const navigate = useNavigate();
-	const { login, isAuthenticated } = useAuth();
-	const [isLoading, setIsLoading] = useState(false);
-	const [alertConfig, setAlertConfig] = useState({ 
-		show: false, 
-		msg: '', 
-		variant: 'danger' as 'danger' | 'success' 
-	});
+    const { login } = useAuth();
+    const [showPassword, setShowPassword] = useState(false);
 
-	const { register, handleSubmit, formState: { errors } } = useForm<LoginRequestModel>({
-		resolver: zodResolver(loginSchema),
-	});
+    const form = useForm<LoginRequest>({
+        initialValues: {
+            email: '',
+            password: ''
+        },
+        validationSchema: loginSchema,
+        onSubmit: async (data) => {
+            await login(data);
+        }
+    });
 
-	useEffect(() => {
-		if (isAuthenticated) {
-			navigate('/dashboard', { replace: true });
-		}
-	}, [isAuthenticated, navigate]);
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0" style={{
+                    backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+                    backgroundSize: '40px 40px'
+                }} />
+            </div>
 
-	const onSubmit = async (data: LoginRequestModel) => {
-		setIsLoading(true);
-		setAlertConfig({ show: false, msg: '', variant: 'danger' });
-		try {
-			await login(data);
-		} catch (error: any) {
-			console.error('Login error:', error);
-			const errorMsg = getErrorMessage(error) || "Identifiants invalides ou serveur indisponible.";
-			setAlertConfig({ show: true, msg: errorMsg, variant: 'danger' });
-		} finally {
-			setIsLoading(false);
-		}
-	};
+            {/* Login Card */}
+            <div className="relative w-full max-w-md">
+                <div className="bg-white rounded-[3rem] border-4 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-black p-8 text-center">
+                        <h1 className="text-4xl font-black text-white uppercase tracking-tighter">
+                            FIZANAKARA
+                        </h1>
+                        <p className="text-brand-primary font-black text-xs uppercase tracking-widest mt-2">
+                            Gestion des membres
+                        </p>
+                    </div>
 
-	return (
-		<div className="min-h-screen flex items-center justify-center p-6 bg-brand-bg dark:bg-brand-bg-dark relative overflow-hidden transition-colors duration-500">
-			<div className="absolute inset-0 z-0 pointer-events-none">
-				<div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-brand-primary/10 rounded-full blur-[120px] animate-pulse" />
-				<div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-brand-primary/10 rounded-full blur-[120px]" />
-			</div>
-			<div className="w-full max-w-md bg-white dark:bg-brand-border-dark rounded-[3rem] border-2 border-brand-border border-b-8 p-10 lg:p-12 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-500">
-				<div className="text-center mb-12">
-					<div className="inline-flex items-center justify-center w-24 h-24 bg-brand-primary rounded-4xl mb-6 shadow-[0_10px_0_0_rgba(0,0,0,0.1)] rotate-3">
-						<AiOutlineSafetyCertificate className="text-white text-5xl" />
-					</div>
-					<h1 className={`${THEME.font.black} text-3xl tracking-tight`}>
-						Connexion
-					</h1>
-					<p className="text-[10px] font-black text-brand-muted mt-3 uppercase tracking-[0.2em] opacity-60">
-						Administration • Fizanakara
-					</p>
-				</div>
-				<form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-					<div className="space-y-6">
-						<Input
-							label="Email Professionnel"
-							placeholder="admin@fizanakara.mg"
-							icon={<AiOutlineMail size={20} />}
-							error={errors.email?.message}
-							{...register("email")}
-						/>
-						<div className="space-y-2">
-							<Input
-								label="Mot de passe"
-								type="password"
-								placeholder="••••••••"
-								icon={<AiOutlineLock size={20} />}
-								error={errors.password?.message}
-								{...register("password")}
-							/>
-							<div className="flex justify-end px-1">
-								<Link
-									to="/forgot-password"
-									className="text-[10px] font-black text-brand-primary uppercase hover:opacity-70 transition-opacity tracking-widest"
-								>
-									Oublié ?
-								</Link>
-							</div>
-						</div>
-					</div>
-					<div className="pt-4">
-						<Button
-							type="submit"
-							className="w-full py-5 text-[11px] tracking-[0.2em]"
-							isLoading={isLoading}
-							disabled={isLoading}
-						>
-							{isLoading ? "AUTHENTIFICATION..." : "DÉVERROUILLER L'ACCÈS"}
-						</Button>
-					</div>
-				</form>
-				<div className="mt-10 text-center">
-					<p className="text-[9px] font-bold text-brand-muted uppercase tracking-widest">
-						Système de Gestion Sécurisé v2.0
-					</p>
-				</div>
-			</div>
-			<Alert
-				isOpen={alertConfig.show}
-				title="Accès Refusé"
-				message={alertConfig.msg}
-				variant={alertConfig.variant}
-				onClose={() => setAlertConfig({ ...alertConfig, show: false })}
-			/>
-		</div>
-	);
+                    {/* Form */}
+                    <div className="p-8">
+                        <form onSubmit={form.handleSubmit} className="space-y-6">
+                            <Input
+                                label="Email"
+                                name="email"
+                                type="email"
+                                value={form.values.email}
+                                onChange={form.handleChange}
+                                onBlur={form.handleBlur}
+                                error={form.touched.email ? form.errors.email : undefined}
+                                icon={<AiOutlineMail size={18} />}
+                                placeholder="admin@fizanakara.mg"
+                                required
+                            />
+
+                            <div className="relative">
+                                <Input
+                                    label="Mot de passe"
+                                    name="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={form.values.password}
+                                    onChange={form.handleChange}
+                                    onBlur={form.handleBlur}
+                                    error={form.touched.password ? form.errors.password : undefined}
+                                    icon={<AiOutlineLock size={18} />}
+                                    placeholder="••••••••"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 bottom-4 text-gray-400 hover:text-brand-primary transition-colors"
+                                >
+                                    {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
+                                </button>
+                            </div>
+
+                            {form.submitError && (
+                                <div className="p-4 bg-red-50 border-2 border-red-200 rounded-2xl">
+                                    <p className="text-red-600 text-xs font-black text-center">
+                                        {form.submitError}
+                                    </p>
+                                </div>
+                            )}
+
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                isLoading={form.isSubmitting}
+                                className="w-full py-4 text-sm"
+                            >
+                                SE CONNECTER
+                                <AiOutlineArrowRight className="ml-2" />
+                            </Button>
+
+                            <div className="text-center">
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-xs font-black text-gray-400 hover:text-brand-primary transition-colors uppercase tracking-widest"
+                                >
+                                    Mot de passe oublié ?
+                                </Link>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default Login;
