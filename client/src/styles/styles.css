@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+    --font-sans: "Poppins", ui-sans-serif, system-ui;
+    
+    --color-brand-primary: var(--app-primary);
+    --color-brand-primary-dark: var(--app-primary-dark);
+    --color-brand-primary-light: var(--app-primary-light);
+    
+    --color-brand-bg: var(--bg-main);
+    --color-brand-card: var(--bg-card);
+    --color-brand-border: var(--border-main);
+    --color-brand-text: var(--text-main);
+    --color-brand-muted: var(--text-muted);
+    
+    --radius-duo: 1rem;
+}
+
+@layer base {
+    :root {
+        --app-primary: #E51A1A;
+        --app-primary-dark: #B91C1C;
+        --app-primary-light: #FEE2E2;
+        
+        --bg-main: #FFFFFF;
+        --bg-card: #FFFFFF;
+        --border-main: #E5E5E5;
+        --text-main: #4B4B4B;
+        --text-muted: #AFAFAF;
+        
+        --grid-columns: 1;
+    }
+
+    .dark {
+        --bg-main: #131F24;
+        --bg-card: #1E1E1E;
+        --border-main: #37464F;
+        --text-main: #F7F7F7;
+        --text-muted: #8A8F99;
+    }
+
+    @media (min-width: 768px) { :root { --grid-columns: 2; } }
+    @media (min-width: 1024px) { :root { --grid-columns: 3; } }
+
+    body {
+        @apply font-sans antialiased bg-brand-bg text-brand-text transition-colors duration-300;
+    }
+}
+
+@layer components {
+    .duo-card {
+        @apply bg-brand-card border-2 border-brand-border rounded-duo p-6 transition-all;
+        box-shadow: 0 4px 0 0 var(--border-main);
+    }
+
+    .duo-btn-primary {
+        @apply relative flex items-center justify-center font-black uppercase tracking-widest text-[12px] px-6 py-3 rounded-xl border-2 text-white transition-all active:translate-y-[2px] active:shadow-none;
+        background-color: var(--app-primary);
+        border-color: var(--app-primary-dark);
+        box-shadow: 0 4px 0 0 var(--app-primary-dark);
+    }
+}
