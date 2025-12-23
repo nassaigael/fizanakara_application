@@ -1,88 +1,75 @@
-// src/routes/AppRoutes.tsx (version simplifiée)
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Suspense, lazy, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useEffect } from 'react';
+import { applyThemeToDOM } from '../lib/helper';
+import { UserRole } from '../lib/types'; // Import crucial ici
 
-// Layout
 import MainLayout from '../components/layout/MainLayout';
+import LoadingScreen from '../components/ui/LoadingScreen'; 
+import {ProtectedRoute} from './ProtectedRoute';
 
-// Pages d'authentification
-import Login from '../pages/auth/Login';
-import Register from '../pages/auth/Register';
-import ForgotPassword from '../pages/auth/ForgotPassword';
+const Login = lazy(() => import('../pages/auth/Login'));
+const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('../pages/auth/ResetPassword'));
+const Unauthorized = lazy(() => import('../pages/common/Unauthorized'));
+const NotFound = lazy(() => import('../pages/common/NotFound'));
 
-// Pages principales
-import Dashboard from '../pages/dashboard/Dashboard';
-import MemberList from '../pages/members/MemberList';
-import ContributionList from '../pages/contributions/ContributionList';
-import DistrictList from '../pages/districts/DistrictList';
-import TributeList from '../pages/tributes/TributeList';
-import AdminList from '../pages/admin/AdminList';
-import Profile from '../pages/admin/Profile';
-import AdminManagement from '../pages/admin/AdminManagement';
+const SuperAdminDashboard = lazy(() => import('../pages/superadmin/Dashboard'));
+const SuperAdminManagement = lazy(() => import('../pages/superadmin/Management'));
+const SuperAdminProfile = lazy(() => import('../pages/superadmin/Profile'));
 
-// Pages rapports
-import FinancialReport from '../pages/reports/FinancialReport';
-import MemberReport from '../pages/reports/MemberReport';
-import ExportData from '../pages/reports/ExportData';
+const AdminDashboard = lazy(() => import('../pages/admin/Dashboard'));
+const AdminMembers = lazy(() => import('../pages/admin/Members'));
+const AdminFinance = lazy(() => import('../pages/admin/Finance'));
+const AdminProfile = lazy(() => import('../pages/admin/Profile'));
 
-// Pages d'erreur
-import NotFound from '../pages/errors/NotFound';
-import Unauthorized from '../pages/errors/Unauthorized';
-import ServerError from '../pages/errors/ServerError';
+export function App() {
+    const { isAuthenticated, isSuperAdmin } = useAuth();
 
-// Guards
-import ProtectedRoute from './ProtectedRoute';
-import { applyThemeToDOM } from '../lib/helper/themeHelper';
-import LoadingScreen from '../components/ui/LoadingScreen';
+    useEffect(() => {
+        const savedColor = localStorage.getItem('app-theme-color');
+        applyThemeToDOM(savedColor || '#E51A1A');
+    }, []);
 
-export function AppRoutes() {
-  const { isAuthenticated, isLoading } = useAuth();
+    return (
+        <Suspense fallback={<LoadingScreen />}>
+            <Routes>
+                <Route 
+                    path="/login" 
+                    element={
+                        !isAuthenticated ? 
+                        <Login /> : 
+                        <Navigate to={isSuperAdmin ? "/superadmin/dashboard" : "/admin/dashboard"} replace />
+                    } 
+                />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
 
-  useEffect(() => {
-    const savedColor = localStorage.getItem('app-theme-color');
-    applyThemeToDOM(savedColor || '#E51A1A');
-  }, []);
+                <Route element={<MainLayout />}>
+                    
+                    <Route element={<ProtectedRoute requiredRole={UserRole.SUPERADMIN} />}>
+                        <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
+                        <Route path="/superadmin/management" element={<SuperAdminManagement />} />
+                        <Route path="/superadmin/profile" element={<SuperAdminProfile />} />
+                        <Route path="/superadmin" element={<Navigate to="/superadmin/dashboard" replace />} />
+                    </Route>
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
+                    <Route element={<ProtectedRoute requiredRole={UserRole.ADMIN} />}>
+                        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                        <Route path="/admin/members" element={<AdminMembers />} />
+                        <Route path="/admin/finance" element={<AdminFinance />} />
+                        <Route path="/admin/profile" element={<AdminProfile />} />
+                        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+                    </Route>
 
-  return (
-    <Routes>
-      {/* Routes publiques */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
-      <Route path="/server-error" element={<ServerError />} />
-
-      {/* Routes protégées */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<MainLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/members" element={<MemberList />} />
-          <Route path="/contributions" element={<ContributionList />} />
-          <Route path="/districts" element={<DistrictList />} />
-          <Route path="/tributes" element={<TributeList />} />
-          <Route path="/admins" element={<AdminList />} />
-          <Route path="/profile" element={<Profile />} />
-          
-          {/* Rapports */}
-          <Route path="/reports/financial" element={<FinancialReport />} />
-          <Route path="/reports/members" element={<MemberReport />} />
-          <Route path="/reports/export" element={<ExportData />} />
-
-          {/* Super Admin */}
-          <Route element={<ProtectedRoute requiredRole="SUPERADMIN" />}>
-            <Route path="/admin/management" element={<AdminManagement />} />
-          </Route>
-        </Route>
-      </Route>
-
-      {/* 404 */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
+                    <Route 
+                        path="/" 
+                        element={<Navigate to={isSuperAdmin ? "/superadmin/dashboard" : "/admin/dashboard"} replace />} 
+                    />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+            </Routes>
+        </Suspense>
+    );
 }
