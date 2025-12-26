@@ -1,57 +1,34 @@
-// services/contribution.service.ts
-import api from "../api/axios.config";
+import api from './api/axios.config';
 import { 
-    ContributionResponseModel, 
-    ContributionUpdateModel,
-    ContributionYearModel 
-} from "../lib/types/models/contribution.models.types";
+    ContributionResponse, 
+    ContributionYearRequest, 
+    ContributionUpdateRequest 
+} from '../lib/types';
 
-const ContributionService = {
-    /**
-     * Récupère toutes les contributions (cotisations).
-     * @path GET /api/admins/contributions
-     */
-    getAll: async (): Promise<ContributionResponseModel[]> => {
-        const response = await api.get<ContributionResponseModel[]>('/api/admins/contributions');
+export const ContributionService = {
+    getAll: async (): Promise<ContributionResponse[]> => {
+        const response = await api.get<ContributionResponse[]>('/api/admins/contributions');
         return response.data;
     },
 
-    /**
-     * Récupère les cotisations d'une personne spécifique pour une année donnée.
-     * @path GET /api/admins/contributions/person/{personId}/year/{year}
-     */
-    getByPersonAndYear: async (personId: string, year: number): Promise<ContributionResponseModel[]> => {
-        const response = await api.get<ContributionResponseModel[]>(
+    getByPersonAndYear: async (personId: string, year: number): Promise<ContributionResponse[]> => {
+        const response = await api.get<ContributionResponse[]>(
             `/api/admins/contributions/person/${personId}/year/${year}`
         );
         return response.data;
     },
 
-    /**
-     * Génère les cotisations annuelles pour tous les membres éligibles.
-     * @path POST /api/admins/contributions
-     */
-    generateForYear: async (data: ContributionYearModel): Promise<ContributionResponseModel[]> => {
-        const response = await api.post<ContributionResponseModel[]>('/api/admins/contributions', data);
+    generateForYear: async (data: ContributionYearRequest): Promise<ContributionResponse[]> => {
+        const response = await api.post<ContributionResponse[]>('/api/admins/contributions', data);
         return response.data;
     },
 
-    /**
-     * Met à jour une cotisation (statut ou montant).
-     * @path PUT /api/admins/contributions/{id}
-     */
-    update: async (id: string, data: ContributionUpdateModel): Promise<ContributionResponseModel> => {
-        const response = await api.put<ContributionResponseModel>(`/api/admins/contributions/${id}`, data);
+    update: async (id: string, data: ContributionUpdateRequest): Promise<ContributionResponse> => {
+        const response = await api.put<ContributionResponse>(`/api/admins/contributions/${id}`, data);
         return response.data;
     },
 
-    /**
-     * Supprime une cotisation.
-     * @path DELETE /api/admins/contributions/{id}
-     */
     delete: async (id: string): Promise<void> => {
         await api.delete(`/api/admins/contributions/${id}`);
     }
 };
-
-export default ContributionService;
