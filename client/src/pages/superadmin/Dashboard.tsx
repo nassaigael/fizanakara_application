@@ -1,12 +1,10 @@
 import React, { useMemo } from 'react';
-import { 
-    AiOutlineUser, 
+import {
+    AiOutlineUser,
     AiOutlineEnvironment,
     AiOutlineFlag,
     AiOutlineRise,
     AiOutlineTeam,
-    AiOutlinePlus,
-    AiOutlineSetting,
     AiOutlineCrown,
     AiOutlineBarChart,
     AiOutlineThunderbolt,
@@ -15,6 +13,7 @@ import {
 import { useAdmin } from '../../hooks/useAdmin';
 import { useDistrict } from '../../hooks/useDistrict';
 import { useTribute } from '../../hooks/useTribute';
+import { THEME } from '../../styles/theme';
 
 interface StatCardProps {
     title: string;
@@ -27,9 +26,9 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, color, trend, onClick }) => (
-    <div 
+    <div
         onClick={onClick}
-        className="bg-brand-card border-2 border-brand-border rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-[0_6px_0_0_var(--border-main)] cursor-pointer group"
+        className="bg-white border-2 border-brand-border rounded-2xl p-6 transition-all hover:translate-y-[-2px] hover:shadow-[0_8px_0_0_#E5E5E5] cursor-pointer shadow-[0_6px_0_0_#E5E5E5] group"
     >
         <div className="flex items-start justify-between mb-4">
             <div className={`p-3 rounded-xl ${color} text-white border-b-4 border-black/20 shadow-sm`}>
@@ -42,13 +41,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, color
                 </div>
             )}
         </div>
-        
-        <h3 className="text-brand-muted text-xs font-black uppercase tracking-widest mb-1">
-            {title}
-        </h3>
-        <p className="text-3xl font-black text-brand-text mb-2">
-            {value.toLocaleString()}
-        </p>
+        <h3 className="text-brand-muted text-[11px] font-black uppercase tracking-wider mb-1">{title}</h3>
+        <p className="text-3xl font-black text-brand-text mb-2">{value.toLocaleString()}</p>
         <p className="text-brand-muted text-sm flex items-center gap-1">
             <span className={`w-1.5 h-1.5 rounded-full ${color.replace('bg-', 'bg-')}`}></span>
             {subtitle}
@@ -67,13 +61,13 @@ interface QuickActionProps {
 const QuickActionCard: React.FC<QuickActionProps> = ({ title, icon, href, color, description }) => (
     <a
         href={href}
-        className="bg-brand-card border-2 border-brand-border rounded-xl p-5 transition-all hover:-translate-y-1 hover:shadow-[0_4px_0_0_var(--border-main)] flex items-start gap-4 group"
+        className="bg-white border-2 border-brand-border rounded-xl p-5 transition-all hover:translate-y-[-2px] hover:shadow-[0_6px_0_0_#E5E5E5] shadow-[0_4px_0_0_#E5E5E5] flex items-start gap-4 group"
     >
         <div className={`p-2.5 rounded-lg ${color} text-white border-b-4 border-black/20 shadow-sm`}>
             {icon}
         </div>
         <div className="flex-1">
-            <h3 className="font-black text-xs uppercase tracking-widest mb-1 flex items-center gap-2">
+            <h3 className="font-black text-xs uppercase tracking-wider mb-1 flex items-center gap-2">
                 {title}
             </h3>
             <p className="text-brand-muted text-xs">{description}</p>
@@ -102,9 +96,7 @@ const SuperAdminDashboard: React.FC = () => {
                         <div className="w-16 h-16 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mx-auto mb-4" />
                         <AiOutlineCrown className="absolute top-5 left-1/2 transform -translate-x-1/2 text-brand-primary/50" size={24} />
                     </div>
-                    <p className="text-brand-muted text-sm font-medium">
-                        Loading dashboard...
-                    </p>
+                    <p className="text-brand-muted text-sm font-medium">Chargement du tableau de bord...</p>
                 </div>
             </div>
         );
@@ -112,45 +104,47 @@ const SuperAdminDashboard: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-6 md:py-8 space-y-8">
-            <div className="bg-brand-card border-2 border-brand-border rounded-2xl p-6 shadow-[0_6px_0_0_var(--border-main)]">
+            {/* Header */}
+            <div className="bg-white border-2 border-brand-border rounded-2xl shadow-[0_8px_0_0_#E5E5E5] p-6 md:p-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-brand-primary text-white rounded-xl border-b-4 border-brand-primary-dark shadow-sm">
+                        <div className="p-3 bg-gradient-to-br from-brand-primary to-brand-primary-dark text-white rounded-xl shadow-md">
                             <AiOutlineCrown size={28} />
                         </div>
                         <div>
                             <h1 className="text-2xl md:text-3xl font-black text-brand-text flex items-center gap-3">
-                                Dashboard
+                                Tableau de bord
                                 <span className="bg-brand-primary/10 text-brand-primary text-xs px-3 py-1.5 rounded-full border-2 border-brand-primary/30 font-black">
                                     SUPER ADMIN
                                 </span>
                             </h1>
                             <p className="text-brand-muted text-sm font-medium flex items-center gap-2 mt-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
-                                Manage the entire system
+                                Gestion complète du système
                             </p>
                         </div>
                     </div>
-                    
-                    <div className="flex items-center gap-4 bg-brand-bg border-2 border-brand-border rounded-xl px-4 py-2 shadow-[0_4px_0_0_var(--border-main)]">
+
+                    <div className="flex items-center gap-4 bg-gray-50 border-2 border-brand-border rounded-xl px-4 py-2 shadow-[0_4px_0_0_#E5E5E5]">
                         <div className="text-center px-3">
                             <p className="text-xl font-black text-brand-primary">{stats.totalEntities}</p>
-                            <p className="text-[10px] font-black text-brand-muted uppercase tracking-widest">Entities</p>
+                            <p className="text-[10px] font-black text-brand-muted uppercase tracking-wider">Entités</p>
                         </div>
                         <div className="w-px h-8 bg-brand-border"></div>
                         <div className="text-center px-3">
                             <p className="text-xl font-black text-green-600">{stats.admins}</p>
-                            <p className="text-[10px] font-black text-brand-muted uppercase tracking-widest">Admins</p>
+                            <p className="text-[10px] font-black text-brand-muted uppercase tracking-wider">Admins</p>
                         </div>
                     </div>
                 </div>
             </div>
 
+            {/* Stats grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
-                    title="ADMINISTRATORS"
+                    title="ADMINISTRATEURS"
                     value={stats.admins}
-                    subtitle="Active accounts in the system"
+                    subtitle="Comptes actifs dans le système"
                     icon={<AiOutlineUser size={22} />}
                     color="bg-red-500"
                     trend={12}
@@ -158,107 +152,78 @@ const SuperAdminDashboard: React.FC = () => {
                 <StatCard
                     title="DISTRICTS"
                     value={stats.districts}
-                    subtitle="Configured geographical zones"
+                    subtitle="Zones géographiques configurées"
                     icon={<AiOutlineEnvironment size={22} />}
                     color="bg-blue-500"
                     trend={8}
                 />
                 <StatCard
-                    title="TRIBUTES"
+                    title="TRIBUS"
                     value={stats.tributes}
-                    subtitle="Traditional entities"
+                    subtitle="Entités traditionnelles"
                     icon={<AiOutlineFlag size={22} />}
                     color="bg-purple-500"
                     trend={15}
                 />
             </div>
 
-            <div className="bg-brand-card border-2 border-brand-border rounded-2xl p-6 shadow-[0_6px_0_0_var(--border-main)]">
+            {/* Quick actions */}
+            <div className="bg-white border-2 border-brand-border rounded-2xl shadow-[0_6px_0_0_#E5E5E5] p-6">
                 <div className="flex items-center gap-3 mb-6">
                     <div className="p-2.5 bg-brand-primary/10 text-brand-primary rounded-xl border-b-4 border-brand-primary/30">
                         <AiOutlineThunderbolt size={20} />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-brand-text">Quick Actions</h2>
-                        <p className="text-xs text-brand-muted font-medium">Current system management</p>
+                        <h2 className="text-lg font-black text-brand-text">Actions rapides</h2>
+                        <p className="text-xs text-brand-muted font-medium">Gestion courante du système</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <QuickActionCard
-                        title="MANAGE ADMINISTRATORS"
-                        description="Add, edit, or delete accounts"
+                        title="GÉRER LES ADMINISTRATEURS"
+                        description="Ajouter, modifier ou supprimer des comptes"
                         icon={<AiOutlineUser size={18} />}
                         href="/superadmin/management?tab=admins"
                         color="bg-red-500"
                     />
                     <QuickActionCard
-                        title="MANAGE DISTRICTS"
-                        description="Configure zones and managers"
+                        title="GÉRER LES DISTRICTS"
+                        description="Configurer les zones et responsables"
                         icon={<AiOutlineEnvironment size={18} />}
                         href="/superadmin/management?tab=districts"
                         color="bg-blue-500"
                     />
                     <QuickActionCard
-                        title="MANAGE TRIBUTES"
-                        description="Administer entities and chiefs"
+                        title="GÉRER LES TRIBUS"
+                        description="Administrer les entités et chefs"
                         icon={<AiOutlineFlag size={18} />}
                         href="/superadmin/management?tab=tributes"
                         color="bg-purple-500"
                     />
-                    <QuickActionCard
-                        title="SYSTEM REPORTS"
-                        description="Global analytics and statistics"
-                        icon={<AiOutlineBarChart size={18} />}
-                        href="/superadmin/reports"
-                        color="bg-green-500"
-                    />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-brand-card border-2 border-brand-border rounded-2xl p-6 shadow-[0_6px_0_0_var(--border-main)]">
-                    <h3 className="font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <AiOutlineTeam className="text-brand-muted" size={18} />
-                        LATEST ADMINISTRATORS
-                    </h3>
-                    <div className="space-y-3">
-                        {admins?.slice(0, 3).map((admin, index) => (
-                            <div key={index} className="flex items-center gap-3 p-3 bg-brand-bg border-2 border-brand-border rounded-xl hover:shadow-[0_4px_0_0_var(--border-main)] transition-all">
-                                <div className="w-8 h-8 bg-brand-primary/10 text-brand-primary rounded-lg flex items-center justify-center font-black text-sm border-b-2 border-brand-primary/30">
-                                    {admin.firstName?.[0]}{admin.lastName?.[0]}
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-black text-sm">{admin.firstName} {admin.lastName}</p>
-                                    <p className="text-xs text-brand-muted font-medium">{admin.email}</p>
-                                </div>
-                                <span className="text-[10px] font-black px-2 py-1 bg-green-50 text-green-600 rounded-full border-2 border-green-200 border-b-4">
-                                    ACTIVE
-                                </span>
+            <div className="bg-white border-2 border-brand-border rounded-2xl shadow-[0_6px_0_0_#E5E5E5] p-6">
+                <h3 className="font-black text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <AiOutlineTeam className="text-brand-muted" size={18} />
+                    DERNIERS ADMINISTRATEURS
+                </h3>
+                <div className="space-y-3">
+                    {admins?.slice(0, 3).map((admin, index) => (
+                        <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 border-2 border-brand-border rounded-xl hover:shadow-[0_4px_0_0_#E5E5E5] transition-all">
+                            <div className="w-8 h-8 bg-brand-primary/10 text-brand-primary rounded-lg flex items-center justify-center font-black text-sm border-b-2 border-brand-primary/30">
+                                {admin.firstName?.[0]}{admin.lastName?.[0]}
                             </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="bg-brand-card border-2 border-brand-border rounded-2xl p-6 shadow-[0_6px_0_0_var(--border-main)]">
-                    <h3 className="font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <AiOutlineSetting className="text-brand-muted" size={18} />
-                        QUICK CONFIGURATION
-                    </h3>
-                    <div className="space-y-3">
-                        <button className="w-full flex items-center justify-between p-3 bg-brand-bg border-2 border-brand-border rounded-xl hover:shadow-[0_4px_0_0_var(--border-main)] transition-all group">
-                            <span className="font-black text-xs uppercase tracking-widest">New district</span>
-                            <AiOutlinePlus className="text-brand-muted group-hover:text-brand-primary" size={16} />
-                        </button>
-                        <button className="w-full flex items-center justify-between p-3 bg-brand-bg border-2 border-brand-border rounded-xl hover:shadow-[0_4px_0_0_var(--border-main)] transition-all group">
-                            <span className="font-black text-xs uppercase tracking-widest">New administrator</span>
-                            <AiOutlinePlus className="text-brand-muted group-hover:text-brand-primary" size={16} />
-                        </button>
-                        <button className="w-full flex items-center justify-between p-3 bg-brand-bg border-2 border-brand-border rounded-xl hover:shadow-[0_4px_0_0_var(--border-main)] transition-all group">
-                            <span className="font-black text-xs uppercase tracking-widest">New tribute</span>
-                            <AiOutlinePlus className="text-brand-muted group-hover:text-brand-primary" size={16} />
-                        </button>
-                    </div>
+                            <div className="flex-1">
+                                <p className="font-black text-sm">{admin.firstName} {admin.lastName}</p>
+                                <p className="text-xs text-brand-muted font-medium">{admin.email}</p>
+                            </div>
+                            <span className="text-[10px] font-black px-2 py-1 bg-green-50 text-green-600 rounded-full border-2 border-green-200 border-b-4">
+                                ACTIF
+                            </span>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
