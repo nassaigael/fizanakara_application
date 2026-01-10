@@ -28,7 +28,6 @@ import LocationModal from '../../components/superadmin/management/LocationModal'
 type TabType = 'admins' | 'districts' | 'tributes';
 type DeleteType = 'admin' | 'district' | 'tribute' | null;
 
-// Edit Modal Component
 interface EditLocationModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -56,7 +55,7 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) {
-            setError('Name is required');
+            setError('Le nom est requis');
             return;
         }
         setError('');
@@ -67,32 +66,32 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-            <div className="bg-white rounded-3xl w-full max-w-md border-2 border-black shadow-[0_20px_25px_-5px_rgba(0,0,0,0.3)] overflow-hidden">
-                <div className="bg-linear-to-r from-brand-primary to-orange-500 p-6 text-white">
-                    <h2 className="text-2xl font-black uppercase">Edit {title}</h2>
-                    <p className="text-white/80 text-sm mt-1">Update the {title.toLowerCase()} name</p>
+            <div className="bg-white rounded-2xl w-full max-w-md border-2 border-brand-border shadow-[0_8px_0_0_#E5E5E5] overflow-hidden">
+                <div className="bg-gradient-to-r from-brand-primary to-brand-primary-dark p-6 text-white">
+                    <h2 className="text-2xl font-black uppercase tracking-tight">Modifier {title}</h2>
+                    <p className="text-white/80 text-sm mt-1">Mettez à jour le nom du {title.toLowerCase()}</p>
                 </div>
 
                 <div className="p-6">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <Input
-                            label="Name"
+                            label="Nom"
                             name="name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             error={error}
-                            placeholder={`Enter ${title.toLowerCase()} name`}
+                            placeholder={`Nom du ${title.toLowerCase()}`}
                             required
                         />
 
-                        <div className="flex gap-3 pt-4 border-t-2 border-brand-border">
+                        <div className="flex gap-3 pt-4 border-t border-brand-border">
                             <Button
                                 type="button"
                                 variant="secondary"
                                 onClick={onClose}
                                 className="flex-1"
                             >
-                                Cancel
+                                Annuler
                             </Button>
                             <Button
                                 type="submit"
@@ -100,7 +99,7 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({
                                 isLoading={isLoading}
                                 className="flex-1"
                             >
-                                Save Changes
+                                Enregistrer
                             </Button>
                         </div>
                     </form>
@@ -118,7 +117,6 @@ const SuperAdminManagement: React.FC = () => {
     const [isDistrictModalOpen, setIsDistrictModalOpen] = useState(false);
     const [isTributeModalOpen, setIsTributeModalOpen] = useState(false);
     
-    // Edit states
     const [editItem, setEditItem] = useState<{ id: number; name: string; type: 'district' | 'tribute' } | null>(null);
     
     const [deleteId, setDeleteId] = useState<string | number | null>(null);
@@ -146,7 +144,7 @@ const SuperAdminManagement: React.FC = () => {
         validationSchema: registerSchema,
         onSubmit: async (data) => {
             if (!data.imageUrl || data.imageUrl.trim() === '') {
-                toast.error('GitHub image name is required');
+                toast.error('Le nom d’image GitHub est requis');
                 return;
             }
 
@@ -162,7 +160,7 @@ const SuperAdminManagement: React.FC = () => {
                 setIsAdminModalOpen(false);
                 adminForm.resetForm();
             } catch (error) {
-                // Error handled in hook
+                // Géré dans le hook
             }
         }
     });
@@ -193,7 +191,7 @@ const SuperAdminManagement: React.FC = () => {
             setEditItem(null);
         } catch (error) {
             const errorMessage = getErrorMessage(error);
-            toast.error(`Error: ${errorMessage}`);
+            toast.error(`Erreur : ${errorMessage}`);
         }
     };
 
@@ -203,7 +201,7 @@ const SuperAdminManagement: React.FC = () => {
             setEditItem(null);
         } catch (error) {
             const errorMessage = getErrorMessage(error);
-            toast.error(`Error: ${errorMessage}`);
+            toast.error(`Erreur : ${errorMessage}`);
         }
     };
 
@@ -220,7 +218,7 @@ const SuperAdminManagement: React.FC = () => {
             }
         } catch (error) {
             const errorMessage = getErrorMessage(error);
-            toast.error(`Error: ${errorMessage}`);
+            toast.error(`Erreur : ${errorMessage}`);
         } finally {
             setDeleteId(null);
             setDeleteType(null);
@@ -228,27 +226,34 @@ const SuperAdminManagement: React.FC = () => {
     };
 
     const tabs = [
-        { id: 'admins' as TabType, label: 'Administrators', icon: AiOutlineUser, count: admins?.length || 0 },
+        { id: 'admins' as TabType, label: 'Administrateurs', icon: AiOutlineUser, count: admins?.length || 0 },
         { id: 'districts' as TabType, label: 'Districts', icon: AiOutlineEnvironment, count: districts?.length || 0 },
-        { id: 'tributes' as TabType, label: 'Tributes', icon: AiOutlineFlag, count: tributes?.length || 0 },
+        { id: 'tributes' as TabType, label: 'Tributs', icon: AiOutlineFlag, count: tributes?.length || 0 },
     ];
 
     return (
         <div className={THEME.section}>
-            {/* Header */}
-            <div className="relative overflow-hidden rounded-3xl border-2 border-b-4 border-brand-border shadow-lg mb-8">
-                <div className="absolute inset-0 bg-linear-to-r from-brand-primary/10 to-purple-500/10"></div>
-                <div className="relative flex flex-col md:flex-row md:items-center justify-between p-8 gap-4">
+            {/* Header Style Duolingo */}
+            <div className="relative overflow-hidden bg-white border-2 border-brand-border rounded-2xl shadow-[0_8px_0_0_#E5E5E5] hover:shadow-[0_12px_0_0_#E5E5E5] hover:translate-y-[-4px] transition-all duration-300 p-6 md:p-8">
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/5 via-transparent to-brand-primary/5" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-brand-primary/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+                <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-linear-to-br from-brand-primary via-orange-500 to-red-500 text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform hover:scale-110 transition-transform">
-                            {activeTab === 'admins' && <AiOutlineUser size={32} />}
-                            {activeTab === 'districts' && <AiOutlineEnvironment size={32} />}
-                            {activeTab === 'tributes' && <AiOutlineFlag size={32} />}
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-brand-primary to-brand-primary rounded-2xl blur-md opacity-50" />
+                            <div className="relative p-4 bg-gradient-to-br from-brand-primary to-brand-primary-dark text-white rounded-2xl shadow-lg transform hover:scale-105 transition-transform">
+                                {activeTab === 'admins' && <AiOutlineUser size={32} />}
+                                {activeTab === 'districts' && <AiOutlineEnvironment size={32} />}
+                                {activeTab === 'tributes' && <AiOutlineFlag size={32} />}
+                            </div>
                         </div>
                         <div>
-                            <h1 className={`${THEME.font.h1} text-2xl md:text-4xl`}>MANAGEMENT</h1>
-                            <p className={`${THEME.font.muted} mt-2 text-xs uppercase tracking-widest flex items-center gap-2`}>
-                                <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></span>
+                            <h1 className="text-3xl md:text-4xl font-black text-brand-text tracking-tight">
+                                GESTION
+                            </h1>
+                            <p className="flex items-center gap-2 text-sm text-brand-muted mt-1">
+                                <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
                                 {tabs.find(t => t.id === activeTab)?.label}
                             </p>
                         </div>
@@ -261,25 +266,25 @@ const SuperAdminManagement: React.FC = () => {
                             if (activeTab === 'districts') setIsDistrictModalOpen(true);
                             if (activeTab === 'tributes') setIsTributeModalOpen(true);
                         }}
-                        className="flex items-center gap-2 w-full md:w-auto justify-center"
+                        className="flex items-center gap-2 px-6 py-3 text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all w-full md:w-auto justify-center"
                     >
-                        <AiOutlinePlus className="text-lg" />
-                        <span className="font-black text-sm">ADD</span>
+                        <AiOutlinePlus size={18} />
+                        AJOUTER
                     </Button>
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex gap-2 p-2 bg-white rounded-3xl border-2 border-brand-border mb-8 overflow-x-auto">
+            {/* Tabs Style Duolingo */}
+            <div className="flex gap-2 p-2 bg-white border-2 border-brand-border rounded-2xl shadow-[0_6px_0_0_#E5E5E5] mb-8 overflow-x-auto">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`
-                            flex items-center gap-2 px-4 md:px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap
+                            flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all whitespace-nowrap
                             ${activeTab === tab.id
-                                ? 'bg-linear-to-r from-brand-primary to-orange-500 text-white shadow-lg scale-105'
-                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                ? 'bg-gradient-to-r from-brand-primary to-brand-primary-dark text-white shadow-md'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }
                         `}
                     >
@@ -292,8 +297,8 @@ const SuperAdminManagement: React.FC = () => {
                 ))}
             </div>
 
-            {/* Content */}
-            <div className="bg-white rounded-3xl border-2 border-b-4 border-brand-border p-6 md:p-8 shadow-md">
+            {/* Content Area - Card Duolingo */}
+            <div className="bg-white border-2 border-brand-border rounded-2xl shadow-[0_6px_0_0_#E5E5E5] p-6 md:p-8">
                 {activeTab === 'admins' && (
                     <AdminsTab
                         admins={admins}
@@ -326,7 +331,7 @@ const SuperAdminManagement: React.FC = () => {
                     <LocationTab
                         items={tributes}
                         isLoading={loadingTributes}
-                        title="Tributes"
+                        title="Tributs"
                         icon={<AiOutlineFlag size={20} />}
                         color="purple"
                         onDelete={(id) => {
@@ -349,21 +354,20 @@ const SuperAdminManagement: React.FC = () => {
 
             <LocationModal
                 form={districtForm}
-                title="New District"
-                placeholder="District name"
+                title="Nouveau District"
+                placeholder="Nom du district"
                 isOpen={isDistrictModalOpen}
                 onClose={() => setIsDistrictModalOpen(false)}
             />
 
             <LocationModal
                 form={tributeForm}
-                title="New Tribute"
-                placeholder="Tribute name"
+                title="Nouveau Tribut"
+                placeholder="Nom du tribut"
                 isOpen={isTributeModalOpen}
                 onClose={() => setIsTributeModalOpen(false)}
             />
 
-            {/* Edit Modal */}
             {editItem && (
                 <EditLocationModal
                     isOpen={!!editItem}
@@ -375,19 +379,18 @@ const SuperAdminManagement: React.FC = () => {
                             await handleUpdateTribute(editItem.id, name);
                         }
                     }}
-                    title={editItem.type === 'district' ? 'District' : 'Tribute'}
+                    title={editItem.type === 'district' ? 'District' : 'Tribut'}
                     currentName={editItem.name}
                     isLoading={updateDistrict.isPending || updateTribute.isPending}
                 />
             )}
 
-            {/* Delete Alert */}
             <Alert
                 isOpen={!!deleteId}
                 variant="danger"
-                title="Confirm Deletion"
-                message={`Are you sure you want to delete this item? This action is irreversible.`}
-                confirmText="DELETE"
+                title="Confirmation de suppression"
+                message="Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible."
+                confirmText="SUPPRIMER"
                 onClose={() => {
                     setDeleteId(null);
                     setDeleteType(null);
