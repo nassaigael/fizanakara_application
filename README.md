@@ -1,4 +1,4 @@
-🚀 Fizanakara Admin App
+# 🚀 Fizanakara Admin App
 Description
 
 Fizanakara Admin est une solution moderne dédiée à la gestion des cotisations annuelles des membres de l'organisation Fizanakara. L'application a été conçue avec un accent particulier sur la simplicité et l'engagement de l'expérience utilisateur (UI/UX).
@@ -14,7 +14,7 @@ L'application repose sur une stack technologique robuste et typée pour garantir
 
     Tailwind CSS : Utilisé pour un design moderne, réactif et des effets visuels avancés (profondeur et mise en page).
 
-✨ Fonctionnalités Clés
+**✨ Fonctionnalités Clés
 
     Gestion des Membres : Suivi détaillé de chaque membre de l'organisation.
 
@@ -24,7 +24,7 @@ L'application repose sur une stack technologique robuste et typée pour garantir
 
     Notifications en temps réel : Feedback visuel via des "toasts" pour chaque action effectuée.
 
-⚙️ Installation et Lancement
+***⚙️ Installation et Lancement
 Pour cloner et lancer ce projet localement :
 
     Cloner le dépôt :
