@@ -1,0 +1,132 @@
+openapi: "3.1.0"
+info:
+  title: "api API"
+  description: "api API"
+  version: "1.0.0"
+servers:
+  - url: "https://api"
+paths:
+  /api/admins/districts:
+    get:
+      summary: "GET api/admins/districts"
+      operationId: "getAllDistricts"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/District"
+    post:
+      summary: "POST api/admins/districts"
+      operationId: "createDistrict"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DistrictDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/District"
+  /api/admins/districts/{id}:
+    get:
+      summary: "GET api/admins/districts/{id}"
+      operationId: "getDistrictById"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/District"
+    put:
+      summary: "PUT api/admins/districts/{id}"
+      operationId: "updateDistrict"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DistrictDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/District"
+    delete:
+      summary: "DELETE api/admins/districts/{id}"
+      operationId: "deleteDistrict"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+  /api/admins/districts/delete-all:
+    delete:
+      summary: "DELETE api/admins/districts/delete-all"
+      operationId: "deleteAllDistricts"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+components:
+  schemas:
+    District:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        name:
+          type: "string"
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date-time"
+          nullable: true
+        version:
+          type: "integer"
+          format: "int64"
+          nullable: true
+    DistrictDto:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true

@@ -1,0 +1,203 @@
+openapi: "3.1.0"
+info:
+  title: "api API"
+  description: "api API"
+  version: "1.0.0"
+servers:
+  - url: "https://api"
+paths:
+  /api/admins/contributions:
+    get:
+      summary: "GET api/admins/contributions"
+      operationId: "getAllContributions"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/ContributionResponseDto"
+    post:
+      summary: "POST api/admins/contributions"
+      operationId: "createContributionsForYear"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContributionYearDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/ContributionResponseDto"
+  /api/admins/contributions/person/{personId}/year/{year}:
+    get:
+      summary: "GET api/admins/contributions/person/{personId}/year/{year}"
+      operationId: "getContributionsByPersonAndYear"
+      parameters:
+        - name: "personId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "year"
+          in: "path"
+          required: true
+          schema:
+            $ref: "#/components/schemas/Year"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/ContributionResponseDto"
+  /api/admins/contributions/{id}:
+    put:
+      summary: "PUT api/admins/contributions/{id}"
+      operationId: "updateContribution"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContributionUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ContributionResponseDto"
+    delete:
+      summary: "DELETE api/admins/contributions/{id}"
+      operationId: "deleteContribution"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Void"
+components:
+  schemas:
+    Year:
+      type: "object"
+      properties: { }
+    BigDecimal:
+      type: "object"
+      properties: { }
+    PaymentResponseDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          nullable: true
+        amountPaid:
+          nullable: true
+          $ref: "#/components/schemas/BigDecimal"
+        paymentDate:
+          type: "string"
+          format: "date"
+          nullable: true
+        status:
+          type: "string"
+          nullable: true
+          enum:
+            - "COMPLETED"
+            - "REFUNDED"
+            - "PENDING"
+        contributionId:
+          type: "string"
+          nullable: true
+    ContributionResponseDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          nullable: true
+        year:
+          nullable: true
+          $ref: "#/components/schemas/Year"
+        amount:
+          nullable: true
+          $ref: "#/components/schemas/BigDecimal"
+        status:
+          type: "string"
+          nullable: true
+          enum:
+            - "PENDING"
+            - "PARTIAL"
+            - "PAID"
+            - "OVERDUE"
+        dueDate:
+          type: "string"
+          format: "date"
+          nullable: true
+        totalPaid:
+          nullable: true
+          $ref: "#/components/schemas/BigDecimal"
+        remaining:
+          nullable: true
+          $ref: "#/components/schemas/BigDecimal"
+        memberId:
+          type: "string"
+          nullable: true
+        memberName:
+          type: "string"
+          nullable: true
+        childId:
+          type: "string"
+          nullable: true
+        payments:
+          type: "array"
+          nullable: true
+          items:
+            $ref: "#/components/schemas/PaymentResponseDto"
+    ContributionYearDto:
+      type: "object"
+      properties:
+        year:
+          nullable: true
+          $ref: "#/components/schemas/Year"
+    ContributionUpdateDto:
+      type: "object"
+      properties:
+        amount:
+          nullable: true
+          $ref: "#/components/schemas/BigDecimal"
+        status:
+          type: "string"
+          nullable: true
+          enum:
+            - "PENDING"
+            - "PARTIAL"
+            - "PAID"
+            - "OVERDUE"
+        memberId:
+          type: "string"
+          nullable: true
+    Void:
+      type: "object"
+      properties: { }
