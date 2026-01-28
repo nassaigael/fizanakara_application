@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui;
+
+  --color-brand-primary: var(--app-primary);
+  --color-brand-primary-dark: var(--app-primary-dark);
+  --color-brand-primary-light: var(--app-primary-light);
+
+  --color-brand-bg: #F7F7F7;
+  --color-brand-border: #E5E5E5;
+  --color-brand-text: #2E2E2E;
+  --color-brand-muted: #8A8F99;
+
+  --radius-duo: 1.25rem;
+}
+
+@layer base {
+  :root {
+    --app-primary: #E51A1A;
+    --app-primary-dark: #B91C1C;
+    --app-primary-light: #FEE2E2;
+
+    --grid-columns: 1;
+  }
+
+  @media (min-width: 768px) {
+    :root { --grid-columns: 2; }
+  }
+
+  @media (min-width: 1024px) {
+    :root { --grid-columns: 3; }
+  }
+
+  body {
+    @apply font-sans antialiased bg-brand-bg text-brand-text transition-colors duration-300;
+  }
+}
+
+@layer components {
+  .duo-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+    @apply gap-6;
+  }
+
+  .duo-card {
+    @apply bg-white border-2 border-brand-border rounded-duo p-6 transition-all;
+    box-shadow: 0 4px 0 0 #E5E5E5;
+  }
+
+  .duo-card-primary {
+    @apply text-white border-2 rounded-duo p-6 transition-all;
+    background-color: var(--app-primary);
+    border-color: var(--app-primary-dark);
+    box-shadow: 0 4px 0 0 var(--app-primary-dark);
+  }
+
+  .duo-btn-primary {
+    @apply relative flex items-center justify-center font-black uppercase tracking-widest text-[11px]
+           px-6 py-3 rounded-xl border-2 text-white transition-all
+           active:translate-y-1 active:shadow-none;
+    background-color: var(--app-primary);
+    border-color: var(--app-primary-dark);
+    box-shadow: 0 4px 0 0 var(--app-primary-dark);
+  }
+}
