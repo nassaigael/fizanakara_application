@@ -2,7 +2,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const api = axios.create({
-	baseURL: 'https://fizanakara-cotisation-app.onrender.com',
+	baseURL: 'https://fizanakara-cotisation-app.onrender.com/api',
 	headers: {
 		'Content-Type': 'application/json',
 	},
