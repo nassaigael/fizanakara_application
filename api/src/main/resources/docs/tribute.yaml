@@ -1,0 +1,128 @@
+openapi: "3.1.0"
+info:
+  title: "api API"
+  description: "api API"
+  version: "1.0.0"
+servers:
+  - url: "https://api"
+paths:
+  /api/admins/tributes:
+    get:
+      summary: "GET api/admins/tributes"
+      operationId: "getAllTributes"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Tribute"
+    post:
+      summary: "POST api/admins/tributes"
+      operationId: "createTribute"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TributeDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Tribute"
+  /api/admins/tributes/{id}:
+    get:
+      summary: "GET api/admins/tributes/{id}"
+      operationId: "getTributeByID"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Tribute"
+    put:
+      summary: "PUT api/admins/tributes/{id}"
+      operationId: "updateTribute"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TributeDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Tribute"
+    delete:
+      summary: "DELETE api/admins/tributes/{id}"
+      operationId: "deleteTribute"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+  /api/admins/tributes/delete-all:
+    delete:
+      summary: "DELETE api/admins/tributes/delete-all"
+      operationId: "deleteAllTributes"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+components:
+  schemas:
+    Tribute:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        name:
+          type: "string"
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date-time"
+          nullable: true
+    TributeDto:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true

@@ -1,0 +1,324 @@
+openapi: "3.1.0"
+info:
+  title: "api API"
+  description: "api API"
+  version: "1.0.0"
+servers:
+  - url: "https://api"
+paths:
+  /api/admins/persons:
+    get:
+      summary: "GET api/admins/persons"
+      operationId: "getAllPersons"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/PersonResponseDto"
+    post:
+      summary: "POST api/admins/persons"
+      operationId: "createPerson"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PersonResponseDto"
+  /api/admins/persons/{id}:
+    get:
+      summary: "GET api/admins/persons/{id}"
+      operationId: "getPersonById"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PersonResponseDto"
+    put:
+      summary: "PUT api/admins/persons/{id}"
+      operationId: "updatePerson"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PersonResponseDto"
+    delete:
+      summary: "DELETE api/admins/persons/{id}"
+      operationId: "deletePerson"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+  /api/admins/persons/{id}/promote:
+    post:
+      summary: "POST api/admins/persons/{id}/promote"
+      operationId: "promoteToActiveMember"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PersonResponseDto"
+  /api/admins/persons/{parentId}/children:
+    post:
+      summary: "POST api/admins/persons/{parentId}/children"
+      operationId: "addChildToPerson"
+      parameters:
+        - name: "parentId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PersonResponseDto"
+    get:
+      summary: "GET api/admins/persons/{parentId}/children"
+      operationId: "getChildrenByParentId"
+      parameters:
+        - name: "parentId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/PersonResponseDto"
+  /api/admins/persons/delete-all:
+    delete:
+      summary: "DELETE api/admins/persons/delete-all"
+      operationId: "deleteAllPersons"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+components:
+  schemas:
+    Person:
+      type: "object"
+      properties:
+        status:
+          type: "string"
+          nullable: true
+          enum:
+            - "WORKER"
+            - "STUDENT"
+        isActiveMember:
+          type: "boolean"
+          nullable: true
+        id:
+          type: "string"
+          nullable: true
+        sequenceNumber:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        firstName:
+          type: "string"
+          nullable: true
+        lastName:
+          type: "string"
+          nullable: true
+        birthDate:
+          type: "string"
+          format: "date"
+          nullable: true
+        gender:
+          type: "string"
+          nullable: true
+          enum:
+            - "MALE"
+            - "FEMALE"
+        imageUrl:
+          type: "string"
+          nullable: true
+        phoneNumber:
+          type: "string"
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date"
+          nullable: true
+    PersonResponseDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          nullable: true
+        firstName:
+          type: "string"
+          nullable: true
+        lastName:
+          type: "string"
+          nullable: true
+        birthDate:
+          type: "string"
+          format: "date"
+          nullable: true
+        gender:
+          type: "string"
+          nullable: true
+          enum:
+            - "MALE"
+            - "FEMALE"
+        imageUrl:
+          type: "string"
+          nullable: true
+        phoneNumber:
+          type: "string"
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date"
+          nullable: true
+        sequenceNumber:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        status:
+          type: "string"
+          nullable: true
+          enum:
+            - "WORKER"
+            - "STUDENT"
+        isActiveMember:
+          type: "boolean"
+          nullable: true
+        districtId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        districtName:
+          type: "string"
+          nullable: true
+        tributeId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        tributeName:
+          type: "string"
+          nullable: true
+        parentId:
+          type: "string"
+          nullable: true
+        parentName:
+          type: "string"
+          nullable: true
+        childrenCount:
+          type: "integer"
+          format: "int32"
+          nullable: true
+        children:
+          type: "array"
+          nullable: true
+          items:
+            $ref: "#/components/schemas/Person"
+    PersonDto:
+      type: "object"
+      properties:
+        firstName:
+          type: "string"
+          nullable: true
+        lastName:
+          type: "string"
+          nullable: true
+        birthDate:
+          type: "string"
+          format: "date"
+          nullable: true
+        gender:
+          type: "string"
+          nullable: true
+          enum:
+            - "MALE"
+            - "FEMALE"
+        imageUrl:
+          type: "string"
+          nullable: true
+        phoneNumber:
+          type: "string"
+          nullable: true
+        status:
+          type: "string"
+          nullable: true
+          enum:
+            - "WORKER"
+            - "STUDENT"
+        districtId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        tributeId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        parentId:
+          type: "string"
+          nullable: true

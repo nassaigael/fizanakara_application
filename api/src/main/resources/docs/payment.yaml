@@ -1,0 +1,134 @@
+openapi: "3.1.0"
+info:
+  title: "api API"
+  description: "api API"
+  version: "1.0.0"
+servers:
+  - url: "https://api"
+paths:
+  /api/admins/payments/contribution/{contributionId}:
+    get:
+      summary: "GET api/admins/payments/contribution/{contributionId}"
+      operationId: "getPaymentsByContributionId"
+      parameters:
+        - name: "contributionId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/PaymentResponseDto"
+  /api/admins/payments:
+    post:
+      summary: "POST api/admins/payments"
+      operationId: "createPayment"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PaymentResponseDto"
+  /api/admins/payments/{id}:
+    put:
+      summary: "PUT api/admins/payments/{id}"
+      operationId: "updatePayment"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PaymentResponseDto"
+    delete:
+      summary: "DELETE api/admins/payments/{id}"
+      operationId: "deletePayment"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Void"
+components:
+  schemas:
+    BigDecimal:
+      type: "object"
+      properties: { }
+    PaymentResponseDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          nullable: true
+        amountPaid:
+          nullable: true
+          $ref: "#/components/schemas/BigDecimal"
+        paymentDate:
+          type: "string"
+          format: "date"
+          nullable: true
+        status:
+          type: "string"
+          nullable: true
+          enum:
+            - "COMPLETED"
+            - "REFUNDED"
+            - "PENDING"
+        contributionId:
+          type: "string"
+          nullable: true
+    PaymentDto:
+      type: "object"
+      properties:
+        amountPaid:
+          nullable: true
+          $ref: "#/components/schemas/BigDecimal"
+        paymentDate:
+          type: "string"
+          format: "date-time"
+          nullable: true
+        status:
+          type: "string"
+          nullable: true
+          enum:
+            - "COMPLETED"
+            - "REFUNDED"
+            - "PENDING"
+        contributionId:
+          type: "string"
+          nullable: true
+    Void:
+      type: "object"
+      properties: { }
