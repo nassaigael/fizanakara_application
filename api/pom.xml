@@ -13,7 +13,7 @@
     <groupId>mg.fizanakara</groupId>
     <artifactId>api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>api-fizanakara</name>
+    <name>api-fizanakara-cotisation</name>
     <description>API Fizanakara Backend</description>
 
     <properties>
