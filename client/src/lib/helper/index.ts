@@ -1,4 +1,4 @@
-import { ContributionStatus, PaymentStatus, UserRole, Gender, PersonResponse, MemberStatus  } from '../types';
+import { ContributionStatus, PaymentStatus, UserRole, Gender, PersonResponse, MemberStatus } from '../types';
 
 export const getGenderLabel = (gender: Gender | string): string => {
     const labels: Record<string, string> = {
@@ -161,7 +161,6 @@ export const getContributionStatusInfo = (status: string) => {
     return statusMap[status as keyof typeof statusMap] || statusMap.PENDING;
 };
 
-
 export const getPaymentPercentage = (totalPaid: number, amount: number): number => {
     if (amount === 0) return 0;
     return Math.min(100, Math.round((totalPaid / amount) * 100));
@@ -186,7 +185,6 @@ export const formatCurrency = (amount: number): string => {
 export const getInitials = (firstName: string, lastName: string): string => {
     return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase() || '?';
 };
-
 
 export const truncate = (text: string, maxLength: number = 50): string => {
     if (!text || text.length <= maxLength) return text;
@@ -213,6 +211,23 @@ export const getErrorMessage = (error: any): string => {
     return 'Une erreur inattendue est survenue';
 };
 
+/**
+ * Extrait un message d'erreur depuis l'API (peut être une string directe)
+ */
+export const getApiErrorMessage = (error: any): string => {
+    if (error?.response?.data) {
+        // Si la réponse est une string (comme pour DELETE)
+        if (typeof error.response.data === 'string') {
+            return error.response.data;
+        }
+        // Si c'est un objet avec message
+        if (error.response.data.message) {
+            return error.response.data.message;
+        }
+    }
+    return getErrorMessage(error);
+};
+
 // ============================================
 // HELPERS DE PERMISSIONS
 // ============================================
@@ -227,7 +242,7 @@ export const can = (userRole: string, requiredRole: string): boolean => {
 };
 
 // ============================================
-// HELPERS DE THÈME (À AJOUTER)
+// HELPERS DE THÈME
 // ============================================
 
 export const darkenColor = (hex: string, amount: number): string => {
