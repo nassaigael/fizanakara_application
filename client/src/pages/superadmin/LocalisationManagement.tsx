@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
     AiOutlineGlobal, 
     AiOutlinePlus, 
@@ -12,8 +13,10 @@ import toast from 'react-hot-toast';
 import { THEME } from '../../styles/theme';
 import { useDistrict } from '../../hooks/useDistrict';
 import { useTribute } from '../../hooks/useTribute';
+import { getApiErrorMessage } from '../../lib/helper';
 
 const LocalisationManagement: React.FC = () => {
+    const navigate = useNavigate();
     const { districts, deleteDistrict } = useDistrict();
     const { tributes, deleteTribute } = useTribute();
 
@@ -31,7 +34,7 @@ const LocalisationManagement: React.FC = () => {
                 toast.success('Tribu supprimée');
             }
         } catch (err) {
-            toast.error('Erreur lors de la suppression');
+            toast.error(getApiErrorMessage(err));
         } finally {
             setDeleteId(null);
             setDeleteType(null);
@@ -40,7 +43,6 @@ const LocalisationManagement: React.FC = () => {
 
     return (
         <div className={THEME.section}>
-            {/* Header */}
             <div className="relative overflow-hidden rounded-3xl border-2 border-b-4 border-brand-border shadow-lg mb-8">
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-green-500/10"></div>
                 <div className="relative flex items-center justify-between p-8">
@@ -63,9 +65,7 @@ const LocalisationManagement: React.FC = () => {
                 </div>
             </div>
 
-            {/* Main Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Districts */}
                 <div className="bg-white rounded-3xl border-2 border-b-4 border-brand-border p-8 shadow-md hover:shadow-lg transition-shadow">
                     <div className="flex items-center justify-between mb-6 pb-6 border-b-2 border-brand-border">
                         <div className="flex items-center gap-3">
@@ -87,7 +87,10 @@ const LocalisationManagement: React.FC = () => {
                             <div className="text-center py-12">
                                 <AiOutlineEnvironment className="mx-auto mb-4 text-gray-300" size={48} />
                                 <p className="font-black text-gray-400">Aucun district configuré</p>
-                                <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-xl font-black text-sm hover:bg-blue-600">
+                                <button 
+                                    onClick={() => navigate('/superadmin/management?tab=districts')}
+                                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-xl font-black text-sm hover:bg-blue-600"
+                                >
                                     <AiOutlinePlus className="inline mr-2" />
                                     Ajouter
                                 </button>
@@ -108,7 +111,10 @@ const LocalisationManagement: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button className="p-2 hover:bg-blue-200 rounded-lg text-blue-600 hover:text-blue-700 transition-colors">
+                                        <button 
+                                            onClick={() => navigate(`/superadmin/management?tab=districts&edit=${d.id}`)}
+                                            className="p-2 hover:bg-blue-200 rounded-lg text-blue-600 hover:text-blue-700 transition-colors"
+                                        >
                                             <AiOutlineEdit size={18} />
                                         </button>
                                         <button
@@ -129,7 +135,6 @@ const LocalisationManagement: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Tributes */}
                 <div className="bg-white rounded-3xl border-2 border-b-4 border-brand-border p-8 shadow-md hover:shadow-lg transition-shadow">
                     <div className="flex items-center justify-between mb-6 pb-6 border-b-2 border-brand-border">
                         <div className="flex items-center gap-3">
@@ -151,7 +156,10 @@ const LocalisationManagement: React.FC = () => {
                             <div className="text-center py-12">
                                 <AiOutlineFlag className="mx-auto mb-4 text-gray-300" size={48} />
                                 <p className="font-black text-gray-400">Aucune tribu configurée</p>
-                                <button className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-xl font-black text-sm hover:bg-purple-600">
+                                <button 
+                                    onClick={() => navigate('/superadmin/management?tab=tributes')}
+                                    className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-xl font-black text-sm hover:bg-purple-600"
+                                >
                                     <AiOutlinePlus className="inline mr-2" />
                                     Ajouter
                                 </button>
@@ -172,7 +180,10 @@ const LocalisationManagement: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button className="p-2 hover:bg-purple-200 rounded-lg text-purple-600 hover:text-purple-700 transition-colors">
+                                        <button 
+                                            onClick={() => navigate(`/superadmin/management?tab=tributes&edit=${t.id}`)}
+                                            className="p-2 hover:bg-purple-200 rounded-lg text-purple-600 hover:text-purple-700 transition-colors"
+                                        >
                                             <AiOutlineEdit size={18} />
                                         </button>
                                         <button
@@ -194,9 +205,13 @@ const LocalisationManagement: React.FC = () => {
                 </div>
             </div>
 
-            {/* Stats Footer */}
             <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* delete confirmation */}
+                <StatBox label="Zones" value={districts.length} icon="🗺️" color="blue" />
+                <StatBox label="Entités" value={tributes.length} icon="🏛️" color="purple" />
+                <StatBox label="Total" value={districts.length + tributes.length} icon="📊" color="green" />
+                <StatBox label="Statut" value="Actif" icon="✓" color="orange" />
+            </div>
+
             <Alert
                 isOpen={!!deleteId}
                 variant="danger"
@@ -209,11 +224,6 @@ const LocalisationManagement: React.FC = () => {
                 }}
                 onConfirm={handleDelete}
             />
-                <StatBox label="Zones" value={districts.length} icon="🗺️" color="blue" />
-                <StatBox label="Entités" value={tributes.length} icon="🏛️" color="purple" />
-                <StatBox label="Total" value={districts.length + tributes.length} icon="📊" color="green" />
-                <StatBox label="Statut" value="Actif" icon="✓" color="orange" />
-            </div>
         </div>
     );
 };
