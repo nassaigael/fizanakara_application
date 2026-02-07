@@ -1,107 +1,149 @@
-import { useState, useEffect } from 'react';
-import { PersonDto, PersonResponseDto } from '../lib/types/models/person.type';
-import { PersonService } from '../services/person.services';
-import { personSchema } from '../lib/schemas/person.schema';
-import toast from 'react-hot-toast';
+// hooks/useMemberForm.ts
+import { useState, useCallback, useEffect } from 'react';
+import type { PersonDto, MemberStatus, Gender } from '../lib/types/models/person.type';
 
-export const useMemberForm = (onSuccess: () => void, memberToEdit?: PersonResponseDto | null) => {
-    const initialState: PersonDto = {
-        firstName: "",
-        lastName: "",
-        birthDate: "",
-        gender: "MALE",
-        imageUrl: "",
-        phoneNumber: "",
-        status: "STUDENT",
+interface UseMemberFormProps {
+  onSubmitSuccess?: () => void;
+  memberToEdit?: any;
+}
+
+export const useMemberForm = ({ onSubmitSuccess, memberToEdit }: UseMemberFormProps) => {
+  const [formData, setFormData] = useState<PersonDto>({
+    firstName: '',
+    lastName: '',
+    birthDate: new Date().toISOString().split('T')[0],
+    gender: 'MALE' as Gender,
+    imageUrl: '',
+    phoneNumber: '',
+    status: 'PENDING' as MemberStatus,
+    districtId: 0,
+    tributeId: 0,
+    parentId: ''
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+
+  // Initialiser le formulaire avec les données du membre à éditer
+  useEffect(() => {
+    if (memberToEdit) {
+      setFormData({
+        firstName: memberToEdit.firstName || '',
+        lastName: memberToEdit.lastName || '',
+        birthDate: memberToEdit.birthDate || new Date().toISOString().split('T')[0],
+        gender: memberToEdit.gender || 'MALE',
+        imageUrl: memberToEdit.imageUrl || '',
+        phoneNumber: memberToEdit.phoneNumber || '',
+        status: memberToEdit.status || 'PENDING',
+        districtId: memberToEdit.districtId || 0,
+        tributeId: memberToEdit.tributeId || 0,
+        parentId: memberToEdit.parentId || ''
+      });
+    } else {
+      // Réinitialiser pour une nouvelle création
+      setFormData({
+        firstName: '',
+        lastName: '',
+        birthDate: new Date().toISOString().split('T')[0],
+        gender: 'MALE' as Gender,
+        imageUrl: '',
+        phoneNumber: '',
+        status: 'PENDING' as MemberStatus,
         districtId: 0,
         tributeId: 0,
-        parentId: undefined
-    };
+        parentId: ''
+      });
+    }
+  }, [memberToEdit]);
 
-    const [formData, setFormData] = useState<PersonDto>(initialState);
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<Record<string, string>>({});
-
-    // Synchronisation avec le membre à éditer
-    useEffect(() => {
-        if (memberToEdit) {
-            setFormData({
-                firstName: memberToEdit.firstName,
-                lastName: memberToEdit.lastName,
-                birthDate: memberToEdit.birthDate ? String(memberToEdit.birthDate).split('T')[0] : "",
-                gender: memberToEdit.gender,
-                imageUrl: memberToEdit.imageUrl || "",
-                phoneNumber: memberToEdit.phoneNumber,
-                status: memberToEdit.status,
-                districtId: memberToEdit.districtId,
-                tributeId: memberToEdit.tributeId,
-                parentId: memberToEdit.parentId || undefined
-            });
-        } else {
-            setFormData(initialState);
-        }
-    }, [memberToEdit]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: (name === 'districtId' || name === 'tributeId') ? Number(value) : value
-        }));
-        if (errors[name]) {
-            setErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors[name];
-                return newErrors;
-            });
-        }
-    };
-
-const handleSubmit = async (e: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setErrors({});
-
-    const payload = {
-        ...formData,
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        imageUrl: formData.imageUrl.trim() || `https://ui-avatars.com/api/?name=${formData.firstName}+${formData.lastName}&background=FF4B4B&color=fff`,
-        parentId: (formData.parentId && formData.parentId.trim() !== "") ? formData.parentId : undefined 
-    };
-
-    const validation = personSchema.safeParse(payload);
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
     
-    if (!validation.success) {
-        const formattedErrors: Record<string, string> = {};
-        validation.error.issues.forEach((issue) => {
-            const path = issue.path[0] as string;
-            if (path) {
-                formattedErrors[path] = issue.message;
-            }
-        });
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'number' ? parseInt(value, 10) : value
+    }));
 
-        setErrors(formattedErrors);
-        toast.error("Veuillez vérifier les informations saisies.");
-        return;
+    // Effacer l'erreur pour ce champ
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  }, [errors]);
+
+  const validateForm = useCallback((): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'Le prénom est requis';
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Le nom est requis';
+    }
+
+    if (!formData.birthDate) {
+      newErrors.birthDate = 'La date de naissance est requise';
+    }
+
+    if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = 'Le numéro de téléphone est requis';
+    }
+
+    if (!formData.districtId) {
+      newErrors.districtId = 'Le district est requis';
+    }
+
+    if (!formData.tributeId) {
+      newErrors.tributeId = 'La tribu est requise';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [formData]);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
     }
 
     setLoading(true);
-    try {
-        if (memberToEdit) {
-            await PersonService.update(memberToEdit.id, payload as Partial<PersonDto>);
-            toast.success("Informations mises à jour !");
-        } else {
-            await PersonService.create(payload as PersonDto);
-            toast.success("Membre ajouté avec succès !");
-        }
-        onSuccess();
-    } catch (error: any) {
-        const serverMessage = error.response?.data?.message;
-        toast.error(serverMessage || "Le serveur a rencontré un problème.");
-    } finally {
-        setLoading(false);
-    }
-};
+    setErrors({});
 
-    return { formData, handleChange, handleSubmit, loading, errors, setFormData };
+    try {
+      // Ici, vous appellerez le service approprié
+      // Cette fonction sera implémentée par le parent
+      if (onSubmitSuccess) {
+        onSubmitSuccess();
+      }
+    } catch (error: any) {
+      console.error('Form submission error:', error);
+      
+      // Gérer les erreurs du serveur
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else {
+        setErrors({ 
+          _form: error.message || 'Une erreur est survenue lors de la soumission' 
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [formData, validateForm, onSubmitSuccess]);
+
+  return {
+    formData,
+    setFormData,
+    handleChange,
+    handleSubmit,
+    loading,
+    errors,
+    setErrors
+  };
 };

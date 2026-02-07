@@ -14,7 +14,7 @@ export const useContribution = (year: number = new Date().getFullYear()) => {
         try {
             // Note: On utilise generate car dans ta logique, 
             // cela initialise ou récupère les cotisations de l'année.
-            const data = await ContributionService.generateForYear({ year });
+            const data = await ContributionService.generateForYear(year);
             setContributions(data);
         } catch (error: any) {
             toast.error("Impossible de récupérer les cotisations");

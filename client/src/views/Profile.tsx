@@ -10,7 +10,7 @@ import {
 } from "react-icons/ai";
 import { useAuth } from "../context/AuthContext";
 import { THEME } from "../styles/theme";
-import { AuthService } from "../services/auth.service";
+import AuthService from "../services/auth.service";
 import { applyThemeToDOM } from "../lib/helper/helperTheme";
 import Button from "../components/shared/Button";
 import Input from "../components/shared/Input";

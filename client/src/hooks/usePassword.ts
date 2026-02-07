@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { AuthService } from '../services/auth.service';
+import AuthService from '../services/auth.service';
 import toast from 'react-hot-toast';
 
 export const usePassword = () => {

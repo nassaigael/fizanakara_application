@@ -1,3 +1,4 @@
+// components/Login.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -5,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AiOutlineMail, AiOutlineLock, AiOutlineSafetyCertificate } from 'react-icons/ai';
 import { useAuth } from '../context/AuthContext';
 import { loginSchema } from '../lib/schemas/admin.schema';
-import { LoginRequestDTO } from '../lib/types/models/admin.type';
+import type { LoginRequestDto } from '../lib/types/models/admin.type';
 
 import Input from '../components/shared/Input';
 import Button from '../components/shared/Button';
@@ -16,9 +17,13 @@ const Login: React.FC = () => {
 	const navigate = useNavigate();
 	const { login, isAuthenticated } = useAuth();
 	const [isLoading, setIsLoading] = useState(false);
-	const [alertConfig, setAlertConfig] = useState({ show: false, msg: '' });
+	const [alertConfig, setAlertConfig] = useState({ 
+		show: false, 
+		msg: '', 
+		variant: 'danger' as 'danger' | 'success' 
+	});
 
-	const { register, handleSubmit, formState: { errors } } = useForm<LoginRequestDTO>({
+	const { register, handleSubmit, formState: { errors } } = useForm<LoginRequestDto>({
 		resolver: zodResolver(loginSchema),
 	});
 
@@ -28,15 +33,22 @@ const Login: React.FC = () => {
 		}
 	}, [isAuthenticated, navigate]);
 
-	const onSubmit = async (data: LoginRequestDTO) => {
+	const onSubmit = async (data: LoginRequestDto) => {
 		setIsLoading(true);
+		setAlertConfig({ show: false, msg: '', variant: 'danger' });
 		try {
 			await login(data);
+			// Redirection gérée dans le useEffect via isAuthenticated
 		} catch (error: any) {
-			const errorMsg = error.response?.data?.message ||
-				error.response?.data?.error ||
-				"Identifiants invalides ou serveur indisponible.";
-			setAlertConfig({ show: true, msg: errorMsg });
+			console.error('Login error:', error);
+			const errorMsg = error.response?.data?.error || 
+							error.message || 
+							"Identifiants invalides ou serveur indisponible.";
+			setAlertConfig({ 
+				show: true, 
+				msg: errorMsg, 
+				variant: 'danger' 
+			});
 		} finally {
 			setIsLoading(false);
 		}
@@ -93,6 +105,7 @@ const Login: React.FC = () => {
 							type="submit"
 							className="w-full py-5 text-[11px] tracking-[0.2em]"
 							isLoading={isLoading}
+							disabled={isLoading}
 						>
 							{isLoading ? "AUTHENTIFICATION..." : "DÉVERROUILLER L'ACCÈS"}
 						</Button>
@@ -108,7 +121,7 @@ const Login: React.FC = () => {
 				isOpen={alertConfig.show}
 				title="Accès Refusé"
 				message={alertConfig.msg}
-				variant="danger"
+				variant={alertConfig.variant}
 				onClose={() => setAlertConfig({ ...alertConfig, show: false })}
 			/>
 		</div>

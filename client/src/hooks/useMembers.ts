@@ -1,95 +1,262 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { PersonService } from '../services/person.services';
-import { PersonResponseDto } from '../lib/types/models/person.type';
-import toast from 'react-hot-toast';
+import { useState, useCallback } from 'react';
+import PersonService, { PersonFilterOptions } from '../services/person.services';
+import type { PersonDto, PersonResponseDto, MemberStatus } from '../lib/types/models/person.type';
 
-export const useMemberLogic = () => {
-	const [members, setMembers] = useState<PersonResponseDto[]>([]);
-	const [loading, setLoading] = useState(true);
+/**
+ * Hook personnalisé pour la gestion des personnes
+ */
+export const usePersons = () => {
+  const [persons, setPersons] = useState<PersonResponseDto[]>([]);
+  const [currentPerson, setCurrentPerson] = useState<PersonResponseDto | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-	const [search, setSearch] = useState("");
-	const [filterSex, setFilterSex] = useState("");
-	const [filterDistrict, setFilterDistrict] = useState("");
-	const [filterTribe, setFilterTribe] = useState("");
+  /**
+   * Charge toutes les personnes
+   */
+  const loadAllPersons = useCallback(async (filters?: PersonFilterOptions) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await PersonService.getAllPersons(filters);
+      setPersons(data);
+      return data;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-	const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  /**
+   * Charge une personne par son ID
+   */
+  const loadPersonById = useCallback(async (id: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await PersonService.getPersonById(id);
+      setCurrentPerson(data);
+      return data;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-	const fetchMembers = useCallback(async () => {
-		setLoading(true);
-		try {
-			const data = await PersonService.getAll();
-			setMembers(data);
-		} catch (error) {
-			toast.error("Erreur de synchronisation avec la base de données");
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+  /**
+   * Crée une nouvelle personne
+   */
+  const createPerson = useCallback(async (personData: PersonDto) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const newPerson = await PersonService.createPerson(personData);
+      setPersons(prev => [...prev, newPerson]);
+      return newPerson;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-	useEffect(() => { fetchMembers(); }, [fetchMembers]);
+  /**
+   * Ajoute un enfant à un parent
+   */
+  const addChildToPerson = useCallback(async (parentId: string, childData: PersonDto) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const child = await PersonService.addChild(parentId, childData);
+      
+      // Mettre à jour le parent dans la liste
+      setPersons(prev => prev.map(person => {
+        if (person.id === parentId) {
+          return {
+            ...person,
+            childrenCount: person.childrenCount + 1,
+            children: [...(person.children || []), child]
+          };
+        }
+        return person;
+      }));
+      
+      return child;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-	const filteredMembers = useMemo(() => {
-		return members.filter(m => {
-			const matchesSearch = !search ||
-				`${m.firstName} ${m.lastName} ${m.phoneNumber} ${m.sequenceNumber}`
-					.toLowerCase()
-					.includes(search.toLowerCase());
+  /**
+   * Met à jour une personne
+   */
+  const updatePerson = useCallback(async (id: string, updateData: Partial<PersonDto>) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const updatedPerson = await PersonService.updatePerson(id, updateData);
+      
+      // Mettre à jour dans la liste
+      setPersons(prev => prev.map(person => 
+        person.id === id ? updatedPerson : person
+      ));
+      
+      // Mettre à jour la personne courante si c'est celle-ci
+      if (currentPerson?.id === id) {
+        setCurrentPerson(updatedPerson);
+      }
+      
+      return updatedPerson;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPerson]);
 
-			const matchesSex = !filterSex || m.gender === filterSex;
-			const matchesDistrict = !filterDistrict || m.districtName === filterDistrict;
-			const matchesTribe = !filterTribe || m.tributeName === filterTribe;
+  /**
+   * Promouvoir une personne à membre actif
+   */
+  const promoteToActiveMember = useCallback(async (id: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const promotedPerson = await PersonService.promoteToActiveMember(id);
+      
+      // Mettre à jour dans la liste
+      setPersons(prev => prev.map(person => 
+        person.id === id ? promotedPerson : person
+      ));
+      
+      return promotedPerson;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-			return matchesSearch && matchesSex && matchesDistrict && matchesTribe;
-		});
-	}, [members, search, filterSex, filterDistrict, filterTribe]);
+  /**
+   * Supprime une personne
+   */
+  const deletePerson = useCallback(async (id: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await PersonService.deletePerson(id);
+      
+      // Retirer de la liste
+      setPersons(prev => prev.filter(person => person.id !== id));
+      
+      // Effacer la personne courante si c'est celle-ci
+      if (currentPerson?.id === id) {
+        setCurrentPerson(null);
+      }
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPerson]);
 
-	// --- Actions ---
-	const handleSelect = (id: string) => {
-		setSelectedMembers(prev =>
-			prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-		);
-	};
+  /**
+   * Charge les enfants d'un parent
+   */
+  const loadChildren = useCallback(async (parentId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const children = await PersonService.getChildrenByParentId(parentId);
+      
+      // Mettre à jour le parent dans la liste
+      setPersons(prev => prev.map(person => {
+        if (person.id === parentId) {
+          return { ...person, children };
+        }
+        return person;
+      }));
+      
+      return children;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-	const handleSelectAll = (checked: boolean) => {
-		setSelectedMembers(checked ? filteredMembers.map(m => m.id) : []);
-	};
+  /**
+   * Recherche des personnes
+   */
+  const searchPersons = useCallback(async (criteria: {
+    query?: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    status?: MemberStatus;
+  }) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const results = await PersonService.searchPersons(criteria);
+      setPersons(results);
+      return results;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-	const deleteAction = async (ids: string[]) => {
-		if (ids.length === 0) return;
+  /**
+   * Met à jour le statut d'une personne
+   */
+  const updatePersonStatus = useCallback(async (id: string, status: MemberStatus) => {
+    return updatePerson(id, { status });
+  }, [updatePerson]);
 
-		const confirmMsg = ids.length === 1
-			? "Supprimer ce membre ?"
-			: `Supprimer ces ${ids.length} membres et leurs données rattachées ?`;
+  /**
+   * Efface les données locales
+   */
+  const clearData = useCallback(() => {
+    setPersons([]);
+    setCurrentPerson(null);
+    setError(null);
+  }, []);
 
-		if (!window.confirm(confirmMsg)) return;
-
-		try {
-			await Promise.all(ids.map(id => PersonService.delete(id)));
-			toast.success("Suppression effectuée");
-			setSelectedMembers([]);
-			fetchMembers();
-		} catch (error) {
-			toast.error("Certains membres n'ont pas pu être supprimés");
-		}
-	};
-
-	return {
-		// Data
-		members: filteredMembers,
-		allMembersCount: members.length,
-		loading,
-
-		search, setSearch,
-		filterSex, setFilterSex,
-		filterDistrict, setFilterDistrict,
-		filterTribe, setFilterTribe,
-
-		selectedMembers,
-		handleSelect,
-		handleSelectAll,
-		isAllSelected: filteredMembers.length > 0 && selectedMembers.length === filteredMembers.length,
-
-		deleteAction,
-		refreshMembers: fetchMembers
-	};
+  return {
+    // État
+    persons,
+    currentPerson,
+    loading,
+    error,
+    
+    // Actions
+    loadAllPersons,
+    loadPersonById,
+    createPerson,
+    addChildToPerson,
+    updatePerson,
+    promoteToActiveMember,
+    deletePerson,
+    loadChildren,
+    searchPersons,
+    updatePersonStatus,
+    clearData,
+    
+    // Utilitaires
+    clearError: () => setError(null),
+  };
 };
