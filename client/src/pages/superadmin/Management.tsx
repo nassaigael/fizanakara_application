@@ -23,8 +23,10 @@ import Select from '../../components/ui/Select';
 import Alert from '../../components/ui/Alert';
 import { THEME } from '../../styles/theme';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../../lib/helper';
 
 type TabType = 'admins' | 'districts' | 'tributes';
+type DeleteType = 'admin' | 'district' | 'tribute' | null;
 
 const SuperAdminManagement: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -34,11 +36,11 @@ const SuperAdminManagement: React.FC = () => {
     const [isDistrictModalOpen, setIsDistrictModalOpen] = useState(false);
     const [isTributeModalOpen, setIsTributeModalOpen] = useState(false);
     const [deleteId, setDeleteId] = useState<string | number | null>(null);
-    const [deleteType, setDeleteType] = useState<'admin' | 'district' | 'tribute' | null>(null);
+    const [deleteType, setDeleteType] = useState<DeleteType>(null);
 
-    const { admins, isLoading: loadingAdmins, createAdmin, deleteAdmin } = useAdmin(); // ✅ admins au lieu de allAdmins
-    const { districts, isLoading: loadingDistricts, createDistrict, deleteDistrict } = useDistrict(); // ✅ isLoading
-    const { tributes, isLoading: loadingTributes, createTribute, deleteTribute } = useTribute(); // ✅ isLoading
+    const { admins, isLoading: loadingAdmins, createAdmin, deleteAdmin } = useAdmin();
+    const { districts, isLoading: loadingDistricts, createDistrict, deleteDistrict } = useDistrict();
+    const { tributes, isLoading: loadingTributes, createTribute, deleteTribute } = useTribute();
 
     useEffect(() => {
         setSearchParams({ tab: activeTab });
@@ -53,17 +55,34 @@ const SuperAdminManagement: React.FC = () => {
             birthDate: '',
             gender: 'MALE' as any,
             phoneNumber: '',
-            imageUrl: ''
+            imageUrl: ''  // L'utilisateur devra remplir ce champ
         },
         validationSchema: registerSchema,
         onSubmit: async (data) => {
-            const payload = { ...data } as RegisterRequest;
-            if (payload.imageUrl === '') {
-                delete payload.imageUrl;
+            // Vérifier que imageUrl n'est pas vide
+            if (!data.imageUrl || data.imageUrl.trim() === '') {
+                toast.error('Le nom de l\'image GitHub est requis');
+                return;
             }
-            await createAdmin.mutateAsync(payload);
-            setIsAdminModalOpen(false);
-            adminForm.resetForm();
+
+            // Nettoyer le nom de l'image (enlever les espaces, ajouter .jpg si nécessaire)
+            const cleanImageUrl = data.imageUrl.trim().replace(/\s+/g, '_');
+            
+            const payload: RegisterRequest = {
+                ...data,
+                imageUrl: cleanImageUrl  // Envoyer le nom nettoyé
+            };
+            
+            console.log('📤 Création admin avec image:', payload.imageUrl);
+            
+            try {
+                await createAdmin.mutateAsync(payload);
+                setIsAdminModalOpen(false);
+                adminForm.resetForm();
+                toast.success('Administrateur créé avec succès');
+            } catch (error) {
+                console.error('❌ Erreur création:', error);
+            }
         }
     });
 
@@ -102,7 +121,8 @@ const SuperAdminManagement: React.FC = () => {
                 toast.success('Tribu supprimée');
             }
         } catch (error) {
-            toast.error('Erreur lors de la suppression');
+            const errorMessage = getErrorMessage(error);
+            toast.error(`Erreur: ${errorMessage}`);
         } finally {
             setDeleteId(null);
             setDeleteType(null);
@@ -261,7 +281,6 @@ const SuperAdminManagement: React.FC = () => {
         </div>
     );
 };
-
 
 interface AdminsTabProps {
     admins: AdminResponse[] | undefined;
@@ -457,7 +476,6 @@ const AdminModal: React.FC<AdminModalProps> = ({ form, isOpen, onClose }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
             <div className="bg-white rounded-3xl w-full max-w-2xl border-2 border-black shadow-[0_20px_25px_-5px_rgba(0,0,0,0.3)] overflow-hidden max-h-[90vh] overflow-y-auto">
-                {/* Header */}
                 <div className="bg-gradient-to-r from-brand-primary to-orange-500 p-8 text-white relative">
                     <button 
                         onClick={onClose} 
@@ -475,8 +493,6 @@ const AdminModal: React.FC<AdminModalProps> = ({ form, isOpen, onClose }) => {
                         </div>
                     </div>
                 </div>
-
-                {/* Content */}
                 <div className="p-8">
                     <form onSubmit={form.handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -550,6 +566,23 @@ const AdminModal: React.FC<AdminModalProps> = ({ form, isOpen, onClose }) => {
                             required
                         />
 
+                        {/* Champ imageUrl obligatoire avec explication */}
+                        <div className="space-y-2">
+                            <Input
+                                label="Nom de l'image GitHub"
+                                name="imageUrl"
+                                value={form.values.imageUrl || ''}
+                                onChange={form.handleChange}
+                                error={form.errors.imageUrl}
+                                placeholder="ex: jean_dupont.jpg"
+                                required
+                            />
+                            <p className="text-xs text-brand-muted">
+                                📸 L'image doit être stockée sur GitHub dans le dossier /admin 
+                                (ex: https://raw.githubusercontent.com/mekill404/image_membre_fizankara/main/admin/nom_image.jpg)
+                            </p>
+                        </div>
+
                         <div className="flex gap-3 pt-4 border-t-2 border-brand-border">
                             <Button 
                                 type="button" 
@@ -593,7 +626,6 @@ const LocationModal: React.FC<LocationModalProps> = ({ form, title, placeholder,
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
             <div className="bg-white rounded-3xl w-full max-w-md border-2 border-black shadow-[0_20px_25px_-5px_rgba(0,0,0,0.3)] overflow-hidden">
-                {/* Header */}
                 <div className={`bg-gradient-to-r ${color} p-8 text-white relative`}>
                     <button 
                         onClick={onClose} 
