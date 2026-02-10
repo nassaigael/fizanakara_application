@@ -1,262 +1,83 @@
-import { useState, useCallback } from 'react';
-import PersonService, { PersonFilterOptions } from '../services/person.services';
-import type { PersonDto, PersonResponseDto, MemberStatus } from '../lib/types/models/person.type';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import MemberService from "../services/member.services";
+import { PersonModel, PersonResponseModel } from "../lib/types/models/person.models.types";
+import toast from "react-hot-toast";
 
-/**
- * Hook personnalisé pour la gestion des personnes
- */
-export const usePersons = () => {
-  const [persons, setPersons] = useState<PersonResponseDto[]>([]);
-  const [currentPerson, setCurrentPerson] = useState<PersonResponseDto | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export const useMembers = (parentId?: string) => {
+    const queryClient = useQueryClient();
 
-  /**
-   * Charge toutes les personnes
-   */
-  const loadAllPersons = useCallback(async (filters?: PersonFilterOptions) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await PersonService.getAllPersons(filters);
-      setPersons(data);
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    // Queries
+    const { data: members = [], isLoading } = useQuery({
+        queryKey: ["members"],
+        queryFn: MemberService.getAll
+    });
 
-  /**
-   * Charge une personne par son ID
-   */
-  const loadPersonById = useCallback(async (id: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await PersonService.getPersonById(id);
-      setCurrentPerson(data);
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const { data: children = [], isLoading: loadingChildren } = useQuery({
+        queryKey: ["members", parentId, "children"],
+        queryFn: () => parentId ? MemberService.getChildren(parentId) : Promise.resolve([]),
+        enabled: !!parentId
+    });
 
-  /**
-   * Crée une nouvelle personne
-   */
-  const createPerson = useCallback(async (personData: PersonDto) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const newPerson = await PersonService.createPerson(personData);
-      setPersons(prev => [...prev, newPerson]);
-      return newPerson;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    // --- MUTATIONS CORRIGÉES ---
 
-  /**
-   * Ajoute un enfant à un parent
-   */
-  const addChildToPerson = useCallback(async (parentId: string, childData: PersonDto) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const child = await PersonService.addChild(parentId, childData);
-      
-      // Mettre à jour le parent dans la liste
-      setPersons(prev => prev.map(person => {
-        if (person.id === parentId) {
-          return {
-            ...person,
-            childrenCount: person.childrenCount + 1,
-            children: [...(person.children || []), child]
-          };
+    // Création simple
+    const createMember = useMutation({
+        mutationFn: (data: PersonModel) => MemberService.create(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["members"] });
+            toast.success("Membre créé avec succès");
         }
-        return person;
-      }));
-      
-      return child;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    });
 
-  /**
-   * Met à jour une personne
-   */
-  const updatePerson = useCallback(async (id: string, updateData: Partial<PersonDto>) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const updatedPerson = await PersonService.updatePerson(id, updateData);
-      
-      // Mettre à jour dans la liste
-      setPersons(prev => prev.map(person => 
-        person.id === id ? updatedPerson : person
-      ));
-      
-      // Mettre à jour la personne courante si c'est celle-ci
-      if (currentPerson?.id === id) {
-        setCurrentPerson(updatedPerson);
-      }
-      
-      return updatedPerson;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPerson]);
-
-  /**
-   * Promouvoir une personne à membre actif
-   */
-  const promoteToActiveMember = useCallback(async (id: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const promotedPerson = await PersonService.promoteToActiveMember(id);
-      
-      // Mettre à jour dans la liste
-      setPersons(prev => prev.map(person => 
-        person.id === id ? promotedPerson : person
-      ));
-      
-      return promotedPerson;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  /**
-   * Supprime une personne
-   */
-  const deletePerson = useCallback(async (id: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await PersonService.deletePerson(id);
-      
-      // Retirer de la liste
-      setPersons(prev => prev.filter(person => person.id !== id));
-      
-      // Effacer la personne courante si c'est celle-ci
-      if (currentPerson?.id === id) {
-        setCurrentPerson(null);
-      }
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPerson]);
-
-  /**
-   * Charge les enfants d'un parent
-   */
-  const loadChildren = useCallback(async (parentId: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const children = await PersonService.getChildrenByParentId(parentId);
-      
-      // Mettre à jour le parent dans la liste
-      setPersons(prev => prev.map(person => {
-        if (person.id === parentId) {
-          return { ...person, children };
+    // Ajout enfant : Typage explicite des variables { parentId, childData }
+    const addChild = useMutation<PersonResponseModel, Error, { parentId: string; childData: PersonModel }>({
+        mutationFn: ({ parentId, childData }) => MemberService.addChild(parentId, childData),
+        onSuccess: (_, variables) => {
+            // Ici variables contient bien parentId et childData
+            queryClient.invalidateQueries({ queryKey: ["members", variables.parentId, "children"] });
+            queryClient.invalidateQueries({ queryKey: ["members"] });
+            toast.success("Enfant ajouté");
         }
-        return person;
-      }));
-      
-      return children;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    });
 
-  /**
-   * Recherche des personnes
-   */
-  const searchPersons = useCallback(async (criteria: {
-    query?: string;
-    firstName?: string;
-    lastName?: string;
-    phoneNumber?: string;
-    status?: MemberStatus;
-  }) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const results = await PersonService.searchPersons(criteria);
-      setPersons(results);
-      return results;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    // Mise à jour : Typage explicite des variables { id, data }
+    const updateMember = useMutation<PersonResponseModel, Error, { id: string; data: PersonModel }>({
+        mutationFn: ({ id, data }) => MemberService.update(id, data),
+        onSuccess: (_, variables) => {
+            // Ici variables contient bien id et data
+            queryClient.invalidateQueries({ queryKey: ["members"] });
+            queryClient.invalidateQueries({ queryKey: ["members", variables.id] });
+            toast.success("Membre mis à jour");
+        }
+    });
 
-  /**
-   * Met à jour le statut d'une personne
-   */
-  const updatePersonStatus = useCallback(async (id: string, status: MemberStatus) => {
-    return updatePerson(id, { status });
-  }, [updatePerson]);
+    // Promotion
+    const promoteMember = useMutation({
+        mutationFn: (id: string) => MemberService.promote(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["members"] });
+            toast.success("Membre promu au statut ACTIF");
+        }
+    });
 
-  /**
-   * Efface les données locales
-   */
-  const clearData = useCallback(() => {
-    setPersons([]);
-    setCurrentPerson(null);
-    setError(null);
-  }, []);
+    // Suppression
+    const deleteMember = useMutation({
+        mutationFn: (id: string) => MemberService.delete(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["members"] });
+            toast.success("Membre supprimé");
+        }
+    });
 
-  return {
-    // État
-    persons,
-    currentPerson,
-    loading,
-    error,
-    
-    // Actions
-    loadAllPersons,
-    loadPersonById,
-    createPerson,
-    addChildToPerson,
-    updatePerson,
-    promoteToActiveMember,
-    deletePerson,
-    loadChildren,
-    searchPersons,
-    updatePersonStatus,
-    clearData,
-    
-    // Utilitaires
-    clearError: () => setError(null),
-  };
+    return {
+        members,
+        isLoading,
+        children,
+        loadingChildren,
+        createMember,
+        addChild,
+        updateMember,
+        promoteMember,
+        deleteMember
+    };
 };

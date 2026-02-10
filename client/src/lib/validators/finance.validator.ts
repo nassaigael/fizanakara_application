@@ -1,6 +1,6 @@
 // src/lib/validators/finance.validator.ts
 import { z } from "zod";
-import { ContributionStatus, PaymentStatus } from "../../types/enum.types";
+import { ContributionStatus, PaymentStatus } from "../types/enum.types";
 
 /**
  * Validateur pour créer un paiement

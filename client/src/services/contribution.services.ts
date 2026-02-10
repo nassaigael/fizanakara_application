@@ -4,7 +4,7 @@ import {
     ContributionResponseModel, 
     ContributionUpdateModel,
     ContributionYearModel 
-} from "../types/models/contribution.models.types";
+} from "../lib/types/models/contribution.models.types";
 
 const ContributionService = {
     /**
@@ -12,7 +12,7 @@ const ContributionService = {
      * @path GET /api/admins/contributions
      */
     getAll: async (): Promise<ContributionResponseModel[]> => {
-        const response = await api.get<ContributionResponseModel[]>('/admins/contributions');
+        const response = await api.get<ContributionResponseModel[]>('/api/admins/contributions');
         return response.data;
     },
 
@@ -32,7 +32,7 @@ const ContributionService = {
      * @path POST /api/admins/contributions
      */
     generateForYear: async (data: ContributionYearModel): Promise<ContributionResponseModel[]> => {
-        const response = await api.post<ContributionResponseModel[]>('/admins/contributions', data);
+        const response = await api.post<ContributionResponseModel[]>('/api/admins/contributions', data);
         return response.data;
     },
 
@@ -41,7 +41,7 @@ const ContributionService = {
      * @path PUT /api/admins/contributions/{id}
      */
     update: async (id: string, data: ContributionUpdateModel): Promise<ContributionResponseModel> => {
-        const response = await api.put<ContributionResponseModel>(`/admins/contributions/${id}`, data);
+        const response = await api.put<ContributionResponseModel>(`/api/admins/contributions/${id}`, data);
         return response.data;
     },
 
@@ -50,7 +50,7 @@ const ContributionService = {
      * @path DELETE /api/admins/contributions/{id}
      */
     delete: async (id: string): Promise<void> => {
-        await api.delete(`/admins/contributions/${id}`);
+        await api.delete(`/api/admins/contributions/${id}`);
     }
 };
 

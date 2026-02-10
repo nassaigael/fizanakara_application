@@ -1,18 +1,18 @@
 export enum Gender{
-    FEMELLE = 'FEMALE',
-    HOMME = 'MALE',
+    FEMALE = 'FEMALE',
+    MALE = 'MALE',
 }
 
 export enum ContributionStatus {
   PENDING = 'PENDING',
   PARTIAL = 'PARTIAL',
-  PAID='PAID',
-  OVERDUE='OVERDUE',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
 }
 
 export enum MemberStatus{
-    TRAVAILLEUR = 'WORKER',
-    ETUDIANT = 'STUDENT',
+    WORKER = 'WORKER',
+    STUDENT = 'STUDENT',
 }
 
 export enum UserRole{

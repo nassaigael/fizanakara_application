@@ -1,427 +1,239 @@
-// pages/MemberManagement.tsx
-import React, { useState, useMemo, memo } from "react";
+import React, { useState, useMemo, memo, useCallback } from "react";
 import {
     AiOutlineSearch, AiOutlineEye, AiOutlineDelete,
-    AiOutlinePlus, AiOutlineFilter, AiOutlineEdit, AiOutlineClose,
-    AiOutlineTeam, AiOutlineCalendar, AiOutlinePhone, AiOutlineGlobal,
-    AiOutlineUser
+    AiOutlinePlus, AiOutlineEdit, AiOutlineClose,
+    AiOutlineCalendar, AiOutlinePhone, AiOutlineGlobal,
+    AiOutlineTeam
 } from "react-icons/ai";
-import { useMemberLogic } from "../hooks/useMemberLogic";
-import { calculateAge, getFullName } from "../lib/helper/member.helper";
-import type { PersonResponseDto } from "../lib/types/models/person.type";
-import { THEME } from "../styles/theme";
+
 import { useAuth } from "../context/AuthContext";
+import { useMembers } from "../hooks/useMembers";
+import { UserRole } from "../lib/types/enum.types";
+import type { PersonResponseModel } from "../lib/types/models/person.models.types";
+import toast from 'react-hot-toast';
+import { getErrorMessage } from '../lib/helper/errorHelpers';
 
-// Shared Components
-import Button from "../components/shared/Button";
-import Input from "../components/shared/Input";
-import Select from "../components/shared/Select";
-import ActionBtn from "../components/shared/ActionBtn";
-import MemberForm from "../components/modals/MemberForm";
-import Alert from "../components/shared/Alert";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import Select from "../components/ui/Select";
+import ActionBtn from "../components/ui/ActionBtn";
+import MemberForm from "../components/shared/modals/MemberForm";
+import { calculateAge } from "../lib/helper/dateHelpers";
+import { getInitials, getFullName } from '../lib/helper/stringHelpers';
+import { THEME } from "../styles/theme";
 
-const TABLE_HEADERS = [
-    { label: "Membre", align: "text-left" },
-    { label: "Localisation", align: "text-left" },
-    { label: "Statut", align: "text-center" },
-    { label: "Actions", align: "text-right" },
+const GENDER_OPTIONS = [
+    { value: "", label: "Tous les genres" },
+    { value: "MALE", label: "Hommes" },
+    { value: "FEMALE", label: "Femmes" },
 ];
 
 const MemberManagement: React.FC = () => {
-    const { isSuperAdmin } = useAuth();
-    const {
-        members,
-        loading,
-        error,
-        search, setSearch,
-        filterSex, setFilterSex,
-        filterDistrict, setFilterDistrict,
-        filterTribe, setFilterTribe,
-        deleteMember,
-        promoteMember,
-        loadMembers
-    } = useMemberLogic();
+    const { user } = useAuth();
+    const isAdmin = user?.role === UserRole.ADMIN || user?.role === UserRole.SUPERADMIN;
 
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [viewMember, setViewMember] = useState<PersonResponseDto | null>(null);
-    const [formModal, setFormModal] = useState<{ 
-        isOpen: boolean; 
-        memberToEdit: PersonResponseDto | null; 
-    }>({
-        isOpen: false,
-        memberToEdit: null
-    });
+    const { members, isLoading, deleteMember } = useMembers();
 
-    const [deleteAlert, setDeleteAlert] = useState<{
-        show: boolean;
-        memberId: string | null;
-        memberName: string;
-    }>({
-        show: false,
-        memberId: null,
-        memberName: ''
-    });
+    // États pour la recherche et les filtres
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filters, setFilters] = useState({ gender: "", district: "", tribute: "" });
 
-    const districtOptions = useMemo(() => 
-        Array.from(new Set(members.map(m => m.districtName))).map(name => ({
-            value: name,
-            label: name
-        })), 
-        [members]
-    );
+    // États pour les Modals
+    const [selectedMember, setSelectedMember] = useState<PersonResponseModel | null>(null);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingMember, setEditingMember] = useState<PersonResponseModel | undefined>(undefined);
 
-    const tribeOptions = useMemo(() => 
-        Array.from(new Set(members.map(m => m.tributeName))).map(name => ({
-            value: name,
-            label: name
-        })), 
-        [members]
-    );
+    // Génération des options de filtrage
+    const districtOptions = useMemo(() => {
+        const unique = Array.from(new Set(members.map((m: PersonResponseModel) => m.districtName))).filter(Boolean);
+        return [{ value: "", label: "Tous les districts" }, ...unique.map(d => ({ value: String(d), label: String(d) }))];
+    }, [members]);
 
-    const handleDelete = async (id: string, name: string) => {
+    const tribeOptions = useMemo(() => {
+        const unique = Array.from(new Set(members.map((m: PersonResponseModel) => m.tributeName))).filter(Boolean);
+        return [{ value: "", label: "Toutes les tribus" }, ...unique.map(t => ({ value: String(t), label: String(t) }))];
+    }, [members]);
+
+    // Logique de filtrage
+    const filteredMembers = useMemo(() => {
+        return members.filter((m: PersonResponseModel) => {
+            const fullName = `${m.lastName} ${m.firstName}`.toLowerCase();
+            const matchesSearch = fullName.includes(searchTerm.toLowerCase()) || m.sequenceNumber.toString().includes(searchTerm);
+            const matchesGender = !filters.gender || m.gender === filters.gender;
+            const matchesDistrict = !filters.district || m.districtName === filters.district;
+            const matchesTribute = !filters.tribute || m.tributeName === filters.tribute;
+
+            return matchesSearch && matchesGender && matchesDistrict && matchesTribute;
+        });
+    }, [members, searchTerm, filters]);
+
+    const handleDelete = useCallback(async (id: string) => {
+        if (!window.confirm("Supprimer ce membre ?")) return;
         try {
-            await deleteMember(id);
-            setDeleteAlert({ show: false, memberId: null, memberName: '' });
-        } catch (error) {
-            console.error('Failed to delete member:', error);
+            await deleteMember.mutateAsync(id);
+            toast.success('Membre supprimé');
+        } catch (err: any) {
+            toast.error(getErrorMessage(err) || 'Suppression impossible');
         }
-    };
-
-    const handlePromote = async (id: string) => {
-        try {
-            await promoteMember(id);
-        } catch (error) {
-            console.error('Failed to promote member:', error);
-        }
-    };
-
-    if (error) {
-        return (
-            <div className="p-8 text-center">
-                <div className="text-red-500 text-lg font-bold">Erreur</div>
-                <div className="text-gray-600 mt-2">{error}</div>
-                <Button onClick={loadMembers} className="mt-4">
-                    Réessayer
-                </Button>
-            </div>
-        );
-    }
+    }, [deleteMember]);
 
     return (
-        <div className="flex flex-col gap-8">
-            {/* En-tête */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="space-y-8 p-4">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className={`${THEME.font.black} text-3xl tracking-tighter uppercase`}>
-                        Membres
-                    </h1>
-                    <p className="text-[10px] font-black text-brand-primary uppercase tracking-[0.2em] mt-1">
-                        {members.length} enregistrés dans la base
+                    <h1 className={`${THEME.font.black} text-3xl uppercase tracking-tighter`}>Membres</h1>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        {filteredMembers.length} résultats sur {members.length}
                     </p>
                 </div>
-
-                <Button
-                    onClick={() => setFormModal({ isOpen: true, memberToEdit: null })}
-                    className="rounded-2xl! flex items-center gap-2"
-                    disabled={loading}
-                >
-                    <AiOutlinePlus size={20} />
-                    <span className="text-[10px]">Nouveau Membre</span>
-                </Button>
-            </div>
-
-            {/* Recherche et filtres */}
-            <section className="space-y-4">
-                <div className="flex gap-4">
-                    <div className="flex-1">
-                        <Input
-                            placeholder="Rechercher par nom, téléphone..."
-                            icon={<AiOutlineSearch size={20} />}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            disabled={loading}
-                        />
-                    </div>
-                    <Button 
-                        variant="secondary" 
-                        onClick={() => setIsFilterOpen(!isFilterOpen)}
-                        className={`px-4! rounded-2xl! ${
-                            isFilterOpen ? 'border-brand-primary text-brand-primary' : ''
-                        }`}
-                        disabled={loading}
-                    >
-                        <AiOutlineFilter size={22} />
+                {isAdmin && (
+                    <Button onClick={() => { setEditingMember(undefined); setIsFormOpen(true); }} className="flex items-center gap-2">
+                        <AiOutlinePlus /> AJOUTER UN MEMBRE
                     </Button>
-                </div>
-
-                {isFilterOpen && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-white dark:bg-brand-border-dark rounded-4xl border-2 border-brand-border animate-in slide-in-from-top-2 duration-300">
-                        <Select 
-                            label="Sexe" 
-                            value={filterSex} 
-                            onChange={(e) => setFilterSex(e.target.value)}
-                            options={[
-                                { value: "", label: "Tous" },
-                                { value: "MALE", label: "Hommes" }, 
-                                { value: "FEMALE", label: "Femmes" },
-                                { value: "OTHER", label: "Autre" }
-                            ]}
-                            disabled={loading}
-                        />
-                        <Select 
-                            label="District" 
-                            value={filterDistrict} 
-                            onChange={(e) => setFilterDistrict(e.target.value)}
-                            options={[{ value: "", label: "Tous" }, ...districtOptions]}
-                            disabled={loading}
-                        />
-                        <Select 
-                            label="Tribu" 
-                            value={filterTribe} 
-                            onChange={(e) => setFilterTribe(e.target.value)}
-                            options={[{ value: "", label: "Toutes" }, ...tribeOptions]}
-                            disabled={loading}
-                        />
-                    </div>
-                )}
-            </section>
-
-            {/* Tableau */}
-            <div className="bg-white dark:bg-brand-border-dark rounded-[2.5rem] border-2 border-brand-border border-b-8 overflow-hidden shadow-2xl">
-                {loading ? (
-                    <div className="p-8 text-center">
-                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-brand-primary border-t-transparent"></div>
-                        <p className="mt-2 text-sm text-gray-600">Chargement des membres...</p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-brand-bg/50 border-b-2 border-brand-border">
-                                    {TABLE_HEADERS.map((col) => (
-                                        <th key={col.label} className={`p-6 text-[9px] font-black uppercase text-brand-muted tracking-[0.2em] ${col.align}`}>
-                                            {col.label}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y-2 divide-brand-bg">
-                                {members.map(member => (
-                                    <tr key={member.id} className="group hover:bg-brand-primary/5 transition-colors">
-                                        <td className="p-6">
-                                            <div className="flex items-center gap-4">
-                                                <img 
-                                                    src={member.imageUrl || "/avatar-placeholder.png"} 
-                                                    className="w-12 h-12 rounded-2xl object-cover border-2 border-brand-border shadow-sm group-hover:rotate-3 transition-transform" 
-                                                    alt={getFullName(member)}
-                                                />
-                                                <div>
-                                                    <div className={`${THEME.font.black} text-[11px] uppercase text-brand-text group-hover:text-brand-primary`}>
-                                                        {member.firstName} {member.lastName}
-                                                    </div>
-                                                    <div className="text-[8px] font-black text-brand-muted uppercase mt-0.5">
-                                                        {member.parentId 
-                                                            ? `● Fils de ${member.parentName || 'Parent inconnu'}` 
-                                                            : '○ Titulaire'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="p-6">
-                                            <div className="text-[10px] font-black uppercase text-brand-text">
-                                                {member.districtName}
-                                            </div>
-                                            <div className="text-[8px] font-bold text-brand-primary uppercase mt-0.5">
-                                                {member.tributeName}
-                                            </div>
-                                        </td>
-                                        <td className="p-6 text-center">
-                                            <div className="flex flex-col gap-2">
-                                                <MemberStatusBadge status={member.status} />
-                                                {member.isActiveMember && (
-                                                    <span className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[7px] font-black uppercase">
-                                                        Actif
-                                                    </span>
-                                                )}
-                                                {calculateAge(member.birthDate) >= 18 && !member.isActiveMember && (
-                                                    <Button 
-                                                        variant="primary" 
-                                                        onClick={() => handlePromote(member.id)}
-                                                        className="text-[7px] px-3 py-1"
-                                                    >
-                                                        Promouvoir
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="p-6">
-                                            <div className="flex justify-end gap-3">
-                                                <ActionBtn 
-                                                    variant="view" 
-                                                    onClick={() => setViewMember(member)} 
-                                                    icon={<AiOutlineEye size={18} />} 
-                                                    title="Voir les détails"
-                                                />
-                                                <ActionBtn 
-                                                    variant="edit" 
-                                                    onClick={() => setFormModal({ 
-                                                        isOpen: true, 
-                                                        memberToEdit: member 
-                                                    })} 
-                                                    icon={<AiOutlineEdit size={18} />} 
-                                                    title="Modifier le membre"
-                                                />
-                                                {isSuperAdmin && (
-                                                    <ActionBtn 
-                                                        variant="delete" 
-                                                        onClick={() => setDeleteAlert({
-                                                            show: true,
-                                                            memberId: member.id,
-                                                            memberName: getFullName(member)
-                                                        })} 
-                                                        icon={<AiOutlineDelete size={18} />} 
-                                                        title="Supprimer définitivement"
-                                                    />
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
                 )}
             </div>
 
-            {/* Modal de visualisation */}
-            {viewMember && (
-                <MemberDetailModal 
-                    member={viewMember} 
-                    onClose={() => setViewMember(null)} 
-                />
-            )}
-
-            {/* Modal de formulaire */}
-            <MemberForm
-                isOpen={formModal.isOpen}
-                onClose={() => setFormModal({ isOpen: false, memberToEdit: null })}
-                memberToEdit={formModal.memberToEdit}
-                onSuccess={loadMembers}
-                allMembers={members}
-            />
-
-            {/* Alerte de suppression */}
-            <Alert
-                isOpen={deleteAlert.show}
-                title="Confirmer la suppression"
-                message={`Voulez-vous vraiment supprimer ${deleteAlert.memberName} ? Cette action est irréversible.`}
-                variant="danger"
-                onClose={() => setDeleteAlert({ show: false, memberId: null, memberName: '' })}
-                onConfirm={() => deleteAlert.memberId && handleDelete(deleteAlert.memberId, deleteAlert.memberName)}
-            />
-        </div>
-    );
-};
-
-// Composants auxiliaires
-const MemberStatusBadge = ({ status }: { status: string }) => {
-    const colors = {
-        ACTIVE: 'bg-green-100 text-green-700 border-green-200',
-        INACTIVE: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-        PENDING: 'bg-blue-100 text-blue-700 border-blue-200',
-        DECEASED: 'bg-gray-100 text-gray-700 border-gray-200'
-    };
-
-    const labels = {
-        ACTIVE: 'Actif',
-        INACTIVE: 'Inactif',
-        PENDING: 'En attente',
-        DECEASED: 'Décédé'
-    };
-
-    return (
-        <span className={`px-4 py-1.5 rounded-xl text-[8px] font-black uppercase border-2 ${
-            colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-700 border-gray-200'
-        }`}>
-            {labels[status as keyof typeof labels] || status}
-        </span>
-    );
-};
-
-const MemberDetailModal = ({ member, onClose }: { member: PersonResponseDto; onClose: () => void }) => (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-brand-text/40 backdrop-blur-md animate-in fade-in duration-300">
-        <div className="bg-white dark:bg-brand-border-dark rounded-[3rem] w-full max-w-lg overflow-hidden shadow-2xl border-2 border-brand-border border-b-8 animate-in zoom-in-95 duration-300">
-            <div className="p-8 text-center bg-brand-bg/20 border-b-2 border-brand-border relative">
-                <button 
-                    onClick={onClose} 
-                    className="absolute top-6 right-6 p-2 hover:bg-white rounded-full transition-colors"
-                >
-                    <AiOutlineClose size={22} />
-                </button>
-                <div className="relative inline-block mt-4">
-                    <img 
-                        src={member.imageUrl || "/avatar-placeholder.png"} 
-                        className="w-32 h-32 object-cover rounded-4xl shadow-xl border-4 border-white rotate-3" 
-                        alt={getFullName(member)}
+            {/* Barre de Filtres (Utilisation des variables qui manquaient) */}
+            <div className="bg-white p-6 rounded-[2.5rem] border-2 border-b-8 border-gray-100 flex flex-col lg:flex-row gap-4">
+                <div className="flex-1">
+                    <Input
+                        placeholder="Rechercher un nom ou N°..."
+                        icon={<AiOutlineSearch />}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <h3 className={`${THEME.font.black} text-2xl uppercase tracking-tighter mt-6`}>
-                    {member.firstName} {member.lastName}
-                </h3>
-                <p className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] mt-2">
-                    ID: {member.sequenceNumber || '---'}
-                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Select
+                        value={filters.gender}
+                        onChange={(e) => setFilters({ ...filters, gender: e.target.value })}
+                        options={GENDER_OPTIONS}
+                    />
+                    <Select
+                        value={filters.district}
+                        onChange={(e) => setFilters({ ...filters, district: e.target.value })}
+                        options={districtOptions}
+                    />
+                    <Select
+                        value={filters.tribute}
+                        onChange={(e) => setFilters({ ...filters, tribute: e.target.value })}
+                        options={tribeOptions}
+                    />
+                </div>
             </div>
 
-            <div className="p-8 grid grid-cols-2 gap-4">
-                <DetailBox 
-                    icon={<AiOutlineCalendar />} 
-                    label="Naissance" 
-                    value={member.birthDate} 
-                />
-                <DetailBox 
-                    icon={<AiOutlineUser />} 
-                    label="Âge" 
-                    value={`${calculateAge(member.birthDate)} ans`} 
-                />
-                <DetailBox 
-                    icon={<AiOutlineGlobal />} 
-                    label="District" 
-                    value={member.districtName} 
-                />
-                <DetailBox 
-                    icon={<AiOutlineTeam />} 
-                    label="Tribu" 
-                    value={member.tributeName} 
-                />
-                <DetailBox 
-                    icon={<AiOutlinePhone />} 
-                    label="Contact" 
-                    value={member.phoneNumber || "---"} 
-                />
-                <DetailBox 
-                    label="Enfants" 
-                    value={`${member.childrenCount || 0}`} 
-                />
+            {/* Table */}
+            <div className="bg-white rounded-[3rem] border-2 border-b-8 border-gray-100 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-gray-50 border-b-2 border-gray-100">
+                                <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Membre</th>
+                                <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Localisation</th>
+                                <th className="p-6 text-center text-[10px] font-black uppercase tracking-widest text-gray-400">Statut</th>
+                                <th className="p-6 text-right text-[10px] font-black uppercase tracking-widest text-gray-400">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y-2 divide-gray-50">
+                            {isLoading ? (
+                                <tr><td colSpan={4} className="p-20 text-center font-black uppercase opacity-20">Chargement...</td></tr>
+                            ) : filteredMembers.map((member: PersonResponseModel) => (
+                                <tr key={member.id} className="hover:bg-gray-50/50 transition-colors">
+                                    <td className="p-6">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-2xl bg-gray-100 flex items-center justify-center font-black text-xs uppercase">
+                                                {getInitials(member.firstName, member.lastName)}
+                                            </div>
+                                            <div>
+                                                <p className="font-black text-xs uppercase">{getFullName(member.firstName, member.lastName)}</p>
+                                                <p className="text-[9px] font-bold text-gray-400 uppercase">N° {member.sequenceNumber}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="p-6">
+                                        <p className="font-black text-[10px] uppercase">{member.districtName}</p>
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase italic">{member.tributeName}</p>
+                                    </td>
+                                    <td className="p-6 text-center">
+                                        <span className={`px-3 py-1 rounded-full text-[8px] font-black ${member.isActiveMember ? "bg-green-100 text-green-600" : "bg-orange-100 text-orange-600"}`}>
+                                            {member.isActiveMember ? "ACTIF" : "ATTENTE"}
+                                        </span>
+                                    </td>
+                                    <td className="p-6">
+                                        <div className="flex justify-end gap-2">
+                                            <ActionBtn icon={<AiOutlineEye />} title="Voir" variant="view" onClick={() => setSelectedMember(member)} />
+                                            {isAdmin && (
+                                                <>
+                                                    <ActionBtn icon={<AiOutlineEdit />} title="Modifier" variant="edit" onClick={() => { setEditingMember(member); setIsFormOpen(true); }} />
+                                                    <ActionBtn icon={<AiOutlineDelete />} title="Supprimer" variant="delete" onClick={() => handleDelete(member.id)} />
+                                                </>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <div className="p-8 pt-0">
-                <Button variant="secondary" onClick={onClose} className="w-full rounded-2xl!">
-                    FERMER LA FICHE
-                </Button>
+            {/* Modals */}
+            {selectedMember && (
+                <MemberDetailModal member={selectedMember} onClose={() => setSelectedMember(null)} />
+            )}
+
+            {isFormOpen && (
+                <MemberForm
+                    isOpen={isFormOpen}
+                    onClose={() => setIsFormOpen(false)}
+                    memberToEdit={editingMember ?? null}
+                    allMembers={members}
+                />
+            )}
+        </div>
+    );
+};
+
+// Composants de détail internes
+const MemberDetailModal = memo(({ member, onClose }: { member: PersonResponseModel; onClose: () => void }) => (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-2xl rounded-[3rem] border-2 border-b-8 border-gray-100 overflow-hidden">
+            <div className="relative h-32 bg-red-500">
+                <button onClick={onClose} className="absolute top-6 right-6 p-2 bg-black/20 text-white rounded-full hover:bg-black/40 transition-colors">
+                    <AiOutlineClose size={20} />
+                </button>
+                <div className="absolute -bottom-12 left-10 w-24 h-24 bg-white rounded-4xl border-4 border-white shadow-xl flex items-center justify-center text-2xl font-black text-red-500 uppercase">
+                    {member.firstName[0]}{member.lastName[0]}
+                </div>
+            </div>
+            <div className="p-10 pt-16">
+                <div className="mb-8">
+                    <h2 className="text-2xl font-black uppercase tracking-tighter">{member.lastName} {member.firstName}</h2>
+                    <p className="text-red-500 font-black text-[10px] uppercase italic">{member.status}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <DetailBox label="Âge" value={`${calculateAge(member.birthDate)} ans`} icon={<AiOutlineCalendar />} />
+                    <DetailBox label="Contact" value={member.phoneNumber} icon={<AiOutlinePhone />} />
+                    <DetailBox label="Secteur" value={member.districtName} icon={<AiOutlineGlobal />} />
+                    <DetailBox label="Tribu" value={member.tributeName} icon={<AiOutlineTeam />} />
+                </div>
+                <div className="mt-8">
+                    <Button onClick={onClose} className="w-full">FERMER</Button>
+                </div>
             </div>
         </div>
     </div>
-);
+));
 
-const DetailBox = ({ label, value, icon }: { label: string; value: string; icon?: any }) => (
-    <div className="bg-brand-bg/30 p-4 rounded-3xl border-2 border-brand-border/50 flex items-center gap-3">
-        {icon && <div className="text-brand-primary opacity-60">{icon}</div>}
+const DetailBox = memo(({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) => (
+    <div className="bg-gray-50 p-4 rounded-3xl border-2 border-gray-100 flex items-center gap-3">
+        {icon && <div className="text-red-500 opacity-60">{icon}</div>}
         <div>
-            <p className="text-[7px] font-black text-brand-muted uppercase tracking-widest">{label}</p>
-            <p className="font-black text-[10px] uppercase text-brand-text truncate">{value}</p>
+            <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest">{label}</p>
+            <p className="font-black text-[10px] uppercase text-gray-800 truncate">{value}</p>
         </div>
     </div>
-);
+));
 
 export default memo(MemberManagement);

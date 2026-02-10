@@ -1,56 +1,49 @@
-import api from '../api/axios.config';
+import api from '../api/axios.config'; 
 import {
-    LoginRequestDTO,
-    RegisterRequestDTO,
-    AdminResponseDto,
-    UpdateAdminDto
-} from '../lib/types/models/admin.type';
+    LoginRequestModel,
+    RegisterRequestModel,
+    AdminResponseModel,
+    AdminUpdateModel
+} from '../lib/types/models/admin.models.types';
 
 export const AuthService = {
-
-    login: async (credentials: LoginRequestDTO): Promise<{ token: string; admin: AdminResponseDto }> => {
+    login: async (credentials: LoginRequestModel) => {
         const response = await api.post('/login', credentials);
-        if (response.data.token) {
-            localStorage.setItem('auth_token', response.data.token);
+        if (response.data.accessToken) {
+            localStorage.setItem('accessToken', response.data.accessToken);
+            localStorage.setItem('refreshToken', response.data.refreshToken);
         }
         return response.data;
     },
 
-
-    register: async (data: RegisterRequestDTO): Promise<AdminResponseDto> => {
+    register: async (data: RegisterRequestModel): Promise<AdminResponseModel> => {
         const response = await api.post('/register', data);
         return response.data;
     },
 
-
-    getMe: async (): Promise<AdminResponseDto> => {
+    getMe: async (): Promise<AdminResponseModel> => {
         const response = await api.get('/admins/me');
         return response.data;
     },
 
-
-    updateMe: async (data: UpdateAdminDto): Promise<AdminResponseDto> => {
+    updateMe: async (data: AdminUpdateModel): Promise<AdminResponseModel> => {
         const response = await api.patch('/admins/me', data);
         return response.data;
     },
 
-
     forgotPassword: async (email: string) => {
+        // POST sur /api/forgot-password
         return await api.post('/forgot-password', { email });
     },
 
-    verifyResetToken: async (token: string) => {
-        const response = await api.get(`/auth/verify-reset-token`, { params: { token } });
-        return response.data;
-    },
-
     resetPassword: async (data: { token: string; newPassword: string }) => {
+        // POST sur /api/reset-password
         return await api.post('/reset-password', data);
     },
 
-
     logout: () => {
-        localStorage.removeItem('auth_token');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         window.location.href = '/login';
     }
 };

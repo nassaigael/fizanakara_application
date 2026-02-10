@@ -1,33 +1,72 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, memo } from 'react';
 import {
 	AiOutlineMail, AiOutlineLock, AiOutlineArrowLeft,
 	AiOutlineSecurityScan
 } from 'react-icons/ai';
-import { Link, useNavigate } from 'react-router-dom';
-import Input from '../components/shared/Input';
-import Button from '../components/shared/Button';
-import Alert from '../components/shared/Alert';
-import { usePassword } from '../hooks/usePassword';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import Input from '../components/ui/Input';
+import Button from '../components/ui/Button';
+import Alert from '../components/ui/Alert';
+import { getErrorMessage } from '../lib/helper/errorHelpers';
+// Changement ici : On utilise le hook useAdmin qui contient la logique
+import { useAdmin } from '../hooks/useAdmin';
 import { THEME } from '../styles/theme';
 
 const ForgotPassword: React.FC = () => {
 	const navigate = useNavigate();
-	const {
-		isResetMode, email, setEmail, password, setPassword,
-		confirmPassword, setConfirmPassword,
-		loading, message,
-		handleRequestEmail, handleResetPassword
-	} = usePassword();
+	const [searchParams] = useSearchParams();
+	const token = searchParams.get('token'); // Le token envoyé par email
 
+	// Récupération des fonctions depuis useAdmin
+	const { forgotPassword, resetPassword } = useAdmin();
+
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const [confirmPassword, setConfirmPassword] = useState('');
 	const [isAlertOpen, setIsAlertOpen] = useState(false);
+	const [alertConfig, setAlertConfig] = useState<{ title: string; text: string; type: 'success' | 'error' }>({
+		title: '',
+		text: '',
+		type: 'success'
+	});
 
-	useEffect(() => {
-		if (message) setIsAlertOpen(true);
-	}, [message]);
+	const isResetMode = !!token;
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		if (isResetMode) {
+			if (password !== confirmPassword) {
+				setAlertConfig({ title: 'ERREUR', text: 'Les mots de passe ne correspondent pas.', type: 'error' });
+				setIsAlertOpen(true);
+				return;
+			}
+
+			try {
+				await resetPassword.mutateAsync({ token: token!, newPassword: password });
+				setAlertConfig({ title: 'SUCCÈS', text: 'Mot de passe mis à jour avec succès.', type: 'success' });
+				setIsAlertOpen(true);
+			} catch (err: any) {
+				setAlertConfig({ title: 'ERREUR', text: getErrorMessage(err) || 'Lien invalide ou expiré.', type: 'error' });
+				setIsAlertOpen(true);
+			}
+		} else {
+			try {
+				await forgotPassword.mutateAsync(email);
+				setAlertConfig({ title: 'SUCCÈS', text: 'Un lien de récupération a été envoyé à votre adresse.', type: 'success' });
+				setIsAlertOpen(true);
+			} catch (err: any) {
+				setAlertConfig({ title: 'ERREUR', text: getErrorMessage(err) || 'Email non trouvé.', type: 'error' });
+				setIsAlertOpen(true);
+			}
+		}
+	};
 
 	const handleAlertConfirm = () => {
 		setIsAlertOpen(false);
-		if (message?.type === 'success') navigate('/');
+		if (alertConfig.type === 'success') {
+			navigate('/');
+		}
 	};
 
 	return (
@@ -46,7 +85,6 @@ const ForgotPassword: React.FC = () => {
 					Retour à la connexion
 				</Link>
 
-				{/* Carte 3D */}
 				<div className={`bg-white dark:bg-brand-border-dark rounded-[3rem] border-2 border-brand-border border-b-8 p-10 lg:p-12 shadow-2xl`}>
 					<header className="mb-10 text-center md:text-left">
 						<div className="flex flex-col md:flex-row items-center gap-4 mb-6">
@@ -69,13 +107,7 @@ const ForgotPassword: React.FC = () => {
 						</p>
 					</header>
 
-					<form
-						onSubmit={(e) => {
-							e.preventDefault();
-							isResetMode ? handleResetPassword(e) : handleRequestEmail(e);
-						}}
-						className="space-y-6"
-					>
+					<form onSubmit={handleSubmit} className="space-y-6">
 						{!isResetMode ? (
 							<div className="animate-in slide-in-from-bottom-2 duration-300">
 								<Input
@@ -115,7 +147,7 @@ const ForgotPassword: React.FC = () => {
 							<Button
 								type="submit"
 								className="w-full py-5 text-[11px] tracking-[0.2em]"
-								isLoading={loading}
+								isLoading={forgotPassword.isPending || resetPassword.isPending}
 							>
 								{isResetMode ? "RÉINITIALISER" : "ENVOYER LE LIEN"}
 							</Button>
@@ -125,12 +157,12 @@ const ForgotPassword: React.FC = () => {
 			</div>
 			<Alert
 				isOpen={isAlertOpen}
-				title={message?.type === 'success' ? "SUCCÈS" : "ERREUR"}
-				message={message?.text || ""}
-				variant={message?.type === 'success' ? 'info' : 'danger'}
+				title={alertConfig.title}
+				message={alertConfig.text}
+				variant={alertConfig.type === 'success' ? 'info' : 'danger'}
 				onClose={() => setIsAlertOpen(false)}
 				onConfirm={handleAlertConfirm}
-				confirmText={message?.type === 'success' ? "RETOUR À LA CONNEXION" : "RÉESSAYER"}
+				confirmText={alertConfig.type === 'success' ? "RETOUR À LA CONNEXION" : "RÉESSAYER"}
 			/>
 		</div>
 	);

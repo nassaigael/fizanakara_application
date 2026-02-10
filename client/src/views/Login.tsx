@@ -5,12 +5,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AiOutlineMail, AiOutlineLock, AiOutlineSafetyCertificate } from 'react-icons/ai';
 import { useAuth } from '../context/AuthContext';
-import { loginSchema } from '../lib/schemas/admin.schema';
-import type { LoginRequestDto } from '../lib/types/models/admin.type';
+import { loginSchema } from '../lib/validators/admin.validator';
+import type { LoginRequestModel } from '../lib/types/models/admin.models.types';
+import { getErrorMessage } from '../lib/helper/errorHelpers';
 
-import Input from '../components/shared/Input';
-import Button from '../components/shared/Button';
-import Alert from '../components/shared/Alert';
+import Input from '../components/ui/Input';
+import Button from '../components/ui/Button';
+import Alert from '../components/ui/Alert';
 import { THEME } from '../styles/theme';
 
 const Login: React.FC = () => {
@@ -23,7 +24,7 @@ const Login: React.FC = () => {
 		variant: 'danger' as 'danger' | 'success' 
 	});
 
-	const { register, handleSubmit, formState: { errors } } = useForm<LoginRequestDto>({
+	const { register, handleSubmit, formState: { errors } } = useForm<LoginRequestModel>({
 		resolver: zodResolver(loginSchema),
 	});
 
@@ -33,7 +34,7 @@ const Login: React.FC = () => {
 		}
 	}, [isAuthenticated, navigate]);
 
-	const onSubmit = async (data: LoginRequestDto) => {
+	const onSubmit = async (data: LoginRequestModel) => {
 		setIsLoading(true);
 		setAlertConfig({ show: false, msg: '', variant: 'danger' });
 		try {
@@ -41,14 +42,8 @@ const Login: React.FC = () => {
 			// Redirection gérée dans le useEffect via isAuthenticated
 		} catch (error: any) {
 			console.error('Login error:', error);
-			const errorMsg = error.response?.data?.error || 
-							error.message || 
-							"Identifiants invalides ou serveur indisponible.";
-			setAlertConfig({ 
-				show: true, 
-				msg: errorMsg, 
-				variant: 'danger' 
-			});
+			const errorMsg = getErrorMessage(error) || "Identifiants invalides ou serveur indisponible.";
+			setAlertConfig({ show: true, msg: errorMsg, variant: 'danger' });
 		} finally {
 			setIsLoading(false);
 		}

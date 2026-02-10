@@ -5,8 +5,8 @@ export interface LoginResponse {
     user: {
         id: string;
         email: string;
-        firstname: string;
-        lastname: string;
+        firstName: string;
+        lastName: string;
         gender: string;
     };
     role: UserRole;

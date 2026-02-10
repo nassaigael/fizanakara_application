@@ -1,16 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-// Importation avec les noms corrigés (Dto au lieu de DTO)
-import { AdminResponseDto, LoginRequestDto } from "../lib/types/models/admin.type";
-import AuthService from "../services/auth.service";
+// Importation avec les bons types
+import { AdminResponseModel, LoginRequestModel } from "../lib/types/models/admin.models.types";
+import { AuthService } from "../services/auth.service";
 import toast from "react-hot-toast";
 
 interface AuthContextType {
-    user: AdminResponseDto | null;
+    user: AdminResponseModel | null;
     token: string | null;
     isAuthenticated: boolean;
     isSuperAdmin: boolean;
     isLoading: boolean;
-    login: (credentials: LoginRequestDto) => Promise<void>;
+    login: (credentials: LoginRequestModel) => Promise<void>;
     logout: () => void;
     refreshUser: () => Promise<void>;
 }
@@ -18,13 +18,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<AdminResponseDto | null>(null);
-    const [token, setToken] = useState<string | null>(localStorage.getItem("auth_token"));
+    const [user, setUser] = useState<AdminResponseModel | null>(null);
+    const [token, setToken] = useState<string | null>(localStorage.getItem("accessToken"));
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const initAuth = async () => {
-            const savedToken = localStorage.getItem("auth_token");
+            const savedToken = localStorage.getItem("accessToken");
             if (savedToken) {
                 try {
                     // Récupération via /admins/me
@@ -40,19 +40,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         initAuth();
     }, []);
 
-    const login = async (credentials: LoginRequestDto) => {
+    const login = async (credentials: LoginRequestModel) => {
         try {
             const response = await AuthService.login(credentials);
-            // On s'assure que la structure match avec le retour du backend Spring
-            const { accessToken, admin } = response.data;
+            // La structure du backend retourne user, role, accessToken, refreshToken
+            const { user: userData, accessToken } = response;
 
-            localStorage.setItem("auth_token", accessToken);
+            localStorage.setItem("accessToken", accessToken);
             setToken(accessToken);
-            setUser(admin);
+            setUser(userData);
             
-            toast.success(`Bienvenue, ${admin.firstName} !`);
+            toast.success(`Bienvenue, ${userData.firstName} !`);
         } catch (error: any) {
-            const message = error.response?.data?.message || "Identifiants invalides";
+            const message = error.response?.data?.error || "Identifiants invalides";
             toast.error(message.toUpperCase());
             throw error;
         }
@@ -62,7 +62,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
      * Version silencieuse pour l'initialisation (évite les toasts au chargement)
      */
     const handleLogoutSilent = () => {
-        localStorage.removeItem("auth_token");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         setToken(null);
         setUser(null);
     };

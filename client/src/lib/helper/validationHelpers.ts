@@ -48,3 +48,11 @@ export const isValidBirthDate = (birthDate: string): boolean => {
     
     return date < maxDate && date < today;
 };
+
+/**
+ * Vérifie qu'une chaîne n'est pas vide après trim
+ */
+export const isNonEmpty = (value: string | undefined | null): boolean => {
+    if (!value && value !== '') return false;
+    return value?.toString().trim().length > 0;
+};

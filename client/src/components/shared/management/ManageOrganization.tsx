@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { AiOutlineGlobal, AiOutlineTeam, AiOutlineDelete, AiOutlineBulb, AiOutlinePlus } from 'react-icons/ai';
-import { DistrictService } from '../../services/district.service';
-import { TributeService } from '../../services/tribute.service';
-import { DistrictDto, TributeDto } from '../../lib/types/models/common.type';
-import Button from '../shared/Button';
-import ActionBtn from '../shared/ActionBtn';
+import DistrictService from '../../../services/district.services';
+import TributeService  from '../../../services/tribute.services';
+import { isNonEmpty } from '../../../lib/helper/validationHelpers';
+import { DistrictModel, TributeModel } from '../../../lib/types/models/localisation.models.types';
+import Button from '../../ui/Button';
+import ActionBtn from '../../ui/ActionBtn';
 import toast from 'react-hot-toast';
 
 const ManageOrganization: React.FC = () => {
-	const [districts, setDistricts] = useState<DistrictDto[]>([]);
-	const [tributes, setTributes] = useState<TributeDto[]>([]);
+	const [districts, setDistricts] = useState<DistrictModel[]>([]);
+	const [tributes, setTributes] = useState<TributeModel[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [rawDistricts, setRawDistricts] = useState('');
 	const [rawTributes, setRawTributes] = useState('');
@@ -31,9 +32,9 @@ const ManageOrganization: React.FC = () => {
 
 	const handleBulkAdd = async (type: 'district' | 'tribute') => {
 		const value = type === 'district' ? rawDistricts : rawTributes;
-		if (!value.trim()) return;
+		if (!isNonEmpty(value)) return;
 
-		const names = value.split(/[,\n]/).map(n => n.trim()).filter(n => n !== "");
+		const names = value.split(/[,\n]/).map(n => n.trim()).filter(n => isNonEmpty(n));
 		if (names.length === 0) return;
 
 		setLoading(true);
@@ -95,7 +96,7 @@ const ManageOrganization: React.FC = () => {
 						onChange={(e) => setRawDistricts(e.target.value)}
 					/>
 
-					<Button onClick={() => handleBulkAdd('district')} className="w-full" disabled={loading || !rawDistricts.trim()}>
+					<Button onClick={() => handleBulkAdd('district')} className="w-full" disabled={loading || !isNonEmpty(rawDistricts)}>
 						<AiOutlinePlus className="mr-2" size={18} /> AJOUTER LES DISTRICTS
 					</Button>
 
@@ -128,7 +129,7 @@ const ManageOrganization: React.FC = () => {
 					<Button
 						onClick={() => handleBulkAdd('tribute')}
 						className="w-full bg-orange-500 border-orange-700 hover:bg-orange-600"
-						disabled={loading || !rawTributes.trim()}
+						disabled={loading || !isNonEmpty(rawTributes)}
 					>
 						<AiOutlinePlus className="mr-2" size={18} /> AJOUTER LES TRIBUS
 					</Button>

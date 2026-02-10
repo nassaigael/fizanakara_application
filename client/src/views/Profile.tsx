@@ -10,10 +10,10 @@ import {
 } from "react-icons/ai";
 import { useAuth } from "../context/AuthContext";
 import { THEME } from "../styles/theme";
-import AuthService from "../services/auth.service";
-import { applyThemeToDOM } from "../lib/helper/helperTheme";
-import Button from "../components/shared/Button";
-import Input from "../components/shared/Input";
+import {AuthService} from "../services/auth.service";
+import { applyThemeToDOM } from "../lib/helper/themeHelper";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
 import toast from "react-hot-toast";
 
 const Profile: React.FC = () => {
@@ -39,8 +39,8 @@ const Profile: React.FC = () => {
     useEffect(() => {
         if (user) {
             setFormData({
-                firstName: (user as any).firstname || user.firstName || "",
-                lastName: (user as any).lastname || user.lastName || "",
+                firstName: user.firstName || "",
+                lastName: user.lastName || "",
                 email: user.email || ""
             });
         }
@@ -62,9 +62,10 @@ const Profile: React.FC = () => {
                 updateData.password = passwords.new;
             }
 
+            // On attend la réponse de type AdminResponseModel
             const response = await AuthService.updateMe(updateData);
 
-            if (response.success || response.id) {
+            if (response && response.id) {
                 toast.success("Profil mis à jour !");
                 setPasswords({ new: "", confirm: "" });
                 if (refreshUser) refreshUser();

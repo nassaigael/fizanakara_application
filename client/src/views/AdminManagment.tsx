@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { AiOutlineUserAdd, AiOutlineGlobal, AiOutlineArrowLeft, AiOutlineControl } from 'react-icons/ai';
-import AdminRegisterForm from '../components/management/AdminRegisterForm';
-import ManageOrganization from '../components/management/ManageOrganization';
-import Button from '../components/shared/Button';
+import AdminRegisterForm from '../components/shared/management/AdminRegisterForm';
+import ManageOrganization from '../components/shared/management/ManageOrganization';
+import Button from '../components/ui/Button';
 import { THEME } from '../styles/theme';
 
 const AdminManagement: React.FC = () => {

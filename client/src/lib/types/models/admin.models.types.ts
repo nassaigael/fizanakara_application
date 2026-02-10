@@ -5,7 +5,15 @@ import { Gender, UserRole } from "../enum.types";
 import { PersoneBaseModel } from "./person.models.types";
 
 export interface AdminResponseModel extends PersoneBaseModel {
-    id:string;
+    id: string;
+    firstName: string;
+    lastName: string;
+    birthDate: string;
+    gender: Gender;
+    imageUrl: string;
+    phoneNumber: string;
+    districtId: number;
+    tributeId: number;
     email: string;
     role: UserRole;
     verified: boolean;

@@ -5,32 +5,30 @@ import {
     AiOutlinePhone, AiOutlineCalendar, AiOutlineUserAdd,
     AiOutlineTrademark
 } from 'react-icons/ai';
-import AuthService from '../../services/auth.service';
-// Importation ajustée au nom de l'interface générée
-import { RegisterRequestDto } from '../../lib/types/models/admin.type';
-import Input from '../shared/Input';
-import Button from '../shared/Button';
-import Select from '../shared/Select';
+import { AuthService } from '../../../services/auth.service';
+import { RegisterRequestModel } from '../../../lib/types/models/admin.models.types';
+import Input from '../../ui/Input';
+import Button from '../../ui/Button';
+import Select from '../../ui/Select';
 import toast from 'react-hot-toast';
 
 const AdminRegisterForm: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     /**
-     * On utilise RegisterRequestDto pour le typage du formulaire.
-     * Note: imageUrl est requis par le DTO, mais sera généré dynamiquement à la soumission.
+     * On utilise RegisterRequestModel pour le typage du formulaire.
+     * Note: imageUrl est requis par le modèle, mais sera généré dynamiquement à la soumission.
      */
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<RegisterRequestDto>({
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<RegisterRequestModel>({
         defaultValues: { 
-            gender: 'MALE' 
+            gender: 'MALE' as any
         }
     });
 
-    const onSubmit = async (data: RegisterRequestDto) => {
+    const onSubmit = async (data: RegisterRequestModel) => {
         setIsSubmitting(true);
         try {
-            // Génération de l'URL de l'avatar avant l'envoi
-            const payload: RegisterRequestDto = {
+            const payload: RegisterRequestModel = {
                 ...data,
                 imageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.firstName)}+${encodeURIComponent(data.lastName)}&background=random&size=128`,
             };
@@ -40,7 +38,6 @@ const AdminRegisterForm: React.FC = () => {
             toast.success("ADMINISTRATEUR CRÉÉ AVEC SUCCÈS !");
             reset();
         } catch (error: any) {
-            // Gestion d'erreur plus précise selon la structure Spring Boot habituelle
             const errorMessage = error.response?.data?.message || error.response?.data?.error || "ERREUR LORS DE LA CRÉATION";
             toast.error(errorMessage.toUpperCase());
         } finally {

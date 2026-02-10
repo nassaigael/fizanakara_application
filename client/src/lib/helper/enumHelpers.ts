@@ -6,10 +6,10 @@ import { Gender, MemberStatus, ContributionStatus, PaymentStatus, UserRole } fro
  * @param gender - Enum Gender
  * @returns Texte formaté en français
  */
-export const getGenderLabel = (gender: Gender): string => {
-    const labels: Record<Gender, string> = {
-        [Gender.FEMELLE]: "Femme",
-        [Gender.HOMME]: "Homme"
+export const getGenderLabel = (gender: Gender | string): string => {
+    const labels: Record<string, string> = {
+        [Gender.FEMALE]: "Femme",
+        [Gender.MALE]: "Homme"
     };
     return labels[gender] || "Inconnu";
 };
@@ -19,10 +19,10 @@ export const getGenderLabel = (gender: Gender): string => {
  * @param status - Enum MemberStatus
  * @returns Texte formaté en français
  */
-export const getMemberStatusLabel = (status: MemberStatus): string => {
-    const labels: Record<MemberStatus, string> = {
-        [MemberStatus.TRAVAILLEUR]: "Travailleur",
-        [MemberStatus.ETUDIANT]: "Étudiant"
+export const getMemberStatusLabel = (status: MemberStatus | string): string => {
+    const labels: Record<string, string> = {
+        [MemberStatus.WORKER]: "Travailleur",
+        [MemberStatus.STUDENT]: "Étudiant"
     };
     return labels[status] || "Inconnu";
 };

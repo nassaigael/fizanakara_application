@@ -1,5 +1,5 @@
 import api from "../api/axios.config";
-import { TributeModel } from "../lib/types/models/localistion.models.types";
+import { TributeModel } from "../lib/types/models/localisation.models.types";
 import { GenericResponse } from "../lib/types/auth.types";
 
 export interface TributeResponse extends TributeModel {

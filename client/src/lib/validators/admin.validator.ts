@@ -1,6 +1,6 @@
 // src/lib/validators/admin.validator.ts
 import { z } from "zod";
-import { Gender, UserRole } from "../../types/enum.types";
+import { Gender} from "../types/enum.types";
 
 /**
  * Validateur pour la connexion admin

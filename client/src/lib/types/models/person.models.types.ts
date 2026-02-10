@@ -6,7 +6,7 @@ export interface PersoneBaseModel {
     firstName: string;
     lastName: string;
     birthDate: string;
-    gender:Gender;
+    gender: Gender;
     imageUrl: string;
     phoneNumber: string;
     districtId: number;
@@ -14,11 +14,12 @@ export interface PersoneBaseModel {
 }
 
 export interface PersonModel extends PersoneBaseModel {
-    status:MemberStatus;
+    status: MemberStatus;
     parentId?: string;
 }
 
 export interface PersonResponseModel extends PersonModel{
+    id: string;
     sequenceNumber: number;
     isActiveMember: boolean;
     districtName: string;
@@ -27,3 +28,5 @@ export interface PersonResponseModel extends PersonModel{
     childrenCount: number;
     children: PersonResponseModel[];
 }
+
+export type { MemberStatus, Gender };
