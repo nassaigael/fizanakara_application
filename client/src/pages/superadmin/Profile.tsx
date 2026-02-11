@@ -24,7 +24,7 @@ import { UpdateAdminRequest } from '../../lib/types';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { THEME } from '../../styles/theme';
-import { formatDate, getInitials } from '../../lib/helper';
+import { formatDate, getInitials, getApiErrorMessage } from '../../lib/helper';
 import { getImageUrl } from '../../lib/constant/constant';
 import toast from 'react-hot-toast';
 
@@ -92,7 +92,9 @@ const SuperAdminProfile: React.FC = () => {
             toast.success('Profil mis à jour');
         }
     });
+    
     if (!user) return null;
+    
     return (
         <div className={THEME.section}>
             <div className="relative overflow-hidden rounded-3xl border-2 border-b-4 border-brand-border shadow-lg mb-8">
@@ -152,14 +154,14 @@ const SuperAdminProfile: React.FC = () => {
                     <div className="relative flex-shrink-0">
                         <div className="w-40 h-40 bg-gradient-to-br from-brand-primary to-orange-500 rounded-3xl border-4 border-white shadow-xl flex items-center justify-center text-white text-6xl font-black">
                             {user.imageUrl ? (
-                            <img
-                                src={getImageUrl(user.imageUrl, `${user.firstName} ${user.lastName}`, 'ADMIN')}
-                                alt="Profil"
-                                className="w-full h-full object-cover rounded-3xl"
-                            />
-                        ) : (
-                            getInitials(user.firstName, user.lastName)
-                        )}
+                                <img
+                                    src={getImageUrl(user.imageUrl, 'admin')}
+                                    alt="Profil"
+                                    className="w-full h-full object-cover rounded-3xl"
+                                />
+                            ) : (
+                                getInitials(user.firstName, user.lastName)
+                            )}
                         </div>
                         <div className={`absolute -bottom-2 -right-2 p-3 rounded-2xl border-4 border-white shadow-lg ${
                             user.verified 
@@ -257,6 +259,7 @@ const SuperAdminProfile: React.FC = () => {
                     color="green"
                 />
             </div>
+            
             <div className="bg-white rounded-3xl border-2 border-b-4 border-brand-border p-8 shadow-md">
                 <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-brand-border">
                     <div className="p-3 bg-red-100 rounded-2xl">
@@ -299,24 +302,21 @@ const SuperAdminProfile: React.FC = () => {
                     </div>
                 </div>
             </div>
-            {/* legacy notice removed, using modal below */}
 
             {/* Password change modal */}
-            {showPasswordModal && <PasswordModal
-                isOpen={showPasswordModal}
-                onClose={() => setShowPasswordModal(false)}
-                onSave={async (newPass) => {
-                    await updateProfile({ password: newPass });
-                    setShowPasswordModal(false);
-                }}
-            />}
+            {showPasswordModal && (
+                <PasswordModal
+                    isOpen={showPasswordModal}
+                    onClose={() => setShowPasswordModal(false)}
+                    onSave={async (newPass) => {
+                        await updateProfile({ password: newPass });
+                        setShowPasswordModal(false);
+                    }}
+                />
+            )}
         </div>
     );
 };
-
-
-
-// ----------- Password modal component -----------
 
 interface PasswordModalProps {
     isOpen: boolean;
@@ -337,12 +337,19 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSave }
         initialValues: { password: '', confirmPassword: '' },
         validationSchema: passwordSchema,
         onSubmit: async (data) => {
-            await onSave(data.password);
-            form.resetForm();
+            try {
+                await onSave(data.password);
+                toast.success('Mot de passe modifié avec succès');
+                form.resetForm();
+                onClose();
+            } catch (error) {
+                toast.error(getApiErrorMessage(error));
+            }
         }
     });
 
     if (!isOpen) return null;
+    
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-white rounded-3xl w-full max-w-md border-2 border-black shadow-lg p-8">
