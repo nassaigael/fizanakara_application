@@ -18,13 +18,12 @@ export function App() {
 
 	useEffect(() => {
 		const savedColor = localStorage.getItem('app-theme-color');
-		applyThemeToDOM(savedColor || '#E51A1A');
-	}, []);
-
+		( isAuthenticated && savedColor) ? applyThemeToDOM(savedColor) : applyThemeToDOM(savedColor || '#E51A1A');
+	}, [isAuthenticated]);
 	if (isLoading) {
 		return (
 			<div className="h-screen flex items-center justify-center bg-gray-50">
-				<div className="bg-white p-8 flex flex-col items-center gap-4 shadow-xl rounded-[2rem]">
+				<div className="bg-white p-8 flex flex-col items-center gap-4 shadow-xl rounded-4xl">
 					<div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
 					<p className="text-gray-500 font-bold animate-pulse uppercase tracking-widest text-xs">
 						Chargement de Fizanakara...
@@ -46,12 +45,13 @@ export function App() {
 				<Route element={<MainLayout />}>
 					<Route index element={<Navigate to="/admin/dashboard" replace />} />
 					<Route path="/admin/dashboard" element={<Dashboard />} />
+					<Route path="/admin/settings" element={<AdminManagement />} />
 					<Route path="/admin/members" element={<MemberManagement />} />
 					<Route path="/admin/cotisations" element={<ContributionManagement />} />
 					<Route path="/admin/profile" element={<Profile />} />
 
 					{isSuperAdmin && (
-						<Route path="/admin/management" element={<AdminManagement />} />
+						<Route path="/superadmin/management" element={<AdminManagement />} />
 					)}
 				</Route>
 			) : (

@@ -11,7 +11,7 @@ const PaymentService = {
      * @path GET /api/admins/payments/contribution/{contributionId}
      */
     getByContributionId: async (contributionId: string): Promise<PaymentResponseModel[]> => {
-        const response = await api.get<PaymentResponseModel[]>(`/admins/payments/contribution/${contributionId}`);
+        const response = await api.get<PaymentResponseModel[]>(`/api/admins/payments/contribution/${contributionId}`);
         return response.data;
     },
 
@@ -21,7 +21,7 @@ const PaymentService = {
      */
     create: async (data: PaymentModel): Promise<PaymentResponseModel> => {
         // Note: Le DTO Java utilise amountPayed, assure-toi que ton interface TS est alignée
-        const response = await api.post<PaymentResponseModel>('/admins/payments', data);
+        const response = await api.post<PaymentResponseModel>('/api/admins/payments', data);
         return response.data;
     },
 
@@ -30,7 +30,7 @@ const PaymentService = {
      * @path PUT /api/admins/payments/{id}
      */
     update: async (id: string, data: PaymentModel): Promise<PaymentResponseModel> => {
-        const response = await api.put<PaymentResponseModel>(`/admins/payments/${id}`, data);
+        const response = await api.put<PaymentResponseModel>(`/api/admins/payments/${id}`, data);
         return response.data;
     },
 
@@ -39,7 +39,7 @@ const PaymentService = {
      * @path DELETE /api/admins/payments/{id}
      */
     delete: async (id: string): Promise<void> => {
-        await api.delete(`/admins/payments/${id}`);
+        await api.delete(`/api/admins/payments/${id}`);
     }
 };
 

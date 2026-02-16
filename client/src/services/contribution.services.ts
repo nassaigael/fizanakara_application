@@ -22,7 +22,7 @@ const ContributionService = {
      */
     getByPersonAndYear: async (personId: string, year: number): Promise<ContributionResponseModel[]> => {
         const response = await api.get<ContributionResponseModel[]>(
-            `/admins/contributions/person/${personId}/year/${year}`
+            `/api/admins/contributions/person/${personId}/year/${year}`
         );
         return response.data;
     },

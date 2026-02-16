@@ -26,7 +26,7 @@ public class ContributionController {
 
     // GET ALL
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasanyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<ContributionResponseDto>> getAllContributions(
             @PageableDefault(size = 20) Pageable pageable) {
         log.info("Retrieving all contributions");
@@ -35,7 +35,7 @@ public class ContributionController {
 
     // GET BY PERSON AND YEAR
     @GetMapping("/person/{personId}/year/{year}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasanyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<ContributionResponseDto>> getContributionsByPersonAndYear(
             @PathVariable String personId,
             @PathVariable Year year) {
@@ -45,7 +45,7 @@ public class ContributionController {
 
     // CREATE
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasanyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<ContributionResponseDto>> createContributionsForYear(@RequestBody @Validated ContributionYearDto dto) {
         log.info("Generating annual contributions for year: {}", dto.getYear());
         return ResponseEntity.status(HttpStatus.CREATED).body(contributionService.createContributionsForYear(dto));
@@ -53,7 +53,7 @@ public class ContributionController {
 
     // UPDATE BY ID
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasanyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<ContributionResponseDto> updateContribution(@PathVariable String id, @RequestBody ContributionUpdateDto dto) {
         log.info("Updating contribution ID: {}", id);
         return ResponseEntity.ok(contributionService.updateContribution(id, dto));
@@ -61,7 +61,7 @@ public class ContributionController {
 
     // DELETE BY ID
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasanyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> deleteContribution(@PathVariable String id) {
         log.info("Deleting contribution ID: {}", id);
         contributionService.deleteContribution(id);

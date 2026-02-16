@@ -17,30 +17,23 @@ export const AuthService = {
     },
 
     register: async (data: RegisterRequestModel): Promise<AdminResponseModel> => {
-        const response = await api.post('/register', data);
-        return response.data;
+        return ((await api.post('/register', data)).data);
     },
-
     getMe: async (): Promise<AdminResponseModel> => {
-        const response = await api.get('/admins/me');
-        return response.data;
+        return ((await api.get('/api/admin/me')).data);
     },
-
     updateMe: async (data: AdminUpdateModel): Promise<AdminResponseModel> => {
-        const response = await api.patch('/admins/me', data);
-        return response.data;
+        return (await api.patch('/api/admin/me', data)).data;
     },
-
+    verifyResetToken: async (token: string) =>{
+        return ((await api.get(`/auth/verify-reset-token?token=${token}`)).data);
+    },
     forgotPassword: async (email: string) => {
-        // POST sur /api/forgot-password
         return await api.post('/forgot-password', { email });
     },
-
     resetPassword: async (data: { token: string; newPassword: string }) => {
-        // POST sur /api/reset-password
         return await api.post('/reset-password', data);
     },
-
     logout: () => {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
