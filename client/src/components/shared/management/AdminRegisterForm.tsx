@@ -12,7 +12,11 @@ import Button from '../../ui/Button';
 import Select from '../../ui/Select';
 import toast from 'react-hot-toast';
 
-const AdminRegisterForm: React.FC = () => {
+interface AdminRegisterFormProps {
+  onSuccess?: () => void; // ← ajout
+}
+
+const AdminRegisterForm: React.FC<AdminRegisterFormProps> = ({ onSuccess }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     /**
@@ -25,23 +29,24 @@ const AdminRegisterForm: React.FC = () => {
         }
     });
 
-    const onSubmit = async (data: RegisterRequestModel) => {
+      const onSubmit = async (data: RegisterRequestModel) => {
         setIsSubmitting(true);
         try {
-            const payload: RegisterRequestModel = {
-                ...data,
-                imageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.firstName)}+${encodeURIComponent(data.lastName)}&background=random&size=128`,
-            };
+        const payload: RegisterRequestModel = {
+            ...data,
+            imageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.firstName)}+${encodeURIComponent(data.lastName)}&background=random&size=128`,
+        };
 
-            await AuthService.register(payload);
-            
-            toast.success("ADMINISTRATEUR CRÉÉ AVEC SUCCÈS !");
-            reset();
+        await AuthService.register(payload);
+        
+        toast.success("ADMINISTRATEUR CRÉÉ AVEC SUCCÈS !");
+        reset();
+        onSuccess?.(); // ← appel
         } catch (error: any) {
-            const errorMessage = error.response?.data?.message || error.response?.data?.error || "ERREUR LORS DE LA CRÉATION";
-            toast.error(errorMessage.toUpperCase());
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || "ERREUR LORS DE LA CRÉATION";
+        toast.error(errorMessage.toUpperCase());
         } finally {
-            setIsSubmitting(false);
+        setIsSubmitting(false);
         }
     };
 

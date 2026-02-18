@@ -116,7 +116,7 @@ export const SIDEBAR_LINKS = [
     { title: "Tableau de bord", path: "/admin/dashboard", icon: AiOutlineDashboard },
     { title: "Membres", path: "/admin/members", icon: AiOutlineUsergroupAdd },
     { title: "Cotisations", path: "/admin/cotisations", icon: AiOutlineWallet },
-    { title: "Parametre", path: "/admin/settings", icon: AiOutlineSetting },
+    { title: "Parametre", path: "/admin/profile", icon: AiOutlineSetting },
 ] as const;
 
 export const PROFILE_MENU = [

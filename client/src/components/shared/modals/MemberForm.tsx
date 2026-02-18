@@ -28,9 +28,10 @@ interface MemberFormProps {
   memberToEdit: PersonResponseModel | null;
   onSuccess?: () => void;
   allMembers: PersonResponseModel[];
+  parentId?: string; // ← ajout
 }
 
-const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, memberToEdit, onSuccess, allMembers }) => {
+const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, memberToEdit, onSuccess, allMembers, parentId }) => {
   const [districts, setDistricts] = useState<DistrictModel[]>([]);
   const [tributes, setTributes] = useState<TributeModel[]>([]);
   const [isChildMode, setIsChildMode] = useState(false);
@@ -78,10 +79,10 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, memberToEdit, 
         status: MemberStatus.WORKER,
         districtId: 0,
         tributeId: 0,
-        parentId: ''
+        parentId: parentId || '' // ← initialisation avec parentId si fourni
       });
-      setIsChildMode(false);
-    }
+      setIsChildMode(!!parentId); // ← activer le mode enfant si parentId présent
+      }
 
     setErrors({});
   }, [isOpen, memberToEdit]);
