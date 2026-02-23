@@ -1,3 +1,4 @@
+// src/routes/AppRoutes.tsx (version simplifiée)
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
@@ -10,40 +11,14 @@ import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 
-// Pages du dashboard
+// Pages principales
 import Dashboard from '../pages/dashboard/Dashboard';
-
-// Pages membres
 import MemberList from '../pages/members/MemberList';
-import MemberDetail from '../pages/members/MemberDetail';
-import MemberCreate from '../pages/members/MemberCreate';
-import MemberEdit from '../pages/members/MemberEdit';
-
-// Pages cotisations
 import ContributionList from '../pages/contributions/ContributionList';
-import ContributionDetail from '../pages/contributions/ContributionDetail';
-import ContributionEdit from '../pages/contributions/ContributionEdit';
-import ContributionGenerate from '../pages/contributions/ContributionGenerate';
-import ContributionPayments from '../pages/contributions/ContibutionPayments';
-
-// Pages paiements
-import PaymentList from '../pages/payments/PaymentList';
-
-// Pages districts
 import DistrictList from '../pages/districts/DistrictList';
-import DistrictCreate from '../pages/districts/DistrictCreate';
-import DistrictEdit from '../pages/districts/DistrictEdit';
-
-// Pages tribus
 import TributeList from '../pages/tributes/TributeList';
-import TributeCreate from '../pages/tributes/TributeCreate';
-import TributeEdit from '../pages/tributes/TributeEdit';
-
-// Pages admin
-import Profile from '../pages/admin/Profile';
 import AdminList from '../pages/admin/AdminList';
-import AdminCreate from '../pages/admin/AdminCreate';
-import AdminEdit from '../pages/admin/AdminEdit';
+import Profile from '../pages/admin/Profile';
 import AdminManagement from '../pages/admin/AdminManagement';
 
 // Pages rapports
@@ -62,7 +37,7 @@ import { applyThemeToDOM } from '../lib/helper/themeHelper';
 import LoadingScreen from '../components/ui/LoadingScreen';
 
 export function AppRoutes() {
-  const { isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     const savedColor = localStorage.getItem('app-theme-color');
@@ -82,72 +57,31 @@ export function AppRoutes() {
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/server-error" element={<ServerError />} />
 
-      {/* Routes protégées - Layout principal */}
+      {/* Routes protégées */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
-          {/* Dashboard */}
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
-
-          {/* Membres */}
-          <Route path="/members">
-            <Route index element={<MemberList />} />
-            <Route path="create" element={<MemberCreate />} />
-            <Route path=":id" element={<MemberDetail />} />
-            <Route path=":id/edit" element={<MemberEdit />} />
-          </Route>
-
-          {/* Cotisations */}
-          <Route path="/contributions">
-            <Route index element={<ContributionList />} />
-            <Route path="generate" element={<ContributionGenerate />} />
-            <Route path=":id" element={<ContributionDetail />} />
-            <Route path=":id/edit" element={<ContributionEdit />} />
-            <Route path=":id/payments" element={<ContributionPayments />} />
-          </Route>
-
-          {/* Paiements */}
-          <Route path="/payments">
-            <Route index element={<PaymentList />} />
-          </Route>
-
-          {/* Districts */}
-          <Route path="/districts">
-            <Route index element={<DistrictList />} />
-            <Route path="create" element={<DistrictCreate />} />
-            <Route path=":id/edit" element={<DistrictEdit />} />
-          </Route>
-
-          {/* Tribus */}
-          <Route path="/tributes">
-            <Route index element={<TributeList />} />
-            <Route path="create" element={<TributeCreate />} />
-            <Route path=":id/edit" element={<TributeEdit />} />
-          </Route>
-
-          {/* Admin */}
+          <Route path="/members" element={<MemberList />} />
+          <Route path="/contributions" element={<ContributionList />} />
+          <Route path="/districts" element={<DistrictList />} />
+          <Route path="/tributes" element={<TributeList />} />
+          <Route path="/admins" element={<AdminList />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/admins">
-            <Route index element={<AdminList />} />
-            <Route path="create" element={<AdminCreate />} />
-            <Route path=":id/edit" element={<AdminEdit />} />
-          </Route>
-
+          
           {/* Rapports */}
-          <Route path="/reports">
-            <Route path="financial" element={<FinancialReport />} />
-            <Route path="members" element={<MemberReport />} />
-            <Route path="export" element={<ExportData />} />
-          </Route>
+          <Route path="/reports/financial" element={<FinancialReport />} />
+          <Route path="/reports/members" element={<MemberReport />} />
+          <Route path="/reports/export" element={<ExportData />} />
 
-          {/* Super Admin uniquement */}
+          {/* Super Admin */}
           <Route element={<ProtectedRoute requiredRole="SUPERADMIN" />}>
             <Route path="/admin/management" element={<AdminManagement />} />
           </Route>
         </Route>
       </Route>
 
-      {/* Route 404 */}
+      {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
