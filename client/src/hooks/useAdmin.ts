@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminService } from '../services/admin.services';
-import { RegisterRequest} from '../lib/types';
+import { RegisterRequest } from '../lib/types';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '../lib/helper';
 
 export const useAdmin = () => {
     const queryClient = useQueryClient();
@@ -17,24 +18,49 @@ export const useAdmin = () => {
     });
 
     const createAdmin = useMutation({
-        mutationFn: (data: RegisterRequest) => AdminService.create(data),
+        mutationFn: async (data: RegisterRequest) => {
+            console.log('🔵 Tentative de création avec:', data);
+            try {
+                const result = await AdminService.create(data);
+                console.log('✅ Création réussie:', result);
+                return result;
+            } catch (error: any) {
+                console.error('❌ Erreur création:', {
+                    status: error?.response?.status,
+                    data: error?.response?.data,
+                    message: error?.message
+                });
+                throw error;
+            }
+        },
         onSuccess: (newAdmin) => {
             queryClient.invalidateQueries({ queryKey: ['admins'] });
             toast.success(`Admin ${newAdmin.firstName} ${newAdmin.lastName} créé`);
         },
-        onError: () => {
-            toast.error('Erreur lors de la création de l\'admin');
+        onError: (error) => {
+            toast.error(getApiErrorMessage(error));
         }
     });
 
     const deleteAdmin = useMutation({
-        mutationFn: (id: string) => AdminService.delete(id),
+        mutationFn: async (id: string) => {
+            console.log('Deleting admin with ID:', id);
+            try {
+                const result = await AdminService.delete(id);
+                console.log('Delete result:', result);
+                return result;
+            } catch (error) {
+                console.error('Delete error:', error);
+                throw error;
+            }
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admins'] });
             toast.success('Admin supprimé avec succès');
         },
-        onError: () => {
-            toast.error('Erreur lors de la suppression');
+        onError: (error) => {
+            console.error('Mutation error:', error);
+            toast.error(getApiErrorMessage(error));
         }
     });
 
