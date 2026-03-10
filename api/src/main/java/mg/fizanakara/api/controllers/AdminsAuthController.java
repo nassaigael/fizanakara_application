@@ -30,7 +30,8 @@ import java.util.Map;
 @RestController("/api")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PATCH, RequestMethod.DELETE, RequestMethod.OPTIONS})
+@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*", methods = { RequestMethod.GET, RequestMethod.POST,
+        RequestMethod.PATCH, RequestMethod.DELETE, RequestMethod.OPTIONS })
 public class AdminsAuthController {
     private final AuthenticationManager authenticationManager;
     private final AdminsService adminsService;
@@ -63,8 +64,7 @@ public class AdminsAuthController {
     public ResponseEntity<?> login(@RequestBody @Validated LoginRequestDTO req) {
         try {
             Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(auth);
 
@@ -84,8 +84,7 @@ public class AdminsAuthController {
                             "gender", admin.getGender()),
                     "role", admin.getRole(),
                     "accessToken", accessToken,
-                    "refreshToken", rt.getToken()
-            ));
+                    "refreshToken", rt.getToken()));
         } catch (BadCredentialsException e) {
             log.warn("Login failed for {}: Invalid credentials", req.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -115,7 +114,8 @@ public class AdminsAuthController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> body) {
         String token = body.get("refreshToken");
-        if (token == null) return ResponseEntity.badRequest().body("Token requis");
+        if (token == null)
+            return ResponseEntity.badRequest().body("Token requis");
 
         var stored = refreshTokenService.findByToken(token);
         if (stored.getExpiryDate().isBefore(java.time.Instant.now())) {
@@ -143,7 +143,8 @@ public class AdminsAuthController {
         String token = body.get("token");
         String newPassword = body.get("newPassword");
         passwordResetService.resetPassword(token, newPassword);
-        log.info("Password reset successful for token: {}", token != null ? token.substring(0, Math.min(token.length(), 8)) + "..." : "null");
+        log.info("Password reset successful for token: {}",
+                token != null ? token.substring(0, Math.min(token.length(), 8)) + "..." : "null");
         return ResponseEntity.ok("Password reset successfully.");
     }
 
@@ -151,7 +152,8 @@ public class AdminsAuthController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     @GetMapping("/admins/me")
     public ResponseEntity<?> me(Authentication authentication) {
-        if (authentication == null) return ResponseEntity.status(401).body("Unauthorized");
+        if (authentication == null)
+            return ResponseEntity.status(401).body("Unauthorized");
         String email = authentication.getName();
         Admins admin = adminsService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Profile not found for: " + email));
@@ -182,8 +184,7 @@ public class AdminsAuthController {
             return ResponseEntity.ok(Map.of(
                     "message", "Profile updated successfully",
                     "success", true,
-                    "user", updated
-            ));
+                    "user", updated));
         } catch (AdminsException e) {
             log.warn("Profile update failed for {}: {}", email, e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
