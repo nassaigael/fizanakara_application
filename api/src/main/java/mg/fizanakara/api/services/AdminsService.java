@@ -170,6 +170,9 @@ public class AdminsService {
         dto.setFirstName(admin.getFirstName());
         dto.setLastName(admin.getLastName());
         dto.setEmail(admin.getEmail());
+        dto.setGender(admin.getGender().name());
+        dto.setImageUrl(admin.getImageUrl());
+        dto.setBirthDate(admin.getBirthDate());
         dto.setRole(admin.getRole());
         dto.setVerified(admin.isVerified());
         dto.setCreatedAt(admin.getCreatedAt());
