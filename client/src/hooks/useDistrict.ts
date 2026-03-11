@@ -6,22 +6,22 @@ import toast from 'react-hot-toast';
 export const useDistrict = (districtId?: number) => {
     const queryClient = useQueryClient();
 
-    const { 
-        data: districts = [], 
-        isLoading, 
-        error 
+    const {
+        data: districts = [],
+        isLoading,
+        error,
     } = useQuery({
         queryKey: ['districts'],
         queryFn: DistrictService.getAll,
         staleTime: 10 * 60 * 1000,
     });
 
-    const { 
-        data: currentDistrict, 
-        isLoading: loadingCurrent 
+    const {
+        data: currentDistrict,
+        isLoading: loadingCurrent,
     } = useQuery({
         queryKey: ['districts', districtId],
-        queryFn: () => districtId ? DistrictService.getById(districtId) : Promise.resolve(null),
+        queryFn: () => (districtId ? DistrictService.getById(districtId) : Promise.resolve(null)),
         enabled: !!districtId,
     });
 
@@ -29,11 +29,11 @@ export const useDistrict = (districtId?: number) => {
         mutationFn: (data: DistrictDto) => DistrictService.create(data),
         onSuccess: (newDistrict) => {
             queryClient.invalidateQueries({ queryKey: ['districts'] });
-            toast.success(`District "${newDistrict.name}" créé`);
+            toast.success(`District "${newDistrict.name}" created`);
         },
         onError: () => {
-            toast.error('Erreur lors de la création');
-        }
+            toast.error('Failed to create district');
+        },
     });
 
     const updateDistrict = useMutation({
@@ -42,33 +42,33 @@ export const useDistrict = (districtId?: number) => {
         onSuccess: (updated) => {
             queryClient.invalidateQueries({ queryKey: ['districts'] });
             queryClient.setQueryData(['districts', updated.id], updated);
-            toast.success(`District "${updated.name}" mis à jour`);
+            toast.success(`District "${updated.name}" updated`);
         },
         onError: () => {
-            toast.error('Erreur lors de la mise à jour');
-        }
+            toast.error('Failed to update district');
+        },
     });
 
     const deleteDistrict = useMutation({
         mutationFn: (id: number) => DistrictService.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['districts'] });
-            toast.success('District supprimé');
+            toast.success('District deleted');
         },
         onError: () => {
-            toast.error('Erreur lors de la suppression');
-        }
+            toast.error('Failed to delete district');
+        },
     });
 
     const deleteAllDistricts = useMutation({
         mutationFn: () => DistrictService.deleteAll(),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['districts'] });
-            toast.success('Tous les districts supprimés');
+            toast.success('All districts deleted');
         },
         onError: () => {
-            toast.error('Erreur lors de la suppression');
-        }
+            toast.error('Failed to delete districts');
+        },
     });
 
     return {
