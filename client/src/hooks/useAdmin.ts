@@ -7,10 +7,10 @@ import { getApiErrorMessage } from '../lib/helper';
 export const useAdmin = () => {
     const queryClient = useQueryClient();
 
-    const { 
-        data: admins = [], 
-        isLoading, 
-        error 
+    const {
+        data: admins = [],
+        isLoading,
+        error,
     } = useQuery({
         queryKey: ['admins'],
         queryFn: AdminService.getAll,
@@ -18,50 +18,25 @@ export const useAdmin = () => {
     });
 
     const createAdmin = useMutation({
-        mutationFn: async (data: RegisterRequest) => {
-            console.log('🔵 Tentative de création avec:', data);
-            try {
-                const result = await AdminService.create(data);
-                console.log('✅ Création réussie:', result);
-                return result;
-            } catch (error: any) {
-                console.error('❌ Erreur création:', {
-                    status: error?.response?.status,
-                    data: error?.response?.data,
-                    message: error?.message
-                });
-                throw error;
-            }
-        },
+        mutationFn: (data: RegisterRequest) => AdminService.create(data),
         onSuccess: (newAdmin) => {
             queryClient.invalidateQueries({ queryKey: ['admins'] });
-            toast.success(`Admin ${newAdmin.firstName} ${newAdmin.lastName} créé`);
+            toast.success(`Admin ${newAdmin.firstName} ${newAdmin.lastName} created`);
         },
         onError: (error) => {
             toast.error(getApiErrorMessage(error));
-        }
+        },
     });
 
     const deleteAdmin = useMutation({
-        mutationFn: async (id: string) => {
-            console.log('Deleting admin with ID:', id);
-            try {
-                const result = await AdminService.delete(id);
-                console.log('Delete result:', result);
-                return result;
-            } catch (error) {
-                console.error('Delete error:', error);
-                throw error;
-            }
-        },
+        mutationFn: (id: string) => AdminService.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admins'] });
-            toast.success('Admin supprimé avec succès');
+            toast.success('Admin deleted successfully');
         },
         onError: (error) => {
-            console.error('Mutation error:', error);
             toast.error(getApiErrorMessage(error));
-        }
+        },
     });
 
     return {
@@ -69,6 +44,6 @@ export const useAdmin = () => {
         isLoading,
         error,
         createAdmin,
-        deleteAdmin
+        deleteAdmin,
     };
 };
