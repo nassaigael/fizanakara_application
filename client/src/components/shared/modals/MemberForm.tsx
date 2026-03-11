@@ -28,16 +28,16 @@ interface MemberFormProps {
   parentId?: string;
 }
 
-export const MemberForm: React.FC<MemberFormProps> = ({ 
-  isOpen, 
-  onClose, 
-  memberToEdit, 
-  onSuccess, 
-  parentId 
+export const MemberForm: React.FC<MemberFormProps> = ({
+  isOpen,
+  onClose,
+  memberToEdit,
+  onSuccess,
+  parentId
 }) => {
   const { districts, tributes } = useLocations();
   const { members, createMember, updateMember, addChild } = useMembers();
-  
+
   const [isChildMode, setIsChildMode] = useState(false);
   const [formData, setFormData] = useState<Partial<PersonDto>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -71,17 +71,17 @@ export const MemberForm: React.FC<MemberFormProps> = ({
         imageUrl: '',
         phoneNumber: '',
         status: MemberStatus.WORKER,
-        districtId: 0,
-        tributeId: 0,
+        districtId: districts[0]?.id || 0,
+        tributeId: tributes[0]?.id || 0,
         parentId: parentId || ''
       });
       setImagePreview(null);
       setIsChildMode(!!parentId);
     }
     setErrors({});
-  }, [isOpen, memberToEdit, parentId]);
+  }, [isOpen, memberToEdit, parentId, districts, tributes]);
 
-  const parentOptions = useMemo(() => 
+  const parentOptions = useMemo(() =>
     members
       .filter(m => m.id !== memberToEdit?.id && !m.parentId)
       .map(m => ({ value: m.id, label: `${m.firstName} ${m.lastName}` })),
@@ -136,21 +136,21 @@ export const MemberForm: React.FC<MemberFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
-    
+
     setLoading(true);
     try {
       if (memberToEdit) {
         await updateMember.mutateAsync({ id: memberToEdit.id, data: formData as PersonDto });
-        toast.success('Membre mis à jour');
+        toast.success('Member updated');
       } else {
         if (isChildMode && formData.parentId) {
           await addChild.mutateAsync({ parentId: formData.parentId, childData: formData as PersonDto });
-          toast.success('Enfant ajouté');
+          toast.success('Child added');
         } else {
           await createMember.mutateAsync(formData as PersonDto);
-          toast.success('Membre créé');
+          toast.success('Member created');
         }
       }
       onSuccess?.();
@@ -165,9 +165,8 @@ export const MemberForm: React.FC<MemberFormProps> = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-[2.5rem] w-full max-w-5xl max-h-[98vh] flex flex-col shadow-2xl overflow-hidden border-4 border-white">
-        {/* Header */}
         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary border-b-4 border-brand-primary">
@@ -175,15 +174,15 @@ export const MemberForm: React.FC<MemberFormProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-black uppercase">
-                {memberToEdit ? 'Modifier Membre' : 'Ajouter Membre'}
+                {memberToEdit ? 'Edit Member' : 'Add Member'}
               </h2>
               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                Registre Fizanakara
+                Fizanakara Registry
               </p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="p-3 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-all"
             disabled={loading}
           >
@@ -198,65 +197,56 @@ export const MemberForm: React.FC<MemberFormProps> = ({
               <button
                 type="button"
                 onClick={() => { setIsChildMode(false); setFormData(prev => ({ ...prev, parentId: '' })); }}
-                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  !isChildMode ? 'bg-brand-primary text-white shadow-md' : 'text-gray-400 hover:bg-gray-200'
-                }`}
+                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isChildMode ? 'bg-brand-primary text-white shadow-md' : 'text-gray-400 hover:bg-gray-200'
+                  }`}
                 disabled={loading}
               >
-                Titulaire
+                Primary
               </button>
               <button
                 type="button"
                 onClick={() => setIsChildMode(true)}
-                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  isChildMode ? 'bg-brand-primary text-white shadow-md' : 'text-gray-400 hover:bg-gray-200'
-                }`}
+                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isChildMode ? 'bg-brand-primary text-white shadow-md' : 'text-gray-400 hover:bg-gray-200'
+                  }`}
                 disabled={loading}
               >
-                Enfant
+                Child
               </button>
             </div>
           </div>
         )}
 
-        {/* Formulaire */}
+        {/* Form */}
         <div className="flex-1 overflow-y-auto p-6 md:p-10">
           <form id="member-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Colonne gauche - Photo */}
+            {/* Left Column - Photo */}
             <div className="lg:col-span-4 space-y-6">
               <div className="bg-gray-50 p-6 rounded-[2.5rem] border-2 border-gray-200 border-b-8 flex flex-col items-center">
                 <div className="w-36 h-44 bg-gray-100 rounded-3xl border-4 border-white shadow-xl overflow-hidden mb-6 group relative flex items-center justify-center">
-                  {(() => {
-                      const url = imagePreview || getImageUrl(formData.imageUrl, `${formData.firstName || ''} ${formData.lastName || ''}`);
-                      if (url) {
-                          return (
-                              <img
-                                src={url}
-                                alt="Avatar"
-                                className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                              />
-                          );
-                      }
-                      const initials = getInitials(formData.firstName || '', formData.lastName || '');
-                      return (
-                          <span className="text-4xl font-black text-gray-400">
-                              {initials}
-                          </span>
-                      );
-                  })()}
+                  {imagePreview || formData.imageUrl ? (
+                    <img
+                      src={imagePreview || getImageUrl(formData.imageUrl, 'member')}
+                      alt="Avatar"
+                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                    />
+                  ) : (
+                    <span className="text-4xl font-black text-gray-400">
+                      {getInitials(formData.firstName || '', formData.lastName || '')}
+                    </span>
+                  )}
                 </div>
                 <Input
-                  label="URL Image"
+                  label="Image URL"
                   name="imageUrl"
                   value={formData.imageUrl || ''}
                   onChange={handleChange}
-                  placeholder="membre_01.jpg"
+                  placeholder="member_01.jpg"
                   icon={<AiOutlineCamera />}
                   disabled={loading}
                   error={errors.imageUrl}
                 />
-                <label className="mt-2 text-[8px] text-gray-400 font-bold cursor-pointer hover:text-brand-primary">
-                  ou importez une image
+                <label className="mt-2 text-[8px] text-gray-400 font-bold cursor-pointer hover:text-brand-primary uppercase">
+                  or upload an image
                   <input
                     type="file"
                     accept="image/*"
@@ -267,9 +257,9 @@ export const MemberForm: React.FC<MemberFormProps> = ({
               </div>
 
               {isChildMode && (
-                <div className="p-6 bg-orange-50 rounded-4xl border-2 border-dashed border-orange-200">
+                <div className="p-6 bg-orange-50 rounded-[2.5rem] border-2 border-dashed border-orange-200">
                   <Select
-                    label="Parent responsable"
+                    label="Responsible Parent"
                     name="parentId"
                     value={formData.parentId || ''}
                     onChange={handleChange}
@@ -282,33 +272,33 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                   <div className="flex items-start gap-2 mt-4 text-orange-700">
                     <AiOutlineInfoCircle size={16} className="shrink-0 mt-0.5" />
                     <p className="text-[9px] font-bold uppercase leading-tight">
-                      L'enfant sera rattaché aux cotisations du parent.
+                      The child will be linked to the parent's contributions.
                     </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Colonne droite - Champs */}
+            {/* Right Column - Fields */}
             <div className="lg:col-span-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
-                  label="Prénom"
+                  label="First Name"
                   name="firstName"
                   value={formData.firstName || ''}
                   onChange={handleChange}
                   error={errors.firstName}
-                  placeholder="Jean"
+                  placeholder="John"
                   disabled={loading}
                   required
                 />
                 <Input
-                  label="Nom"
+                  label="Last Name"
                   name="lastName"
                   value={formData.lastName || ''}
                   onChange={handleChange}
                   error={errors.lastName}
-                  placeholder="DUPONT"
+                  placeholder="DOE"
                   disabled={loading}
                   required
                 />
@@ -316,7 +306,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
-                  label="Date de naissance"
+                  label="Birth Date"
                   type="date"
                   name="birthDate"
                   value={formData.birthDate || ''}
@@ -327,13 +317,13 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                   required
                 />
                 <Select
-                  label="Sexe"
+                  label="Gender"
                   name="gender"
                   value={formData.gender || Gender.MALE}
                   onChange={handleChange}
                   options={[
-                    { value: Gender.MALE, label: 'Masculin' },
-                    { value: Gender.FEMALE, label: 'Féminin' }
+                    { value: Gender.MALE, label: 'Male' },
+                    { value: Gender.FEMALE, label: 'Female' }
                   ]}
                   disabled={loading}
                   required
@@ -353,7 +343,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                   required
                 />
                 <Select
-                  label="Tribu"
+                  label="Tribute"
                   name="tributeId"
                   value={formData.tributeId?.toString() || ''}
                   onChange={handleChange}
@@ -364,20 +354,20 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                   required
                 />
                 <Select
-                  label="Statut"
+                  label="Status"
                   name="status"
                   value={formData.status || MemberStatus.WORKER}
                   onChange={handleChange}
                   options={[
-                    { value: MemberStatus.WORKER, label: 'Travailleur' },
-                    { value: MemberStatus.STUDENT, label: 'Étudiant' }
+                    { value: MemberStatus.WORKER, label: 'Worker' },
+                    { value: MemberStatus.STUDENT, label: 'Student' }
                   ]}
                   disabled={loading}
                 />
               </div>
 
               <Input
-                label="Téléphone"
+                label="Phone Number"
                 name="phoneNumber"
                 value={formData.phoneNumber || ''}
                 onChange={handleChange}
@@ -399,7 +389,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
             className="w-full md:w-auto px-10"
             disabled={loading}
           >
-            Annuler
+            CANCEL
           </Button>
           <Button
             type="submit"
@@ -408,8 +398,8 @@ export const MemberForm: React.FC<MemberFormProps> = ({
             className="w-full md:flex-1"
             isLoading={loading}
           >
-            {memberToEdit ? 'Enregistrer les modifications' : 'Confirmer la création'}
-          </Button>
+            {memberToEdit ? 'SAVE CHANGES' : 'CONFIRM CREATION'}
+            m          </Button>
         </div>
       </div>
     </div>,
