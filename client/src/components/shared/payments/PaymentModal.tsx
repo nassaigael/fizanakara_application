@@ -70,14 +70,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     onClose();
                 }, 1500);
             } catch (error) {
-                console.error('Erreur paiement:', error);
+                // Error handled by hook
             }
         }
     });
 
     const statusOptions = [
-        { value: PaymentStatus.COMPLETED, label: 'Effectué' },
-        { value: PaymentStatus.PENDING, label: 'En attente' }
+        { value: PaymentStatus.COMPLETED, label: 'Completed' },
+        { value: PaymentStatus.PENDING, label: 'Pending' }
     ];
 
     if (!isOpen) return null;
@@ -99,7 +99,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             <AiOutlineDollar size={28} className="text-white" />
                         </div>
                         <h2 className="text-xl font-black uppercase">
-                            Enregistrer un paiement
+                            Register a Payment
                         </h2>
                         {memberName && (
                             <p className="text-xs font-bold text-brand-primary mt-1">
@@ -109,20 +109,20 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     </div>
 
                     <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                        {/* Récapitulatif */}
+                        {/* Summary */}
                         <div className="bg-gray-50 border-2 border-black rounded-2xl p-4 flex justify-between">
                             <div>
-                                <p className="text-[10px] font-black text-gray-400 uppercase">Total dû</p>
+                                <p className="text-[10px] font-black text-gray-400 uppercase">Total Due</p>
                                 <p className="font-black">{formatCurrency(contributionAmount || 0)}</p>
                             </div>
                             <div className="text-right">
-                                <p className="text-[10px] font-black text-red-400 uppercase">Reste</p>
+                                <p className="text-[10px] font-black text-red-400 uppercase">Remaining</p>
                                 <p className="font-black text-red-600">{formatCurrency(remainingAmount || 0)}</p>
                             </div>
                         </div>
 
                         <Input
-                            label="Montant versé"
+                            label="Amount Paid"
                             name="amountPaid"
                             type="number"
                             value={values.amountPaid?.toString()}
@@ -144,7 +144,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         />
 
                         <Select
-                            label="État du paiement"
+                            label="Payment Status"
                             name="status"
                             options={statusOptions}
                             value={values.status}
@@ -160,7 +160,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                 onClick={onClose}
                                 className="flex-1"
                             >
-                                Annuler
+                                Cancel
                             </Button>
                             <Button
                                 type="submit"
@@ -168,7 +168,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                 isLoading={addPayment.isPending}
                                 className="flex-1"
                             >
-                                Valider
+                                Validate
                             </Button>
                         </div>
                     </form>
@@ -177,7 +177,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 {showSuccess && (
                     <div className="absolute inset-0 bg-green-500 rounded-[2.5rem] border-4 border-black flex flex-col items-center justify-center text-white z-10 animate-in zoom-in duration-300">
                         <AiOutlineCheckCircle size={80} className="mb-4" />
-                        <p className="font-black text-2xl uppercase">Succès !</p>
+                        <p className="font-black text-2xl uppercase">Success!</p>
                     </div>
                 )}
             </div>
