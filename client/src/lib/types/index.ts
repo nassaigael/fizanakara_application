@@ -1,5 +1,5 @@
 // ============================================
-// ÉNUMÉRATIONS
+// ENUMERATIONS
 // ============================================
 
 export enum Gender {
@@ -31,7 +31,7 @@ export enum PaymentStatus {
 }
 
 // ============================================
-// TYPES DE BASE (LOCALISATION)
+// LOCATION TYPES (District / Tribute)
 // ============================================
 
 export interface LocationBase {
@@ -57,7 +57,7 @@ export interface TributeDto {
 }
 
 // ============================================
-// TYPES MEMBRES (PERSON)
+// MEMBER TYPES (Person)
 // ============================================
 
 export interface PersonBase {
@@ -65,7 +65,7 @@ export interface PersonBase {
     lastName: string;
     birthDate: string;
     gender: Gender;
-    imageUrl?: string | null;
+    imageUrl: string;
     phoneNumber: string;
 }
 
@@ -76,20 +76,30 @@ export interface PersonDto extends PersonBase {
     parentId?: string | null;
 }
 
-export interface PersonResponse extends PersonDto {
+export interface PersonResponse {
     id: string;
+    firstName: string;
+    lastName: string;
+    birthDate: string;
+    gender: Gender;
+    imageUrl: string;
+    phoneNumber: string;
+    createdAt?: string;
     sequenceNumber: number;
+    status: MemberStatus;
     isActiveMember: boolean;
+    districtId: number;
     districtName: string;
+    tributeId: number;
     tributeName: string;
+    parentId?: string | null;
     parentName?: string | null;
     childrenCount: number;
     children: PersonResponse[];
-    createdAt?: string;
 }
 
 // ============================================
-// TYPES ADMINISTRATEURS
+// ADMIN TYPES
 // ============================================
 
 export interface AdminBase extends PersonBase {
@@ -105,20 +115,25 @@ export interface LoginRequest {
     password: string;
 }
 
-export interface AdminResponse extends AdminBase {
+export interface AdminResponse {
     id: string;
+    firstName: string;
+    lastName: string;
+    birthDate: string;
+    gender: string;
+    imageUrl: string;
+    phoneNumber: string;
+    email: string;
     role: UserRole;
     verified: boolean;
     createdAt: string;
-    districtId?: number;
-    tributeId?: number;
 }
 
 export interface UpdateAdminRequest {
     firstName?: string;
     lastName?: string;
     birthDate?: string;
-    gender?: Gender;
+    gender?: string;
     imageUrl?: string | null;
     phoneNumber?: string;
     email?: string;
@@ -127,7 +142,7 @@ export interface UpdateAdminRequest {
 }
 
 // ============================================
-// TYPES COTISATIONS (CONTRIBUTIONS)
+// CONTRIBUTION TYPES
 // ============================================
 
 export interface ContributionYearRequest {
@@ -151,29 +166,30 @@ export interface ContributionResponse {
     memberId: string;
     memberName: string;
     childId?: string | null;
-    childName?: string | null;
-    isFullyPaid: boolean;
-    paymentsCount: number;
     payments: PaymentResponse[];
 }
 
 // ============================================
-// TYPES PAIEMENTS
+// PAYMENT TYPES
 // ============================================
 
 export interface PaymentRequest {
+    amountPaid: number;
+    paymentDate?: string;
+    status?: PaymentStatus;
+    contributionId: string;
+}
+
+export interface PaymentResponse {
+    id: string;
     amountPaid: number;
     paymentDate: string;
     status: PaymentStatus;
     contributionId: string;
 }
 
-export interface PaymentResponse extends PaymentRequest {
-    id: string;
-}
-
 // ============================================
-// TYPES AUTHENTIFICATION
+// AUTHENTICATION TYPES
 // ============================================
 
 export interface LoginResponse {
@@ -200,28 +216,11 @@ export interface GenericResponse {
     success: boolean;
 }
 
-// Ajouter ces types manquants basés sur les contrôleurs
-
-// Pour les réponses avec message
 export interface ApiResponse {
     message: string;
     success: boolean;
 }
 
-// Pour les tokens
 export interface RefreshTokenResponse {
     accessToken: string;
-}
-
-// Pour les DTOs de mise à jour (correspond à UpdateAdminDto)
-export interface UpdateAdminRequest {
-    firstName?: string;
-    lastName?: string;
-    birthDate?: string;
-    gender?: Gender;
-    imageUrl?: string | null;
-    phoneNumber?: string;
-    email?: string;
-    password?: string;
-    verified?: boolean;
 }
