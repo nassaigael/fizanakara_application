@@ -7,23 +7,22 @@ import toast from 'react-hot-toast';
 export const useMembers = (parentId?: string) => {
     const queryClient = useQueryClient();
 
-
-    const { 
-        data: members = [], 
-        isLoading, 
-        error 
+    const {
+        data: members = [],
+        isLoading,
+        error,
     } = useQuery({
         queryKey: ['members'],
         queryFn: MemberService.getAll,
         staleTime: 2 * 60 * 1000,
     });
 
-    const { 
-        data: children = [], 
-        isLoading: loadingChildren 
+    const {
+        data: children = [],
+        isLoading: loadingChildren,
     } = useQuery({
         queryKey: ['members', parentId, 'children'],
-        queryFn: () => parentId ? MemberService.getChildren(parentId) : Promise.resolve([]),
+        queryFn: () => (parentId ? MemberService.getChildren(parentId) : Promise.resolve([])),
         enabled: !!parentId,
     });
 
@@ -31,7 +30,7 @@ export const useMembers = (parentId?: string) => {
         try {
             return await MemberService.getById(id);
         } catch {
-            toast.error('Impossible de charger le membre');
+            toast.error('Failed to load member');
             return null;
         }
     };
@@ -40,48 +39,45 @@ export const useMembers = (parentId?: string) => {
         mutationFn: (data: PersonDto) => MemberService.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['members'] });
-            toast.success('Membre créé avec succès');
+            toast.success('Member created successfully');
         },
         onError: () => {
-            toast.error('Erreur lors de la création');
-        }
+            toast.error('Failed to create member');
+        },
     });
 
     const updateMember = useMutation({
-        mutationFn: ({ id, data }: { id: string; data: PersonDto }) => 
-            MemberService.update(id, data),
+        mutationFn: ({ id, data }: { id: string; data: PersonDto }) => MemberService.update(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['members'] });
-            toast.success('Membre mis à jour');
+            toast.success('Member updated');
         },
         onError: () => {
-            toast.error('Erreur lors de la mise à jour');
-        }
+            toast.error('Failed to update member');
+        },
     });
 
     const deleteMember = useMutation({
         mutationFn: (id: string) => MemberService.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['members'] });
-            toast.success('Membre supprimé');
+            toast.success('Member deleted');
         },
         onError: () => {
-            toast.error('Erreur lors de la suppression');
-        }
+            toast.error('Failed to delete member');
+        },
     });
 
-    // Promouvoir un membre (STUDENT → WORKER)
     const promoteMember = useMutation({
         mutationFn: (id: string) => MemberService.promote(id),
         onSuccess: (member) => {
             queryClient.invalidateQueries({ queryKey: ['members'] });
-            toast.success(`${member.firstName} ${member.lastName} est maintenant WORKER`);
+            toast.success(`${member.firstName} ${member.lastName} promoted to WORKER`);
         },
         onError: () => {
-            toast.error('Erreur lors de la promotion');
-        }
+            toast.error('Failed to promote member');
+        },
     });
-
 
     const addChild = useMutation({
         mutationFn: ({ parentId, childData }: { parentId: string; childData: PersonDto }) =>
@@ -89,34 +85,29 @@ export const useMembers = (parentId?: string) => {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['members', variables.parentId, 'children'] });
             queryClient.invalidateQueries({ queryKey: ['members'] });
-            toast.success('Enfant ajouté avec succès');
+            toast.success('Child added successfully');
         },
         onError: () => {
-            toast.error('Erreur lors de l\'ajout de l\'enfant');
-        }
+            toast.error('Failed to add child');
+        },
     });
 
     const getMemberAge = (birthDate: string) => calculateAge(birthDate);
-    
     const canPromote = (birthDate: string) => canPromoteToWorker(birthDate);
-    
     const getMemberTypeLabel = (member: PersonResponse) => getMemberType(member);
 
     return {
-
         members,
         children,
         isLoading,
         loadingChildren,
         error,
-        
         createMember,
         updateMember,
         deleteMember,
         promoteMember,
         addChild,
         fetchMemberById,
-
         getMemberAge,
         canPromote,
         getMemberTypeLabel,
