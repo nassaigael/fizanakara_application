@@ -6,22 +6,22 @@ import toast from 'react-hot-toast';
 export const useTribute = (tributeId?: number) => {
     const queryClient = useQueryClient();
 
-    const { 
-        data: tributes = [], 
-        isLoading, 
-        error 
+    const {
+        data: tributes = [],
+        isLoading,
+        error,
     } = useQuery({
         queryKey: ['tributes'],
         queryFn: TributeService.getAll,
         staleTime: 10 * 60 * 1000,
     });
 
-    const { 
-        data: currentTribute, 
-        isLoading: loadingCurrent 
+    const {
+        data: currentTribute,
+        isLoading: loadingCurrent,
     } = useQuery({
         queryKey: ['tributes', tributeId],
-        queryFn: () => tributeId ? TributeService.getById(tributeId) : Promise.resolve(null),
+        queryFn: () => (tributeId ? TributeService.getById(tributeId) : Promise.resolve(null)),
         enabled: !!tributeId,
     });
 
@@ -29,11 +29,11 @@ export const useTribute = (tributeId?: number) => {
         mutationFn: (data: TributeDto) => TributeService.create(data),
         onSuccess: (newTribute) => {
             queryClient.invalidateQueries({ queryKey: ['tributes'] });
-            toast.success(`Tribu "${newTribute.name}" créée`);
+            toast.success(`Tribute "${newTribute.name}" created`);
         },
         onError: () => {
-            toast.error('Erreur lors de la création');
-        }
+            toast.error('Failed to create tribute');
+        },
     });
 
     const updateTribute = useMutation({
@@ -42,33 +42,33 @@ export const useTribute = (tributeId?: number) => {
         onSuccess: (updated) => {
             queryClient.invalidateQueries({ queryKey: ['tributes'] });
             queryClient.setQueryData(['tributes', updated.id], updated);
-            toast.success(`Tribu "${updated.name}" mise à jour`);
+            toast.success(`Tribute "${updated.name}" updated`);
         },
         onError: () => {
-            toast.error('Erreur lors de la mise à jour');
-        }
+            toast.error('Failed to update tribute');
+        },
     });
 
     const deleteTribute = useMutation({
         mutationFn: (id: number) => TributeService.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tributes'] });
-            toast.success('Tribu supprimée');
+            toast.success('Tribute deleted');
         },
         onError: () => {
-            toast.error('Erreur lors de la suppression');
-        }
+            toast.error('Failed to delete tribute');
+        },
     });
 
     const deleteAllTributes = useMutation({
         mutationFn: () => TributeService.deleteAll(),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tributes'] });
-            toast.success('Toutes les tribus supprimées');
+            toast.success('All tributes deleted');
         },
         onError: () => {
-            toast.error('Erreur lors de la suppression');
-        }
+            toast.error('Failed to delete tributes');
+        },
     });
 
     return {
