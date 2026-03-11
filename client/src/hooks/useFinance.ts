@@ -1,26 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ContributionService } from '../services/contribution.services';
 import { PaymentService } from '../services/payment.services';
-import { 
-    ContributionYearRequest, 
-    ContributionUpdateRequest,
-    PaymentRequest,
-} from '../lib/types';
+import { ContributionYearRequest, ContributionUpdateRequest, PaymentRequest } from '../lib/types';
 import { getPaymentPercentage } from '../lib/helper';
 import toast from 'react-hot-toast';
 
 export const useFinance = (personId?: string, year?: number) => {
     const queryClient = useQueryClient();
 
-    const { 
-        data: contributions = [], 
-        isLoading, 
-        error 
+    const {
+        data: contributions = [],
+        isLoading,
+        error,
     } = useQuery({
         queryKey: ['contributions', personId, year],
-        queryFn: () => personId && year 
-            ? ContributionService.getByPersonAndYear(personId, year)
-            : ContributionService.getAll(),
+        queryFn: () =>
+            personId && year
+                ? ContributionService.getByPersonAndYear(personId, year)
+                : ContributionService.getAll(),
         staleTime: 2 * 60 * 1000,
     });
 
@@ -33,15 +30,16 @@ export const useFinance = (personId?: string, year?: number) => {
     };
 
     const generateAnnualContributions = useMutation({
-        mutationFn: (data: ContributionYearRequest) => 
-            ContributionService.generateForYear(data),
+        mutationFn: (data: ContributionYearRequest) => ContributionService.generateForYear(data),
         onSuccess: (newContributions) => {
             queryClient.invalidateQueries({ queryKey: ['contributions'] });
-            toast.success(`${newContributions.length} cotisations générées pour ${newContributions[0]?.year}`);
+            toast.success(
+                `${newContributions.length} contributions generated for ${newContributions[0]?.year}`,
+            );
         },
         onError: () => {
-            toast.error('Erreur lors de la génération');
-        }
+            toast.error('Failed to generate contributions');
+        },
     });
 
     const updateContribution = useMutation({
@@ -49,23 +47,22 @@ export const useFinance = (personId?: string, year?: number) => {
             ContributionService.update(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contributions'] });
-            toast.success('Cotisation mise à jour');
+            toast.success('Contribution updated');
         },
         onError: () => {
-            toast.error('Erreur lors de la mise à jour');
-        }
+            toast.error('Failed to update contribution');
+        },
     });
 
-    // Supprimer une cotisation
     const deleteContribution = useMutation({
         mutationFn: (id: string) => ContributionService.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contributions'] });
-            toast.success('Cotisation supprimée');
+            toast.success('Contribution deleted');
         },
         onError: () => {
-            toast.error('Erreur lors de la suppression');
-        }
+            toast.error('Failed to delete contribution');
+        },
     });
 
     const addPayment = useMutation({
@@ -73,11 +70,11 @@ export const useFinance = (personId?: string, year?: number) => {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['contributions'] });
             queryClient.invalidateQueries({ queryKey: ['payments', variables.contributionId] });
-            toast.success('Paiement enregistré');
+            toast.success('Payment recorded');
         },
         onError: () => {
-            toast.error('Erreur lors du paiement');
-        }
+            toast.error('Failed to record payment');
+        },
     });
 
     const updatePayment = useMutation({
@@ -86,8 +83,8 @@ export const useFinance = (personId?: string, year?: number) => {
         onSuccess: (_, { data }) => {
             queryClient.invalidateQueries({ queryKey: ['contributions'] });
             queryClient.invalidateQueries({ queryKey: ['payments', data.contributionId] });
-            toast.success('Paiement mis à jour');
-        }
+            toast.success('Payment updated');
+        },
     });
 
     const deletePayment = useMutation({
@@ -95,8 +92,8 @@ export const useFinance = (personId?: string, year?: number) => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['payments'] });
             queryClient.invalidateQueries({ queryKey: ['contributions'] });
-            toast.success('Paiement supprimé');
-        }
+            toast.success('Payment deleted');
+        },
     });
 
     const getContributionStats = () => {
@@ -104,32 +101,24 @@ export const useFinance = (personId?: string, year?: number) => {
         const paid = contributions.reduce((sum, c) => sum + c.totalPaid, 0);
         const remaining = total - paid;
         const percentage = getPaymentPercentage(paid, total);
-
         return { total, paid, remaining, percentage };
     };
 
     const getMemberContributions = (memberId: string) => {
-        return contributions.filter(c => c.memberId === memberId);
+        return contributions.filter((c) => c.memberId === memberId);
     };
 
     return {
-        // Données
         contributions,
         isLoading,
         error,
         usePayments,
-        
-        // Actions cotisations
         generateAnnualContributions,
         updateContribution,
         deleteContribution,
-        
-        // Actions paiements
         addPayment,
         updatePayment,
         deletePayment,
-        
-        // Helpers
         getContributionStats,
         getMemberContributions,
     };
