@@ -17,16 +17,16 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
     setTypeFilter
 }) => {
     const statusOptions = [
-        { value: 'all', label: 'Tous les statuts' },
-        { value: 'UNPAID', label: 'Non payés' },
-        { value: 'PARTIAL', label: 'Paiements partiels' },
-        { value: 'PAID', label: 'Entièrement réglés' },
+        { value: 'all', label: 'All account states' },
+        { value: 'UNPAID', label: 'Unpaid' },
+        { value: 'PARTIAL', label: 'Partial payments' },
+        { value: 'PAID', label: 'Fully settled' },
     ];
 
     const typeOptions = [
-        { value: 'all', label: 'Tous les membres' },
-        { value: 'WORKER', label: 'Travailleurs' },
-        { value: 'STUDENT', label: 'Étudiants' },
+        { value: 'all', label: 'All members' },
+        { value: 'WORKER', label: 'Workers' },
+        { value: 'STUDENT', label: 'Students' },
     ];
 
     const handleReset = () => {
@@ -38,7 +38,7 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
         <div className="bg-white border-4 border-black rounded-[2rem] p-4 mb-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-[200px]">
                 <label className="text-[10px] font-black uppercase mb-1 block ml-2 text-gray-400">
-                    État du compte
+                    Account Status
                 </label>
                 <Select
                     name="status"
@@ -51,7 +51,7 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
 
             <div className="flex-1 min-w-[200px]">
                 <label className="text-[10px] font-black uppercase mb-1 block ml-2 text-gray-400">
-                    Catégorie
+                    Category
                 </label>
                 <Select
                     name="type"
@@ -67,7 +67,7 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
                 onClick={handleReset}
                 className="px-6 py-3 text-xs"
             >
-                Réinitialiser
+                Reset
             </Button>
         </div>
     );
