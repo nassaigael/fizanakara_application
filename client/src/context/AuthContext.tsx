@@ -1,15 +1,15 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
-import { 
-    LoginRequest, 
-    AdminResponse, 
-    UpdateAdminRequest, 
-    LoginResponse, 
-    UserRole 
+import {
+    LoginRequest,
+    AdminResponse,
+    UpdateAdminRequest,
+    LoginResponse,
+    UserRole,
 } from '../lib/types';
 import { getErrorMessage } from '../lib/helper';
-import api from '../services/api/axios.config'; 
+import api from '../services/api/axios.config';
 import toast from 'react-hot-toast';
 
 interface AuthContextType {
@@ -23,6 +23,7 @@ interface AuthContextType {
     isSuperAdmin: boolean;
     hasRole: (role: UserRole) => boolean;
     resetPassword: (token: string, password: string) => Promise<void>;
+    forgotPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,15 +59,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             const userData = await AuthService.getMe();
-            
-            // On s'assure de garder le rôle du cache si getMe ne le renvoie pas
+
+            // Keep the role from cache if getMe doesn't return it
             if (userData && !userData.role && cachedUser) {
                 userData.role = JSON.parse(cachedUser).role;
             }
 
             setUser(userData);
             localStorage.setItem('user', JSON.stringify(userData));
-        } catch (err) {
+        } catch {
             logout();
         } finally {
             setLoading(false);
@@ -82,55 +83,66 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setError(null);
         try {
             const response = await AuthService.login(credentials);
-            
+
             if (response.accessToken) {
                 localStorage.setItem('accessToken', response.accessToken);
                 localStorage.setItem('refreshToken', response.refreshToken);
 
-                // FUSION : On attache le rôle à l'utilisateur
+                // Map login response user (lowercase fields) to AdminResponse
                 const fullUserData: AdminResponse = {
-                    ...response.user,
-                    role: response.role 
+                    id: response.user.id,
+                    email: response.user.email,
+                    firstName: response.user.firstName,
+                    lastName: response.user.lastName,
+                    gender: response.user.gender,
+                    role: response.role,
+                    imageUrl: '',
+                    phoneNumber: '',
+                    birthDate: '',
+                    verified: false,
+                    createdAt: '',
                 } as AdminResponse;
 
                 setUser(fullUserData);
                 localStorage.setItem('user', JSON.stringify(fullUserData));
                 api.defaults.headers.common['Authorization'] = `Bearer ${response.accessToken}`;
 
-                toast.success(`Connexion réussie`);
+                toast.success('Login successful');
 
-                // REDIRECTION STRICTE
                 if (response.role === UserRole.SUPERADMIN) {
                     navigate('/superadmin/dashboard', { replace: true });
                 } else {
                     navigate('/admin/dashboard', { replace: true });
                 }
-                
+
                 return response;
             }
         } catch (err: any) {
             const message = getErrorMessage(err);
             setError(message);
-            toast.error(message || 'Erreur de connexion');
+            toast.error(message || 'Login failed');
             throw err;
         } finally {
             setLoading(false);
         }
     };
 
-    const hasRole = useCallback((role: UserRole): boolean => {
-        if (!user || !user.role) return false;
-        return user.role === role; 
-    }, [user]);
+    const hasRole = useCallback(
+        (role: UserRole): boolean => {
+            if (!user || !user.role) return false;
+            return user.role === role;
+        },
+        [user],
+    );
 
     const updateProfile = async (data: UpdateAdminRequest) => {
         try {
-            // when the form sends an empty string for imageUrl we convert it to
-            // null so the backend does not overwrite the value with an empty
-            // string (it already checks for != null).
             const payload: UpdateAdminRequest = { ...data };
-            if (payload.imageUrl === '') {
-                payload.imageUrl = null;
+            if (payload.imageUrl) {
+                payload.imageUrl = payload.imageUrl.trim().replace(/\s+/g, '_');
+                if (payload.imageUrl === '') {
+                    payload.imageUrl = null;
+                }
             }
 
             const response = await AuthService.updateMe(payload);
@@ -138,7 +150,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (user?.role) updated.role = user.role;
             setUser(updated);
             localStorage.setItem('user', JSON.stringify(updated));
-            toast.success('Profil mis à jour');
+            toast.success('Profile updated');
             return response;
         } catch (err) {
             toast.error(getErrorMessage(err));
@@ -151,6 +163,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         navigate('/login');
     };
 
+    const forgotPassword = async (email: string) => {
+        await AuthService.forgotPassword(email);
+    };
+
     const value = {
         user,
         loading,
@@ -158,6 +174,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         logout,
         updateProfile,
+        forgotPassword,
         isAuthenticated: !!user,
         isSuperAdmin: user?.role === UserRole.SUPERADMIN,
         hasRole,
