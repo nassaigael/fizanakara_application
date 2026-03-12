@@ -1,5 +1,5 @@
 import api from './api/axios.config';
-import { Tribute, TributeDto } from '../lib/types';
+import { Tribute, TributeDto, ApiResponse } from '../lib/types';
 
 export const TributeService = {
     getAll: async (): Promise<Tribute[]> => {
@@ -22,13 +22,13 @@ export const TributeService = {
         return response.data;
     },
 
-    delete: async (id: number): Promise<string> => {
-        const response = await api.delete<string>(`/api/admins/tributes/${id}`);
+    delete: async (id: number): Promise<ApiResponse> => {
+        const response = await api.delete<ApiResponse>(`/api/admins/tributes/${id}`);
         return response.data;
     },
 
-    deleteAll: async (): Promise<string> => {
-        const response = await api.delete<string>('/api/admins/tributes/delete-all');
+    deleteAll: async (): Promise<ApiResponse> => {
+        const response = await api.delete<ApiResponse>('/api/admins/tributes/delete-all');
         return response.data;
     }
 };
