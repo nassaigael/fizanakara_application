@@ -1,5 +1,5 @@
 import api from './api/axios.config';
-import { District, DistrictDto } from '../lib/types';
+import { District, DistrictDto, ApiResponse } from '../lib/types';
 
 export const DistrictService = {
     getAll: async (): Promise<District[]> => {
@@ -22,13 +22,13 @@ export const DistrictService = {
         return response.data;
     },
 
-    delete: async (id: number): Promise<string> => {
-        const response = await api.delete<string>(`/api/admins/districts/${id}`);
+    delete: async (id: number): Promise<ApiResponse> => {
+        const response = await api.delete<ApiResponse>(`/api/admins/districts/${id}`);
         return response.data;
     },
 
-    deleteAll: async (): Promise<string> => {
-        const response = await api.delete<string>('/api/admins/districts/delete-all');
+    deleteAll: async (): Promise<ApiResponse> => {
+        const response = await api.delete<ApiResponse>('/api/admins/districts/delete-all');
         return response.data;
     }
 };
