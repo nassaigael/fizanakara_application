@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import {
     AiOutlineDollar,
     AiOutlineCheckCircle,
-    AiOutlineWarning
+    AiOutlineWarning,
+    AiOutlineSearch
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
@@ -19,7 +20,7 @@ const AdminFinance: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
-    
+
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedContribution, setSelectedContribution] = useState<any>(null);
 
@@ -35,9 +36,9 @@ const AdminFinance: React.FC = () => {
         return contributions.filter(c => {
             const member = members.find(m => m.id === c.memberId);
             const memberName = member ? `${member.firstName} ${member.lastName}` : c.memberName;
-            
+
             const matchesSearch = memberName?.toLowerCase().includes(searchTerm.toLowerCase());
-            
+
             const remaining = c.remaining || 0;
             let matchesStatus = true;
             if (statusFilter === 'UNPAID') matchesStatus = remaining === c.amount;
@@ -68,9 +69,9 @@ const AdminFinance: React.FC = () => {
     const handleGenerateAnnual = async () => {
         try {
             await generateAnnualContributions.mutateAsync({ year: selectedYear });
-            toast.success(`Cotisations ${selectedYear} générées`);
+            toast.success(`Contributions for ${selectedYear} generated`);
         } catch (error) {
-            toast.error('Erreur lors de la génération');
+            toast.error('Error during generation');
         }
     };
 
@@ -79,7 +80,7 @@ const AdminFinance: React.FC = () => {
             <div className="flex items-center justify-center h-96">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                    <p className="font-black text-gray-500">Chargement des cotisations...</p>
+                    <p className="font-black text-gray-500">Loading contributions...</p>
                 </div>
             </div>
         );
@@ -87,21 +88,19 @@ const AdminFinance: React.FC = () => {
 
     return (
         <div className="space-y-8">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div className="p-4 bg-brand-primary text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <AiOutlineDollar size={32} />
                     </div>
                     <div>
-                        <h1 className={`${THEME.font.h1} text-3xl`}>FINANCE</h1>
+                        <h1 className={`${THEME.font.h1} text-3xl uppercase`}>Finance</h1>
                         <p className={`${THEME.font.muted} mt-1 text-xs uppercase tracking-widest`}>
-                            Gestion des cotisations
+                            Contribution Management
                         </p>
                     </div>
                 </div>
 
-                {/* Year selector */}
                 <div className="flex items-center gap-2 bg-white rounded-2xl border-2 border-gray-200 p-1">
                     {years.map(year => (
                         <button
@@ -121,37 +120,35 @@ const AdminFinance: React.FC = () => {
                 </div>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <StatCard
-                    title="Total dû"
+                    title="Total Due"
                     value={formatCurrency(stats.totalAmount)}
                     color="bg-blue-500"
                 />
                 <StatCard
-                    title="Total payé"
+                    title="Total Paid"
                     value={formatCurrency(stats.totalPaid)}
                     color="bg-green-500"
                 />
                 <StatCard
-                    title="Reste à payer"
+                    title="Remaining"
                     value={formatCurrency(stats.remaining)}
                     color="bg-red-500"
                 />
                 <StatCard
-                    title="Taux de paiement"
+                    title="Payment Rate"
                     value={`${stats.totalAmount > 0 ? ((stats.totalPaid / stats.totalAmount) * 100).toFixed(1) : 0}%`}
                     color="bg-purple-500"
                 />
             </div>
 
-            {/* Generate button if no contributions */}
             {contributions.length === 0 && (
                 <div className="bg-yellow-50 border-2 border-yellow-200 rounded-3xl p-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <AiOutlineWarning className="text-yellow-600" size={24} />
                         <p className="font-black text-yellow-800">
-                            Aucune cotisation pour {selectedYear}
+                            No contributions for {selectedYear}
                         </p>
                     </div>
                     <Button
@@ -159,12 +156,11 @@ const AdminFinance: React.FC = () => {
                         onClick={handleGenerateAnnual}
                         isLoading={generateAnnualContributions.isPending}
                     >
-                        Générer les cotisations
+                        Generate Contributions
                     </Button>
                 </div>
             )}
 
-            {/* Filters */}
             <FinanceFilters
                 statusFilter={statusFilter}
                 setStatusFilter={setStatusFilter}
@@ -172,27 +168,25 @@ const AdminFinance: React.FC = () => {
                 setTypeFilter={setTypeFilter}
             />
 
-            {/* Search */}
             <div className="relative">
                 <Input
-                    placeholder="Rechercher un membre..."
+                    placeholder="Search for a member..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    icon={<AiOutlineWarning />}
+                    icon={<AiOutlineSearch />}
                 />
             </div>
 
-            {/* Contributions Table */}
             <div className="bg-white rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50 border-b-2 border-gray-200">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Membre</th>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Statut</th>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Montant</th>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Payé</th>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Reste</th>
+                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Member</th>
+                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Status</th>
+                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Amount</th>
+                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Paid</th>
+                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Remaining</th>
                                 <th className="px-6 py-4 text-right text-xs font-black uppercase text-gray-400">Actions</th>
                             </tr>
                         </thead>
@@ -200,7 +194,7 @@ const AdminFinance: React.FC = () => {
                             {filteredContributions.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-12 text-center font-black text-gray-400">
-                                        Aucune cotisation trouvée
+                                        No contributions found
                                     </td>
                                 </tr>
                             ) : (
@@ -214,19 +208,18 @@ const AdminFinance: React.FC = () => {
                                         <tr key={contribution.id} className="hover:bg-gray-50">
                                             <td className="px-6 py-4">
                                                 <p className="font-black text-sm">{contribution.memberName}</p>
-                                                <p className="text-[10px] text-gray-500">
-                                                    {isStudent ? 'Étudiant' : 'Travailleur'}
+                                                <p className="text-[10px] text-gray-500 uppercase">
+                                                    {isStudent ? 'Student' : 'Worker'}
                                                 </p>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-3 py-1 rounded-full text-[8px] font-black ${
-                                                    isPaid
-                                                        ? 'bg-green-100 text-green-600'
-                                                        : remaining === contribution.amount
-                                                            ? 'bg-red-100 text-red-600'
-                                                            : 'bg-orange-100 text-orange-600'
-                                                }`}>
-                                                    {isPaid ? 'Payé' : remaining === contribution.amount ? 'Impayé' : 'Partiel'}
+                                                <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${isPaid
+                                                    ? 'bg-green-100 text-green-600'
+                                                    : remaining === contribution.amount
+                                                        ? 'bg-red-100 text-red-600'
+                                                        : 'bg-orange-100 text-orange-600'
+                                                    }`}>
+                                                    {isPaid ? 'Paid' : remaining === contribution.amount ? 'Unpaid' : 'Partial'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 font-black">
@@ -240,9 +233,9 @@ const AdminFinance: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 {isPaid ? (
-                                                    <span className="inline-flex items-center gap-1 text-green-600 font-black text-[10px]">
+                                                    <span className="inline-flex items-center gap-1 text-green-600 font-black text-[10px] uppercase">
                                                         <AiOutlineCheckCircle size={16} />
-                                                        Réglé
+                                                        Settled
                                                     </span>
                                                 ) : (
                                                     <Button
@@ -254,7 +247,7 @@ const AdminFinance: React.FC = () => {
                                                         disabled={isStudent}
                                                         className="px-4 py-2 text-xs"
                                                     >
-                                                        Payer
+                                                        Pay
                                                     </Button>
                                                 )}
                                             </td>
