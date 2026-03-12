@@ -103,7 +103,7 @@ const SuperAdminDashboard: React.FC = () => {
                         <AiOutlineCrown className="absolute top-5 left-1/2 transform -translate-x-1/2 text-brand-primary/50" size={24} />
                     </div>
                     <p className="text-brand-muted text-sm font-medium">
-                        Chargement du dashboard...
+                        Loading dashboard...
                     </p>
                 </div>
             </div>
@@ -112,7 +112,6 @@ const SuperAdminDashboard: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-6 md:py-8 space-y-8">
-            {/* Header avec effet 3D */}
             <div className="bg-brand-card border-2 border-brand-border rounded-2xl p-6 shadow-[0_6px_0_0_var(--border-main)]">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -128,16 +127,15 @@ const SuperAdminDashboard: React.FC = () => {
                             </h1>
                             <p className="text-brand-muted text-sm font-medium flex items-center gap-2 mt-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
-                                Gérez l'ensemble du système
+                                Manage the entire system
                             </p>
                         </div>
                     </div>
                     
-                    {/* Mini stats avec effet 3D */}
                     <div className="flex items-center gap-4 bg-brand-bg border-2 border-brand-border rounded-xl px-4 py-2 shadow-[0_4px_0_0_var(--border-main)]">
                         <div className="text-center px-3">
                             <p className="text-xl font-black text-brand-primary">{stats.totalEntities}</p>
-                            <p className="text-[10px] font-black text-brand-muted uppercase tracking-widest">Entités</p>
+                            <p className="text-[10px] font-black text-brand-muted uppercase tracking-widest">Entities</p>
                         </div>
                         <div className="w-px h-8 bg-brand-border"></div>
                         <div className="text-center px-3">
@@ -148,12 +146,11 @@ const SuperAdminDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Statistiques principales avec effet 3D */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
-                    title="ADMINISTRATEURS"
+                    title="ADMINISTRATORS"
                     value={stats.admins}
-                    subtitle="Comptes actifs dans le système"
+                    subtitle="Active accounts in the system"
                     icon={<AiOutlineUser size={22} />}
                     color="bg-red-500"
                     trend={12}
@@ -161,58 +158,57 @@ const SuperAdminDashboard: React.FC = () => {
                 <StatCard
                     title="DISTRICTS"
                     value={stats.districts}
-                    subtitle="Zones géographiques configurées"
+                    subtitle="Configured geographical zones"
                     icon={<AiOutlineEnvironment size={22} />}
                     color="bg-blue-500"
                     trend={8}
                 />
                 <StatCard
-                    title="TRIBUS"
+                    title="TRIBUTES"
                     value={stats.tributes}
-                    subtitle="Entités traditionnelles"
+                    subtitle="Traditional entities"
                     icon={<AiOutlineFlag size={22} />}
                     color="bg-purple-500"
                     trend={15}
                 />
             </div>
 
-            {/* Actions rapides avec effet 3D */}
             <div className="bg-brand-card border-2 border-brand-border rounded-2xl p-6 shadow-[0_6px_0_0_var(--border-main)]">
                 <div className="flex items-center gap-3 mb-6">
                     <div className="p-2.5 bg-brand-primary/10 text-brand-primary rounded-xl border-b-4 border-brand-primary/30">
                         <AiOutlineThunderbolt size={20} />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-brand-text">Actions rapides</h2>
-                        <p className="text-xs text-brand-muted font-medium">Gestion courante du système</p>
+                        <h2 className="text-lg font-black text-brand-text">Quick Actions</h2>
+                        <p className="text-xs text-brand-muted font-medium">Current system management</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <QuickActionCard
-                        title="GÉRER LES ADMINISTRATEURS"
-                        description="Ajouter, modifier ou supprimer des comptes"
+                        title="MANAGE ADMINISTRATORS"
+                        description="Add, edit, or delete accounts"
                         icon={<AiOutlineUser size={18} />}
                         href="/superadmin/management?tab=admins"
                         color="bg-red-500"
                     />
                     <QuickActionCard
-                        title="GÉRER LES DISTRICTS"
-                        description="Configurer les zones et responsables"
+                        title="MANAGE DISTRICTS"
+                        description="Configure zones and managers"
                         icon={<AiOutlineEnvironment size={18} />}
                         href="/superadmin/management?tab=districts"
                         color="bg-blue-500"
                     />
                     <QuickActionCard
-                        title="GÉRER LES TRIBUS"
-                        description="Administrer les entités et chefs"
+                        title="MANAGE TRIBUTES"
+                        description="Administer entities and chiefs"
                         icon={<AiOutlineFlag size={18} />}
                         href="/superadmin/management?tab=tributes"
                         color="bg-purple-500"
                     />
                     <QuickActionCard
-                        title="RAPPORTS SYSTÈME"
-                        description="Analyses et statistiques globales"
+                        title="SYSTEM REPORTS"
+                        description="Global analytics and statistics"
                         icon={<AiOutlineBarChart size={18} />}
                         href="/superadmin/reports"
                         color="bg-green-500"
@@ -220,12 +216,11 @@ const SuperAdminDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Activités récentes avec effet 3D */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-brand-card border-2 border-brand-border rounded-2xl p-6 shadow-[0_6px_0_0_var(--border-main)]">
                     <h3 className="font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
                         <AiOutlineTeam className="text-brand-muted" size={18} />
-                        DERNIERS ADMINISTRATEURS
+                        LATEST ADMINISTRATORS
                     </h3>
                     <div className="space-y-3">
                         {admins?.slice(0, 3).map((admin, index) => (
@@ -238,7 +233,7 @@ const SuperAdminDashboard: React.FC = () => {
                                     <p className="text-xs text-brand-muted font-medium">{admin.email}</p>
                                 </div>
                                 <span className="text-[10px] font-black px-2 py-1 bg-green-50 text-green-600 rounded-full border-2 border-green-200 border-b-4">
-                                    ACTIF
+                                    ACTIVE
                                 </span>
                             </div>
                         ))}
@@ -248,19 +243,19 @@ const SuperAdminDashboard: React.FC = () => {
                 <div className="bg-brand-card border-2 border-brand-border rounded-2xl p-6 shadow-[0_6px_0_0_var(--border-main)]">
                     <h3 className="font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
                         <AiOutlineSetting className="text-brand-muted" size={18} />
-                        CONFIGURATION RAPIDE
+                        QUICK CONFIGURATION
                     </h3>
                     <div className="space-y-3">
                         <button className="w-full flex items-center justify-between p-3 bg-brand-bg border-2 border-brand-border rounded-xl hover:shadow-[0_4px_0_0_var(--border-main)] transition-all group">
-                            <span className="font-black text-xs uppercase tracking-widest">Nouveau district</span>
+                            <span className="font-black text-xs uppercase tracking-widest">New district</span>
                             <AiOutlinePlus className="text-brand-muted group-hover:text-brand-primary" size={16} />
                         </button>
                         <button className="w-full flex items-center justify-between p-3 bg-brand-bg border-2 border-brand-border rounded-xl hover:shadow-[0_4px_0_0_var(--border-main)] transition-all group">
-                            <span className="font-black text-xs uppercase tracking-widest">Nouvel administrateur</span>
+                            <span className="font-black text-xs uppercase tracking-widest">New administrator</span>
                             <AiOutlinePlus className="text-brand-muted group-hover:text-brand-primary" size={16} />
                         </button>
                         <button className="w-full flex items-center justify-between p-3 bg-brand-bg border-2 border-brand-border rounded-xl hover:shadow-[0_4px_0_0_var(--border-main)] transition-all group">
-                            <span className="font-black text-xs uppercase tracking-widest">Nouvelle tribu</span>
+                            <span className="font-black text-xs uppercase tracking-widest">New tribute</span>
                             <AiOutlinePlus className="text-brand-muted group-hover:text-brand-primary" size={16} />
                         </button>
                     </div>
