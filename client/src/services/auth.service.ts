@@ -1,10 +1,10 @@
 import api from './api/axios.config';
-import { 
-    LoginRequest, 
-    LoginResponse, 
-    AdminResponse, 
+import {
+    LoginRequest,
+    LoginResponse,
+    AdminResponse,
     UpdateAdminRequest,
-    UpdateMeResponse 
+    UpdateMeResponse,
 } from '../lib/types';
 
 export const AuthService = {
@@ -19,11 +19,11 @@ export const AuthService = {
     },
 
     forgotPassword: async (email: string): Promise<void> => {
-        await api.post('/api/forgot-password', { email });
+        await api.post('/forgot-password', { email });
     },
 
     resetPassword: async (token: string, newPassword: string): Promise<void> => {
-        await api.post('/api/reset-password', { token, newPassword });
+        await api.post('/reset-password', { token, newPassword });
     },
 
     getMe: async (): Promise<AdminResponse> => {
@@ -40,5 +40,5 @@ export const AuthService = {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         window.location.href = '/login';
-    }
+    },
 };
