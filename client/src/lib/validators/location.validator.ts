@@ -1,13 +1,15 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const districtSchema = z.object({
-    name: z.string()
-        .min(2, "Nom trop court (min 2 caractères)")
-        .max(50, "Nom trop long (max 50 caractères)")
+    name: z
+        .string()
+        .min(2, 'Name too short (min 2 characters)')
+        .max(50, 'Name too long (max 50 characters)'),
 });
 
 export const tributeSchema = z.object({
-    name: z.string()
-        .min(2, "Nom trop court (min 2 caractères)")
-        .max(50, "Nom trop long (max 50 caractères)")
+    name: z
+        .string()
+        .min(2, 'Name too short (min 2 characters)')
+        .max(50, 'Name too long (max 50 characters)'),
 });
