@@ -1,36 +1,35 @@
-import { z } from "zod";
-import { Gender } from "../types/index";
+import { z } from 'zod';
+import { Gender } from '../types/index';
 
 export const loginSchema = z.object({
-    email: z.string().email("Email invalide"),
-    password: z.string().min(6, "Mot de passe: minimum 6 caractères")
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 export const registerSchema = z.object({
-    firstName: z.string().min(2, "Prénom requis"),
-    lastName: z.string().min(2, "Nom requis"),
-    email: z.string().email("Email invalide"),
-    password: z.string().min(6, "Mot de passe: minimum 6 caractères"),
-    birthDate: z.string().refine(date => !isNaN(Date.parse(date)), "Date invalide"),
+    firstName: z.string().min(2, 'First name is required'),
+    lastName: z.string().min(2, 'Last name is required'),
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    birthDate: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid date'),
     gender: z.nativeEnum(Gender),
-    phoneNumber: z.string().min(10, "Téléphone: minimum 10 chiffres"),
-    // The field accepts either a GitHub filename or a full URL.  A blank value
-    // is permitted so that users don't have to provide an avatar when creating
-    // or updating accounts.
-    imageUrl: z.string().optional(),
+    phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits'),
+    imageUrl: z.string().min(1, 'Image URL is required'),
 });
 
 export const updateAdminSchema = registerSchema.partial().omit({ email: true });
 
 export const forgotPasswordSchema = z.object({
-    email: z.string().email("Email invalide")
+    email: z.string().email('Invalid email address'),
 });
 
-export const resetPasswordSchema = z.object({
-    token: z.string().min(1, "Token requis"),
-    newPassword: z.string().min(6, "Mot de passe: minimum 6 caractères"),
-    confirmPassword: z.string()
-}).refine(data => data.newPassword === data.confirmPassword, {
-    message: "Les mots de passe ne correspondent pas",
-    path: ["confirmPassword"]
-});
+export const resetPasswordSchema = z
+    .object({
+        token: z.string().min(1, 'Token is required'),
+        newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+        confirmPassword: z.string(),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+        message: 'Passwords do not match',
+        path: ['confirmPassword'],
+    });
