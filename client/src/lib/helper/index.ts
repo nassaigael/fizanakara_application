@@ -100,7 +100,7 @@ export const formatDate = (date: string, format: 'short' | 'long' = 'short'): st
             ? { day: '2-digit', month: '2-digit', year: 'numeric' }
             : { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
 
-    return d.toLocaleDateString('fr-FR', options);
+    return d.toLocaleDateString('en-US', options);
 };
 
 export const daysUntil = (date: string): number => {
@@ -123,9 +123,6 @@ export const getMemberType = (member: PersonResponse): string => {
     return 'Worker';
 };
 
-/**
- * Calculate contribution amount based on status and age
- */
 export const calculateContributionAmount = (member: PersonResponse, baseAmount: number): number => {
     if (member.status === MemberStatus.WORKER) {
         return baseAmount;
@@ -155,7 +152,7 @@ export const getPaymentPercentage = (totalPaid: number, amount: number): number 
 };
 
 export const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('fr-MG', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'MGA',
         minimumFractionDigits: 0,
@@ -163,6 +160,7 @@ export const formatCurrency = (amount: number): string => {
     })
         .format(amount)
         .replace('MGA', 'Ar')
+        .replace('MAD', 'Ar')
         .trim();
 };
 
