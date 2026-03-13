@@ -44,7 +44,6 @@ const ResetPassword: React.FC = () => {
     if (isSubmitted) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
-                {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute inset-0" style={{
                         backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
@@ -52,18 +51,17 @@ const ResetPassword: React.FC = () => {
                     }} />
                 </div>
 
-                {/* Success Card */}
                 <div className="relative w-full max-w-md">
                     <div className="bg-white rounded-[3rem] border-4 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
                         <div className="bg-green-500 p-8 text-center">
                             <AiOutlineCheckCircle size={64} className="mx-auto text-white mb-4" />
                             <h1 className="text-2xl font-black text-white uppercase tracking-tighter">
-                                Mot de passe modifié !
+                                Password changed!
                             </h1>
                         </div>
                         <div className="p-8 text-center">
-                            <p className="text-sm font-bold text-gray-600 mb-6">
-                                Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la page de connexion.
+                            <p className="text-sm font-bold text-gray-600 mb-6 uppercase">
+                                Your password has been successfully reset. You will be redirected to the login page.
                             </p>
                         </div>
                     </div>
@@ -74,7 +72,6 @@ const ResetPassword: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
-            {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0" style={{
                     backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
@@ -82,25 +79,22 @@ const ResetPassword: React.FC = () => {
                 }} />
             </div>
 
-            {/* Reset Password Card */}
             <div className="relative w-full max-w-md">
                 <div className="bg-white rounded-[3rem] border-4 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-                    {/* Header */}
                     <div className="bg-black p-8">
                         <h1 className="text-2xl font-black text-white uppercase tracking-tighter">
-                            Nouveau mot de passe
+                            New Password
                         </h1>
-                        <p className="text-gray-400 text-xs font-bold mt-2">
-                            Choisissez un mot de passe sécurisé
+                        <p className="text-gray-400 text-xs font-bold mt-2 uppercase">
+                            Choose a secure password
                         </p>
                     </div>
 
-                    {/* Form */}
                     <div className="p-8">
                         <form onSubmit={form.handleSubmit} className="space-y-6">
                             <div className="relative">
                                 <Input
-                                    label="Nouveau mot de passe"
+                                    label="New Password"
                                     name="newPassword"
                                     type={showPassword ? 'text' : 'password'}
                                     value={form.values.newPassword}
@@ -122,7 +116,7 @@ const ResetPassword: React.FC = () => {
 
                             <div className="relative">
                                 <Input
-                                    label="Confirmer le mot de passe"
+                                    label="Confirm Password"
                                     name="confirmPassword"
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     value={form.values.confirmPassword}
@@ -144,7 +138,7 @@ const ResetPassword: React.FC = () => {
 
                             {form.submitError && (
                                 <div className="p-4 bg-red-50 border-2 border-red-200 rounded-2xl">
-                                    <p className="text-red-600 text-xs font-black text-center">
+                                    <p className="text-red-600 text-xs font-black text-center uppercase">
                                         {form.submitError}
                                     </p>
                                 </div>
@@ -156,7 +150,7 @@ const ResetPassword: React.FC = () => {
                                 isLoading={form.isSubmitting}
                                 className="w-full py-4 text-sm"
                             >
-                                RÉINITIALISER
+                                RESET PASSWORD
                             </Button>
                         </form>
                     </div>
