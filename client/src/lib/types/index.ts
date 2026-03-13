@@ -95,7 +95,8 @@ export interface PersonResponse {
     parentId?: string | null;
     parentName?: string | null;
     childrenCount: number;
-    children: PersonResponse[];
+    children: any[]; // Changed to any[] to avoid circular dependency if needed, or better:
+    // children: PersonResponse[]; // Using PersonResponse if it's fine
 }
 
 // ============================================
@@ -138,7 +139,6 @@ export interface UpdateAdminRequest {
     phoneNumber?: string;
     email?: string;
     password?: string;
-    verified?: boolean;
 }
 
 // ============================================
@@ -157,7 +157,7 @@ export interface ContributionUpdateRequest {
 
 export interface ContributionResponse {
     id: string;
-    year: number;
+    year: number | { value: number }; // java.time.Year might come as a number or object
     amount: number;
     status: ContributionStatus;
     dueDate: string;
@@ -196,8 +196,8 @@ export interface LoginResponse {
     user: {
         id: string;
         email: string;
-        firstName: string;
-        lastName: string;
+        firstname: string; // Backend returns "firstname" (lowercase 's' in some places?) - Let's check AdminsAuthController line 82
+        lastname: string;
         gender: string;
     };
     role: UserRole;
@@ -209,11 +209,6 @@ export interface UpdateMeResponse {
     message: string;
     success: boolean;
     user: AdminResponse;
-}
-
-export interface GenericResponse {
-    message: string;
-    success: boolean;
 }
 
 export interface ApiResponse {
