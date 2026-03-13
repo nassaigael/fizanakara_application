@@ -1,5 +1,5 @@
 import api from './api/axios.config';
-import { PersonDto, PersonResponse } from '../lib/types';
+import { PersonDto, PersonResponse, ApiResponse } from '../lib/types';
 
 export const MemberService = {
     getAll: async (): Promise<PersonResponse[]> => {
@@ -22,8 +22,8 @@ export const MemberService = {
         return response.data;
     },
 
-    delete: async (id: string): Promise<string> => {
-        const response = await api.delete<string>(`/api/admins/persons/${id}`);
+    delete: async (id: string): Promise<ApiResponse> => {
+        const response = await api.delete<ApiResponse>(`/api/admins/persons/${id}`);
         return response.data;
     },
 
@@ -45,8 +45,8 @@ export const MemberService = {
         return response.data;
     },
 
-    deleteAll: async (): Promise<string> => {
-        const response = await api.delete<string>('/api/admins/persons/delete-all');
+    deleteAll: async (): Promise<ApiResponse> => {
+        const response = await api.delete<ApiResponse>('/api/admins/persons/delete-all');
         return response.data;
     }
 };
