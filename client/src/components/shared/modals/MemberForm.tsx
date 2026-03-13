@@ -190,7 +190,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
           </button>
         </div>
 
-        {/* Mode switch */}
         {!memberToEdit && (
           <div className="px-8 pt-4">
             <div className="max-w-xs mx-auto flex gap-2 p-1.5 bg-gray-100 border-2 border-gray-200 rounded-2xl">
@@ -216,10 +215,8 @@ export const MemberForm: React.FC<MemberFormProps> = ({
           </div>
         )}
 
-        {/* Form */}
         <div className="flex-1 overflow-y-auto p-6 md:p-10">
           <form id="member-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Column - Photo */}
             <div className="lg:col-span-4 space-y-6">
               <div className="bg-gray-50 p-6 rounded-[2.5rem] border-2 border-gray-200 border-b-8 flex flex-col items-center">
                 <div className="w-36 h-44 bg-gray-100 rounded-3xl border-4 border-white shadow-xl overflow-hidden mb-6 group relative flex items-center justify-center">
@@ -279,7 +276,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
               )}
             </div>
 
-            {/* Right Column - Fields */}
             <div className="lg:col-span-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
@@ -380,7 +376,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
           </form>
         </div>
 
-        {/* Footer */}
         <div className="px-8 py-6 bg-gray-50 border-t-2 border-gray-200 flex flex-col md:flex-row items-center gap-4 shrink-0">
           <Button
             type="button"
@@ -399,7 +394,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
             isLoading={loading}
           >
             {memberToEdit ? 'SAVE CHANGES' : 'CONFIRM CREATION'}
-            m          </Button>
+          </Button>
         </div>
       </div>
     </div>,
