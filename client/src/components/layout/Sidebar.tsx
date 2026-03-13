@@ -1,4 +1,3 @@
-// Sidebar.tsx - Version avec styles cohérents
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -20,15 +19,15 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
 
     const adminLinks = [
         { path: '/admin/dashboard', label: 'Dashboard', icon: AiOutlineDashboard },
-        { path: '/admin/members', label: 'Membres', icon: AiOutlineTeam },
+        { path: '/admin/members', label: 'Members', icon: AiOutlineTeam },
         { path: '/admin/finance', label: 'Finance', icon: AiOutlineWallet },
-        { path: '/admin/profile', label: 'Profil', icon: AiOutlineUser },
+        { path: '/admin/profile', label: 'Profile', icon: AiOutlineUser },
     ];
 
     const superAdminLinks = [
         { path: '/superadmin/dashboard', label: 'Dashboard', icon: AiOutlineDashboard },
-        { path: '/superadmin/management', label: 'Gestion', icon: AiOutlineSetting },
-        { path: '/superadmin/profile', label: 'Profil', icon: AiOutlineUser },
+        { path: '/superadmin/management', label: 'Management', icon: AiOutlineSetting },
+        { path: '/superadmin/profile', label: 'Profile', icon: AiOutlineUser },
     ];
 
     const links = isSuperAdmin ? superAdminLinks : adminLinks;
@@ -69,12 +68,11 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                         `}
                     >
                         <AiOutlineLogout size={22} />
-                        {isOpen && <span>Déconnexion</span>}
+                        {isOpen && <span>Logout</span>}
                     </button>
                 </div>
             </aside>
 
-            {/* Mobile Bottom Navigation */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-brand-card border-t-2 border-brand-border px-2 py-3 z-50 flex items-center justify-around shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
                 {links.map((link) => (
                     <NavLink
@@ -101,7 +99,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                     className="flex-1 flex flex-col items-center gap-1 text-brand-muted hover:text-brand-primary transition-colors"
                 >
                     <AiOutlineLogout size={24} />
-                    <span className="text-[9px] font-black uppercase">Exit</span>
+                    <span className="text-[9px] font-black uppercase">Logout</span>
                 </button>
             </nav>
         </>
