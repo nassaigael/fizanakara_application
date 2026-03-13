@@ -1,5 +1,5 @@
 import api from './api/axios.config';
-import { PaymentRequest, PaymentResponse } from '../lib/types';
+import { PaymentRequest, PaymentResponse, ApiResponse } from '../lib/types';
 
 export const PaymentService = {
     getByContributionId: async (contributionId: string): Promise<PaymentResponse[]> => {
@@ -19,7 +19,8 @@ export const PaymentService = {
         return response.data;
     },
 
-    delete: async (id: string): Promise<void> => {
-        await api.delete(`/api/admins/payments/${id}`);
+    delete: async (id: string): Promise<ApiResponse> => {
+        const response = await api.delete<ApiResponse>(`/api/admins/payments/${id}`);
+        return response.data;
     }
 };
