@@ -2,7 +2,8 @@ import api from './api/axios.config';
 import { 
     ContributionResponse, 
     ContributionYearRequest, 
-    ContributionUpdateRequest 
+    ContributionUpdateRequest,
+    ApiResponse
 } from '../lib/types';
 
 export const ContributionService = {
@@ -28,7 +29,8 @@ export const ContributionService = {
         return response.data;
     },
 
-    delete: async (id: string): Promise<void> => {
-        await api.delete(`/api/admins/contributions/${id}`);
+    delete: async (id: string): Promise<ApiResponse> => {
+        const response = await api.delete<ApiResponse>(`/api/admins/contributions/${id}`);
+        return response.data;
     }
 };
