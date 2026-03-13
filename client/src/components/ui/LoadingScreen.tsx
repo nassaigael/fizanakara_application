@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
 const messages = [
-    "Préparation de votre espace...",
-    "Chargement des données...",
-    "Connexion sécurisée...",
-    "Presque prêt...",
-    "Bienvenue chez Fizanakara !",
+    "Preparing your workspace...",
+    "Loading data...",
+    "Secure connection...",
+    "Almost ready...",
+    "Welcome to Fizanakara!",
 ];
 
 const LoadingScreen: React.FC = () => {
@@ -37,7 +37,7 @@ const LoadingScreen: React.FC = () => {
                 </div>
 
                 <p className="text-xs sm:text-sm font-medium mt-8 opacity-80">
-                    Fizanakara • Gestion des membres
+                    Fizanakara • Member Management
                 </p>
             </div>
 
