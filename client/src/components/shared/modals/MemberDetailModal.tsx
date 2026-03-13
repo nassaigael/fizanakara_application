@@ -45,7 +45,6 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({ member, on
                     </div>
                 </div>
 
-                {/* Contenu */}
                 <div className="p-8 pt-16">
                     <div className="flex justify-between items-start mb-6">
                         <div>
@@ -58,7 +57,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({ member, on
                                         ? "bg-green-100 text-green-600"
                                         : "bg-orange-100 text-orange-600"
                                 }`}>
-                                    {member.isActiveMember ? "ACTIF" : "INACTIF"}
+                                    {member.isActiveMember ? "ACTIVE" : "INACTIVE"}
                                 </span>
                                 <span className="text-gray-300">•</span>
                                 <p className="text-[10px] font-bold text-gray-400">N° {member.sequenceNumber}</p>
@@ -68,23 +67,22 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({ member, on
                         {onEdit && (
                             <ActionBtn
                                 icon={<AiOutlineEdit />}
-                                title="Modifier"
+                                title="Edit"
                                 variant="edit"
                                 onClick={onEdit}
                             />
                         )}
                     </div>
 
-                    {/* Grille d'informations */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <DetailBox 
-                            label="Âge" 
-                            value={`${calculateAge(member.birthDate)} ans`} 
+                            label="Age" 
+                            value={`${calculateAge(member.birthDate)} years`} 
                             icon={<AiOutlineCalendar />} 
                         />
                         <DetailBox 
                             label="Contact" 
-                            value={member.phoneNumber || 'Non renseigné'} 
+                            value={member.phoneNumber || 'Not provided'} 
                             icon={<AiOutlinePhone />} 
                         />
                         <DetailBox 
@@ -93,22 +91,21 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({ member, on
                             icon={<AiOutlineGlobal />} 
                         />
                         <DetailBox 
-                            label="Tribu" 
+                            label="Tribe" 
                             value={member.tributeName} 
                             icon={<AiOutlineTeam />} 
                         />
                     </div>
 
-                    {/* Informations supplémentaires */}
                     <div className="bg-gray-50 p-4 rounded-3xl border-2 border-gray-100 space-y-3">
                         <div className="flex justify-between">
-                            <span className="text-[8px] font-black text-gray-400 uppercase">Statut professionnel</span>
+                            <span className="text-[8px] font-black text-gray-400 uppercase">Professional Status</span>
                             <span className="font-black text-xs">
-                                {member.status === 'WORKER' ? 'Travailleur' : 'Étudiant'}
+                                {member.status === 'WORKER' ? 'Worker' : 'Student'}
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-[8px] font-black text-gray-400 uppercase">Enfants</span>
+                            <span className="text-[8px] font-black text-gray-400 uppercase">Children</span>
                             <span className="font-black text-xs">{member.childrenCount || 0}</span>
                         </div>
                         {member.parentName && (
@@ -118,16 +115,16 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({ member, on
                             </div>
                         )}
                         <div className="flex justify-between">
-                            <span className="text-[8px] font-black text-gray-400 uppercase">Date d'inscription</span>
+                            <span className="text-[8px] font-black text-gray-400 uppercase">Registration Date</span>
                             <span className="font-black text-xs">
-                                {member.createdAt ? formatDate(member.createdAt) : 'Non disponible'}
+                                {member.createdAt ? formatDate(member.createdAt) : 'Not available'}
                             </span>
                         </div>
                     </div>
 
                     <div className="mt-6">
                         <Button variant="secondary" onClick={onClose} className="w-full">
-                            FERMER
+                            CLOSE
                         </Button>
                     </div>
                 </div>
