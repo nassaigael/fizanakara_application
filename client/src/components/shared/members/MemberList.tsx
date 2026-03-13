@@ -101,7 +101,6 @@ export const MemberList: React.FC<MemberListProps> = ({
 
     return (
         <div className="space-y-6">
-            {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <StatCard title="Total" value={stats.total} color="blue" />
                 <StatCard title="Active" value={stats.active} color="green" />
@@ -109,7 +108,6 @@ export const MemberList: React.FC<MemberListProps> = ({
                 <StatCard title="Workers" value={stats.workers} color="orange" />
             </div>
 
-            {/* Actions */}
             <div className="bg-white rounded-3xl p-4 border-2 border-gray-200 shadow-lg">
                 <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div className="flex-1 w-full">
@@ -146,7 +144,6 @@ export const MemberList: React.FC<MemberListProps> = ({
                     </div>
                 </div>
 
-                {/* Filters */}
                 {showFilters && (
                     <div className="mt-4 pt-4 border-t-2 border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Select
@@ -171,12 +168,10 @@ export const MemberList: React.FC<MemberListProps> = ({
                 )}
             </div>
 
-            {/* Resultados */}
             <p className="text-sm font-bold text-gray-500 uppercase">
                 {filteredMembers.length} member(s) found
             </p>
 
-            {/* Liste */}
             {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredMembers.map(member => (
@@ -198,7 +193,6 @@ export const MemberList: React.FC<MemberListProps> = ({
                 />
             )}
 
-            {/* Modal suppression */}
             <Alert
                 isOpen={!!deleteId}
                 variant="danger"
