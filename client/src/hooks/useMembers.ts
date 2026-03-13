@@ -1,83 +1,115 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import MemberService from "../services/member.services";
-import { PersonModel, PersonResponseModel } from "../lib/types/models/person.models.types";
-import toast from "react-hot-toast";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { MemberService } from '../services/member.services';
+import { PersonDto, PersonResponse } from '../lib/types';
+import { calculateAge, canPromoteToWorker, getMemberType } from '../lib/helper';
+import toast from 'react-hot-toast';
 
 export const useMembers = (parentId?: string) => {
     const queryClient = useQueryClient();
 
-    // Queries
-    const { data: members = [], isLoading } = useQuery({
-        queryKey: ["members"],
-        queryFn: MemberService.getAll
+    const {
+        data: members = [],
+        isLoading,
+        error,
+    } = useQuery({
+        queryKey: ['members'],
+        queryFn: MemberService.getAll,
+        staleTime: 2 * 60 * 1000,
     });
 
-    const { data: children = [], isLoading: loadingChildren } = useQuery({
-        queryKey: ["members", parentId, "children"],
-        queryFn: () => parentId ? MemberService.getChildren(parentId) : Promise.resolve([]),
-        enabled: !!parentId
+    const {
+        data: children = [],
+        isLoading: loadingChildren,
+    } = useQuery({
+        queryKey: ['members', parentId, 'children'],
+        queryFn: () => (parentId ? MemberService.getChildren(parentId) : Promise.resolve([])),
+        enabled: !!parentId,
     });
 
-    // --- MUTATIONS CORRIGÉES ---
+    const fetchMemberById = async (id: string): Promise<PersonResponse | null> => {
+        try {
+            return await MemberService.getById(id);
+        } catch {
+            toast.error('Failed to load member');
+            return null;
+        }
+    };
 
-    // Création simple
     const createMember = useMutation({
-        mutationFn: (data: PersonModel) => MemberService.create(data),
+        mutationFn: (data: PersonDto) => MemberService.create(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["members"] });
-            toast.success("Membre créé avec succès");
-        }
+            queryClient.invalidateQueries({ queryKey: ['members'] });
+            toast.success('Member created successfully');
+        },
+        onError: () => {
+            toast.error('Failed to create member');
+        },
     });
 
-    // Ajout enfant : Typage explicite des variables { parentId, childData }
-    const addChild = useMutation<PersonResponseModel, Error, { parentId: string; childData: PersonModel }>({
-        mutationFn: ({ parentId, childData }) => MemberService.addChild(parentId, childData),
-        onSuccess: (_, variables) => {
-            // Ici variables contient bien parentId et childData
-            queryClient.invalidateQueries({ queryKey: ["members", variables.parentId, "children"] });
-            queryClient.invalidateQueries({ queryKey: ["members"] });
-            toast.success("Enfant ajouté");
-        }
-    });
-
-    // Mise à jour : Typage explicite des variables { id, data }
-    const updateMember = useMutation<PersonResponseModel, Error, { id: string; data: PersonModel }>({
-        mutationFn: ({ id, data }) => MemberService.update(id, data),
-        onSuccess: (_, variables) => {
-            // Ici variables contient bien id et data
-            queryClient.invalidateQueries({ queryKey: ["members"] });
-            queryClient.invalidateQueries({ queryKey: ["members", variables.id] });
-            toast.success("Membre mis à jour");
-        }
-    });
-
-    // Promotion
-    const promoteMember = useMutation({
-        mutationFn: (id: string) => MemberService.promote(id),
+    const updateMember = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: PersonDto }) => MemberService.update(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["members"] });
-            toast.success("Membre promu au statut ACTIF");
-        }
+            queryClient.invalidateQueries({ queryKey: ['members'] });
+            toast.success('Member updated');
+        },
+        onError: () => {
+            toast.error('Failed to update member');
+        },
     });
 
-    // Suppression
     const deleteMember = useMutation({
         mutationFn: (id: string) => MemberService.delete(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["members"] });
-            toast.success("Membre supprimé");
-        }
+            queryClient.invalidateQueries({ queryKey: ['members'] });
+            toast.success('Member deleted');
+        },
+        onError: () => {
+            toast.error('Failed to delete member');
+        },
     });
+
+    const promoteMember = useMutation({
+        mutationFn: (id: string) => MemberService.promote(id),
+        onSuccess: (member) => {
+            queryClient.invalidateQueries({ queryKey: ['members'] });
+            toast.success(`${member.firstName} ${member.lastName} promoted to WORKER`);
+        },
+        onError: () => {
+            toast.error('Failed to promote member');
+        },
+    });
+
+    const addChild = useMutation({
+        mutationFn: ({ parentId, childData }: { parentId: string; childData: PersonDto }) =>
+            MemberService.addChild(parentId, childData),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['members', variables.parentId, 'children'] });
+            queryClient.invalidateQueries({ queryKey: ['members'] });
+            toast.success('Child added successfully');
+        },
+        onError: () => {
+            toast.error('Failed to add child');
+        },
+    });
+
+    const getMemberAge = (birthDate: string) => calculateAge(birthDate);
+    const canPromote = (birthDate: string) => canPromoteToWorker(birthDate);
+    const getMemberTypeLabel = (member: PersonResponse) => getMemberType(member);
 
     return {
         members,
-        isLoading,
         children,
+        isLoading,
         loadingChildren,
+        error,
         createMember,
-        addChild,
         updateMember,
+        deleteMember,
         promoteMember,
-        deleteMember
+        addChild,
+        fetchMemberById,
+        getMemberAge,
+        canPromote,
+        getMemberTypeLabel,
     };
 };

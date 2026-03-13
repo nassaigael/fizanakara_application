@@ -1,66 +1,125 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import ContributionService from "../services/contribution.services";
-import PaymentService from "../services/payment.services";
-import { PaymentModel } from "../lib/types/models/payment.models.types";
-import { ContributionUpdateModel, ContributionYearModel } from "../lib/types/models/contribution.models.types";
-import toast from "react-hot-toast";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ContributionService } from '../services/contribution.services';
+import { PaymentService } from '../services/payment.services';
+import { ContributionYearRequest, ContributionUpdateRequest, PaymentRequest } from '../lib/types';
+import { getPaymentPercentage } from '../lib/helper';
+import toast from 'react-hot-toast';
 
 export const useFinance = (personId?: string, year?: number) => {
     const queryClient = useQueryClient();
 
-    // Récupérer les contributions (filtrées ou non)
-    const { data: contributions = [], isLoading: loadingContribs } = useQuery({
-        queryKey: ["contributions", personId, year],
-        queryFn: () => personId && year 
-            ? ContributionService.getByPersonAndYear(personId, year)
-            : ContributionService.getAll(),
+    const {
+        data: contributions = [],
+        isLoading,
+        error,
+    } = useQuery({
+        queryKey: ['contributions', personId, year],
+        queryFn: () =>
+            personId && year
+                ? ContributionService.getByPersonAndYear(personId, year)
+                : ContributionService.getAll(),
+        staleTime: 2 * 60 * 1000,
     });
 
-    // Mutation : Créer un paiement
-    const addPayment = useMutation({
-        mutationFn: (data: PaymentModel) => PaymentService.create(data),
-        onSuccess: (_, { contributionId }) => {
-            // CRUCIAL : On invalide les cotisations ET les paiements
-            queryClient.invalidateQueries({ queryKey: ["contributions"] });
-            queryClient.invalidateQueries({ queryKey: ["payments", contributionId] });
-            toast.success("Paiement enregistré");
-        }
+    const usePayments = (contributionId: string) => {
+        return useQuery({
+            queryKey: ['payments', contributionId],
+            queryFn: () => PaymentService.getByContributionId(contributionId),
+            enabled: !!contributionId,
+        });
+    };
+
+    const generateAnnualContributions = useMutation({
+        mutationFn: (data: ContributionYearRequest) => ContributionService.generateForYear(data),
+        onSuccess: (newContributions) => {
+            queryClient.invalidateQueries({ queryKey: ['contributions'] });
+            toast.success(
+                `${newContributions.length} contributions generated for ${newContributions[0]?.year}`,
+            );
+        },
+        onError: () => {
+            toast.error('Failed to generate contributions');
+        },
     });
 
-    // Mutation : Mettre à jour une cotisation
     const updateContribution = useMutation({
-        mutationFn: ({ id, data }: { id: string; data: ContributionUpdateModel }) =>
+        mutationFn: ({ id, data }: { id: string; data: ContributionUpdateRequest }) =>
             ContributionService.update(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["contributions"] });
-            toast.success("Cotisation mise à jour");
-        }
+            queryClient.invalidateQueries({ queryKey: ['contributions'] });
+            toast.success('Contribution updated');
+        },
+        onError: () => {
+            toast.error('Failed to update contribution');
+        },
     });
 
-    // Mutation : Supprimer une cotisation
     const deleteContribution = useMutation({
         mutationFn: (id: string) => ContributionService.delete(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["contributions"] });
-            toast.success("Cotisation supprimée");
-        }
+            queryClient.invalidateQueries({ queryKey: ['contributions'] });
+            toast.success('Contribution deleted');
+        },
+        onError: () => {
+            toast.error('Failed to delete contribution');
+        },
     });
 
-    // Mutation : Générer les cotisations de l'année (Action SUPERADMIN/ADMIN)
-    const generateAnnualContribs = useMutation({
-        mutationFn: (data: ContributionYearModel) => ContributionService.generateForYear(data),
+    const addPayment = useMutation({
+        mutationFn: (data: PaymentRequest) => PaymentService.create(data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['contributions'] });
+            queryClient.invalidateQueries({ queryKey: ['payments', variables.contributionId] });
+            toast.success('Payment recorded');
+        },
+        onError: () => {
+            toast.error('Failed to record payment');
+        },
+    });
+
+    const updatePayment = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: PaymentRequest }) =>
+            PaymentService.update(id, data),
+        onSuccess: (_, { data }) => {
+            queryClient.invalidateQueries({ queryKey: ['contributions'] });
+            queryClient.invalidateQueries({ queryKey: ['payments', data.contributionId] });
+            toast.success('Payment updated');
+        },
+    });
+
+    const deletePayment = useMutation({
+        mutationFn: (id: string) => PaymentService.delete(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["contributions"] });
-            toast.success("Cotisations annuelles générées");
-        }
+            queryClient.invalidateQueries({ queryKey: ['payments'] });
+            queryClient.invalidateQueries({ queryKey: ['contributions'] });
+            toast.success('Payment deleted');
+        },
     });
 
-    return { 
-        contributions, 
-        loadingContribs, 
-        addPayment, 
+    const getContributionStats = () => {
+        const total = contributions.reduce((sum, c) => sum + c.amount, 0);
+        const paid = contributions.reduce((sum, c) => sum + c.totalPaid, 0);
+        const remaining = total - paid;
+        const percentage = getPaymentPercentage(paid, total);
+        return { total, paid, remaining, percentage };
+    };
+
+    const getMemberContributions = (memberId: string) => {
+        return contributions.filter((c) => c.memberId === memberId);
+    };
+
+    return {
+        contributions,
+        isLoading,
+        error,
+        usePayments,
+        generateAnnualContributions,
         updateContribution,
         deleteContribution,
-        generateAnnualContribs 
+        addPayment,
+        updatePayment,
+        deletePayment,
+        getContributionStats,
+        getMemberContributions,
     };
 };

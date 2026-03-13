@@ -1,92 +1,191 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { AdminResponseModel, LoginRequestModel } from "../lib/types/models/admin.models.types";
-import { AuthService } from "../services/auth.service";
+import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import toast from "react-hot-toast";
+import { AuthService } from '../services/auth.service';
+import {
+    LoginRequest,
+    AdminResponse,
+    UpdateAdminRequest,
+    LoginResponse,
+    UserRole,
+} from '../lib/types';
+import { getErrorMessage } from '../lib/helper';
+import api from '../services/api/axios.config';
+import toast from 'react-hot-toast';
 
-const AuthContext = createContext<any>(undefined);
+interface AuthContextType {
+    user: AdminResponse | null;
+    loading: boolean;
+    error: string | null;
+    login: (credentials: LoginRequest) => Promise<LoginResponse | undefined>;
+    logout: () => void;
+    updateProfile: (data: UpdateAdminRequest) => Promise<any>;
+    isAuthenticated: boolean;
+    isSuperAdmin: boolean;
+    hasRole: (role: UserRole) => boolean;
+    resetPassword: (token: string, password: string) => Promise<void>;
+    forgotPassword: (email: string) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const navigate = useNavigate();
-    const [user, setUser] = useState<AdminResponseModel | null>(null);
-    const [token, setToken] = useState<string | null>(localStorage.getItem("accessToken"));
+    const [user, setUser] = useState<AdminResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
+
+    const logout = useCallback(() => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        delete api.defaults.headers.common['Authorization'];
+        setUser(null);
+        navigate('/login', { replace: true });
+    }, [navigate]);
+
+    const loadUser = useCallback(async () => {
+        const token = localStorage.getItem('accessToken');
+        const cachedUser = localStorage.getItem('user');
+
+        if (!token) {
+            setLoading(false);
+            return;
+        }
+
+        if (cachedUser) {
+            setUser(JSON.parse(cachedUser));
+        }
+
+        try {
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            const userData = await AuthService.getMe();
+
+            // Keep the role from cache if getMe doesn't return it
+            if (userData && !userData.role && cachedUser) {
+                userData.role = JSON.parse(cachedUser).role;
+            }
+
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+        } catch {
+            logout();
+        } finally {
+            setLoading(false);
+        }
+    }, [logout]);
 
     useEffect(() => {
-        const initAuth = async () =>{
-            const token = localStorage.getItem('accessToken');
-            const savedUser = localStorage.getItem('userData');
+        loadUser();
+    }, [loadUser]);
 
-
-            if (savedUser && token)
-            {
-                try{
-                    setUser(JSON.parse(savedUser));
-                }catch{
-                    console.error("Session expirée ou invalide");
-                    handleLogoutSilent();
-                }
-            }
-            setLoading(false);
-        };
-        initAuth();
-    }, []);
-
-    const login = async (credentials: LoginRequestModel) => {
+    const login = async (credentials: LoginRequest): Promise<LoginResponse | undefined> => {
+        setLoading(true);
+        setError(null);
         try {
-            const data = await AuthService.login(credentials);
-            localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('userData', JSON.stringify(data.user));
-            localStorage.setItem('userRole', data.role);
-            setUser(data.user);
-            navigate('/dashboard');
-        } catch (error:any) {
-            const message = error.response?.data?.error || "Identifiants invalides";
-            toast.error(message.toUpperCase());
-            throw error;
+            const response = await AuthService.login(credentials);
+
+            if (response.accessToken) {
+                localStorage.setItem('accessToken', response.accessToken);
+                localStorage.setItem('refreshToken', response.refreshToken);
+
+                // Map login response user (lowercase fields) to AdminResponse
+                const fullUserData: AdminResponse = {
+                    id: response.user.id,
+                    email: response.user.email,
+                    firstName: response.user.firstName,
+                    lastName: response.user.lastName,
+                    gender: response.user.gender,
+                    role: response.role,
+                    imageUrl: '',
+                    phoneNumber: '',
+                    birthDate: '',
+                    verified: false,
+                    createdAt: '',
+                } as AdminResponse;
+
+                setUser(fullUserData);
+                localStorage.setItem('user', JSON.stringify(fullUserData));
+                api.defaults.headers.common['Authorization'] = `Bearer ${response.accessToken}`;
+
+                toast.success('Login successful');
+
+                if (response.role === UserRole.SUPERADMIN) {
+                    navigate('/superadmin/dashboard', { replace: true });
+                } else {
+                    navigate('/admin/dashboard', { replace: true });
+                }
+
+                return response;
+            }
+        } catch (err: any) {
+            const message = getErrorMessage(err);
+            setError(message);
+            toast.error(message || 'Login failed');
+            throw err;
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleLogoutSilent = () => {
-        localStorage.clear();
-        setToken(null);
-        setUser(null);
+    const hasRole = useCallback(
+        (role: UserRole): boolean => {
+            if (!user || !user.role) return false;
+            return user.role === role;
+        },
+        [user],
+    );
+
+    const updateProfile = async (data: UpdateAdminRequest) => {
+        try {
+            const payload: UpdateAdminRequest = { ...data };
+            if (payload.imageUrl) {
+                payload.imageUrl = payload.imageUrl.trim().replace(/\s+/g, '_');
+                if (payload.imageUrl === '') {
+                    payload.imageUrl = null;
+                }
+            }
+
+            const response = await AuthService.updateMe(payload);
+            const updated = await AuthService.getMe();
+            if (user?.role) updated.role = user.role;
+            setUser(updated);
+            localStorage.setItem('user', JSON.stringify(updated));
+            toast.success('Profile updated');
+            return response;
+        } catch (err) {
+            toast.error(getErrorMessage(err));
+            throw err;
+        }
+    };
+
+    const resetPassword = async (token: string, password: string) => {
+        await AuthService.resetPassword(token, password);
         navigate('/login');
     };
 
-    const logout = () => {
-        handleLogoutSilent();
-        toast.success("DÉCONNEXION RÉUSSIE");
+    const forgotPassword = async (email: string) => {
+        await AuthService.forgotPassword(email);
     };
 
-    const refreshUser = async () => {
-        try {
-            const userData = await AuthService.getMe();
-            setUser(userData);
-        } catch (error) {
-            console.error("Échec du rafraîchissement des données admin");
-        }
+    const value = {
+        user,
+        loading,
+        error,
+        login,
+        logout,
+        updateProfile,
+        forgotPassword,
+        isAuthenticated: !!user,
+        isSuperAdmin: user?.role === UserRole.SUPERADMIN,
+        hasRole,
+        resetPassword,
     };
 
-    const isAuthenticated = !!user;
-    const isSuperAdmin = (user?.role || localStorage.getItem('userRole')) === 'SUPERADMIN';
-    const isAdmin = localStorage.getItem('userRole')?.trim() === 'ADMIN' || localStorage.getItem('userRole')?.trim() === 'SUPERADMIN';
-
-    return (
-        <AuthContext.Provider value={{ 
-            user,
-            token,
-            isAuthenticated,
-            isSuperAdmin,
-            isAdmin,
-            loading, 
-            login,
-            logout,
-            refreshUser
-        }}>
-            {children}
-        </AuthContext.Provider>
-    );
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) throw new Error('useAuth must be used within AuthProvider');
+    return context;
+};

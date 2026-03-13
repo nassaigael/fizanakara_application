@@ -87,7 +87,7 @@ public class SecurityConfig {
                         "/keep-alive",
                             "/health"
                 ).permitAll()
-                            .requestMatchers("/api/register").hasRole("SUPERADMIN")
+                            .requestMatchers("/register").hasRole("SUPERADMIN")
                 .requestMatchers("/api/admins/me")
                 .authenticated()
                 .requestMatchers("/api/admins/districts/**")

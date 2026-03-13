@@ -1,69 +1,52 @@
-import api from "../api/axios.config";
-import { 
-    PersonModel, 
-    PersonResponseModel 
-} from "../lib/types/models/person.models.types";
-import { GenericResponse } from "../lib/types/auth.types";
+import api from './api/axios.config';
+import { PersonDto, PersonResponse } from '../lib/types';
 
-const MemberService = {
-    getAll: async (): Promise<PersonResponseModel[]> => {
-        // URL complète : /api/admins/persons
-        const response = await api.get<PersonResponseModel[]>('/api/admins/persons');
+export const MemberService = {
+    getAll: async (): Promise<PersonResponse[]> => {
+        const response = await api.get<PersonResponse[]>('/api/admins/persons');
         return response.data;
     },
 
-    getById: async (id: string): Promise<PersonResponseModel> => {
-        // URL : /api/admins/persons/{id}
-        const response = await api.get<PersonResponseModel>(`/api/admins/persons/${id}`);
+    getById: async (id: string): Promise<PersonResponse> => {
+        const response = await api.get<PersonResponse>(`/api/admins/persons/${id}`);
         return response.data;
     },
 
-    create: async (data: PersonModel): Promise<PersonResponseModel> => {
-        // URL : /api/admins/persons
-        const response = await api.post<PersonResponseModel>('/api/admins/persons', data);
+    create: async (data: PersonDto): Promise<PersonResponse> => {
+        const response = await api.post<PersonResponse>('/api/admins/persons', data);
         return response.data;
     },
 
-    promote: async (id: string): Promise<PersonResponseModel> => {
-        // URL : /api/admins/persons/{id}/promote
-        const response = await api.post<PersonResponseModel>(`/api/admins/persons/${id}/promote`);
+    update: async (id: string, data: PersonDto): Promise<PersonResponse> => {
+        const response = await api.put<PersonResponse>(`/api/admins/persons/${id}`, data);
         return response.data;
     },
 
-    addChild: async (parentId: string, childData: PersonModel): Promise<PersonResponseModel> => {
-        // URL : /api/admins/persons/{parentId}/children
-        const response = await api.post<PersonResponseModel>(
+    delete: async (id: string): Promise<string> => {
+        const response = await api.delete<string>(`/api/admins/persons/${id}`);
+        return response.data;
+    },
+
+    promote: async (id: string): Promise<PersonResponse> => {
+        const response = await api.post<PersonResponse>(`/api/admins/persons/${id}/promote`);
+        return response.data;
+    },
+
+    addChild: async (parentId: string, childData: PersonDto): Promise<PersonResponse> => {
+        const response = await api.post<PersonResponse>(
             `/api/admins/persons/${parentId}/children`, 
             childData
         );
         return response.data;
     },
 
-    getChildren: async (parentId: string): Promise<PersonResponseModel[]> => {
-        // URL : /api/admins/persons/{parentId}/children
-        const response = await api.get<PersonResponseModel[]>(
-            `/api/admin/persons/${parentId}/children`
-        );
+    getChildren: async (parentId: string): Promise<PersonResponse[]> => {
+        const response = await api.get<PersonResponse[]>(`/api/admins/persons/${parentId}/children`);
         return response.data;
     },
 
-    update: async (id: string, data: PersonModel): Promise<PersonResponseModel> => {
-        // URL : /api/admins/persons/{id}
-        const response = await api.put<PersonResponseModel>(`/api/admins/persons/${id}`, data);
-        return response.data;
-    },
-
-    delete: async (id: string): Promise<GenericResponse> => {
-        // URL : /api/admins/persons/{id}
-        const response = await api.delete<GenericResponse>(`/api/admins/persons/${id}`);
-        return response.data;
-    },
-
-    deleteAll: async (): Promise<GenericResponse> => {
-        // URL : /api/admins/persons/delete-all
-        const response = await api.delete<GenericResponse>('/api/admins/persons/delete-all');
+    deleteAll: async (): Promise<string> => {
+        const response = await api.delete<string>('/api/admins/persons/delete-all');
         return response.data;
     }
 };
-
-export default MemberService;

@@ -1,32 +1,67 @@
-<<<<<<< HEAD
-# 🚀 Fizanakara Admin App
-## Description:
-Fizanakara Admin est une solution moderne dédiée à la gestion des cotisations annuelles des membres de l'organisation Fizanakara.<br/> L'application a été conçue avec un accent particulier sur la simplicité et l'engagement de l'expérience utilisateur (UI/UX).<br/>
-## 🛠 Technologies Utilisées<br/>
-L'application repose sur une stack technologique robuste et typée pour garantir performance et maintenabilité :<br/>
-* React :<br/>
-- Bibliothèque principale pour une interface dynamique.<br/>
-- Bibliothèques clés : react-router-dom (navigation), react-toastify (notifications).<br/>
-* TypeScript : Pour un code sécurisé, structuré et une meilleure expérience de développement.<br/>
-* Tailwind CSS : Utilisé pour un design moderne, réactif et des effets visuels avancés (profondeur et mise en page).<br/>
+# Fizanakara - Fee Management Application
 
-## ✨ Fonctionnalités Clés
-* Gestion des Membres : Suivi détaillé de chaque membre de l'organisation.<br/>
-* Suivi des Cotisations : Enregistrement et historique des paiements annuels.<br/>
-* Interface Intuitive : Design épuré pour une prise en main rapide par les administrateurs.<br/>
-* Notifications en temps réel : Feedback visuel via des "toasts" pour chaque action effectuée.<br/>
+A modern, vibrant fee management application built with the **MERN** stack (PostgreSQL instead of Mongo). This application follows the "Duolingo" design aesthetic with bold colors and 3D UI elements.
 
-## ⚙️ Installation et Lancement
-Pour cloner et lancer ce projet localement :<br/>
-Cloner le dépôt :<br/>
-    git clone https://github.comv/otre-utilisateur/fizanakara-admin.git
+## 🚀 Tech Stack
 
-Installer les dépendances :<br/>
-    cd fizanakara-admin
-    npm install
+- **Frontend**: React 18, TypeScript, Vite, TailwindCSS, React Query, React Router, Axios, React Hot Toast
+- **Backend**: Spring Boot, PostgreSQL, JWT, Spring Security, JPA/Hibernate
 
-Lancer l'application :<br/>
-    npm run dev
-=======
-# fizanakara_application
->>>>>>> b75d075a99c1c7bd65fc06087b546fc2387f5424
+## 🛠️ Installation & Setup
+
+### Prerequisites
+- Node.js (v18+)
+- Java 17+
+- PostgreSQL
+
+### Frontend Configuration
+1. Clone the repository
+2. Navigate to `/client`:
+   ```bash
+   cd client
+   npm install
+   ```
+3. Create a `.env` file in `/client`:
+   ```env
+   VITE_API_BASE_URL=http://localhost:8080/api
+   ```
+4. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+
+## 🏗️ Project Structure
+
+```
+client/src/
+├── components/     # Reusable UI components
+├── context/        # Auth and global state
+├── hooks/          # Custom React hooks (React Query)
+├── lib/            # Types, constants, and validators
+├── pages/          # Main application views
+├── services/       # API services and axios config
+└── styles/         # Global styles and theme tokens
+```
+
+## 🔑 Key Features
+
+### For SuperAdmins
+- **Dashboard**: Global statistics on admins, districts, and tributes.
+- **Admin Management**: Create and manage branch administrators.
+- **Location Management**: Define districts and tributes for member organization.
+- **Global Profile**: Manage system-wide identity and security.
+
+### For Admins
+- **Member Management**: Register and track branch members and their families.
+- **Finance Tracking**: Manage monthly/yearly contributions and partial payments.
+- **Status Alerts**: Identify members with overdue payments at a glance.
+
+## 🎨 Design Principles
+
+- **Duolingo Aesthetic**: Strong primary colors (#FF4B4B), thick borders (3D effect), and rounded corners (3rem/4xl).
+- **English First**: 100% of the UI and codebase documentation is in English.
+- **Responsive**: Fully optimized for mobile, tablet, and desktop views.
+
+## 📄 License
+
+Proprietary - Developed for Fizanakara.

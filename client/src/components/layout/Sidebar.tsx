@@ -1,150 +1,111 @@
-import React, { useState, memo } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { 
-    AiOutlineLogout, 
-    AiOutlineGlobal, 
+// Sidebar.tsx - Version avec styles cohérents
+import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import {
+    AiOutlineDashboard,
+    AiOutlineTeam,
+    AiOutlineWallet,
+    AiOutlineUser,
     AiOutlineSetting,
-    AiOutlineTool
-} from "react-icons/ai";
-import { useAuth } from "../../context/AuthContext";
-import { SIDEBAR_LINKS } from "../../lib/constant/constant";
-import Alert from "../ui/Alert";
-import Button from "../ui/Button";
+    AiOutlineLogout,
+} from 'react-icons/ai';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+    isOpen: boolean;
+    toggleSidebar?: () => void;
+}
+
+const Sidebar = ({ isOpen }: SidebarProps) => {
     const { logout, isSuperAdmin } = useAuth();
-    const navigate = useNavigate();
-    const [openLogout, setOpenLogout] = useState(false);
 
-    const activeClass = "bg-brand-primary/10 text-brand-primary border-brand-primary border-b-4 shadow-sm";
-    const inactiveClass = "border-transparent text-gray-400 hover:bg-gray-50 hover:text-brand-text hover:translate-x-1";
+    const adminLinks = [
+        { path: '/admin/dashboard', label: 'Dashboard', icon: AiOutlineDashboard },
+        { path: '/admin/members', label: 'Membres', icon: AiOutlineTeam },
+        { path: '/admin/finance', label: 'Finance', icon: AiOutlineWallet },
+        { path: '/admin/profile', label: 'Profil', icon: AiOutlineUser },
+    ];
+
+    const superAdminLinks = [
+        { path: '/superadmin/dashboard', label: 'Dashboard', icon: AiOutlineDashboard },
+        { path: '/superadmin/management', label: 'Gestion', icon: AiOutlineSetting },
+        { path: '/superadmin/profile', label: 'Profil', icon: AiOutlineUser },
+    ];
+
+    const links = isSuperAdmin ? superAdminLinks : adminLinks;
 
     return (
         <>
-            {/* Sidebar desktop */}
-            <aside className="hidden lg:flex w-72 h-screen bg-white border-r-2 border-brand-border flex-col sticky top-0 overflow-hidden">
-                <div className="p-8 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-brand-primary text-white flex items-center justify-center border-b-4 border-brand-primary-dark shadow-lg rotate-3">
-                        <AiOutlineGlobal size={26} />
-                    </div>
-                    <div>
-                        <p className="font-black text-xl leading-tight text-brand-text">Fizanakara</p>
-                        <span className="text-[9px] font-black uppercase text-brand-primary tracking-widest">
-                            {isSuperAdmin ? "Super Admin" : "Administrateur"}
-                        </span>
-                    </div>
-                </div>
-
-                <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
-                    {isSuperAdmin ? (
-                        // Super admin : deux menus
-                        <>
-                            <NavLink
-                                to="/admin/profile"
-                                className={({ isActive }) =>
-                                    `flex items-center gap-4 px-5 py-3.5 rounded-2xl border-2 transition-all duration-200 ${isActive ? activeClass : inactiveClass}`
-                                }
-                            >
-                                <AiOutlineSetting size={20} />
-                                <span className="text-[11px] font-black uppercase tracking-wider">Paramètres</span>
-                            </NavLink>
-                            <NavLink
-                                to="/superadmin/management"
-                                className={({ isActive }) =>
-                                    `flex items-center gap-4 px-5 py-3.5 rounded-2xl border-2 transition-all duration-200 ${isActive ? 'bg-amber-50 text-amber-600 border-amber-500 border-b-4' : inactiveClass}`
-                                }
-                            >
-                                <AiOutlineTool size={20} />
-                                <span className="text-[11px] font-black uppercase tracking-wider">Outils</span>
-                            </NavLink>
-                        </>
-                    ) : (
-                        // Admin normal : liens standards
-                        SIDEBAR_LINKS.map((link) => (
-                            <NavLink
-                                key={link.path}
-                                to={link.path}
-                                className={({ isActive }) =>
-                                    `flex items-center gap-4 px-5 py-3.5 rounded-2xl border-2 transition-all duration-200 ${isActive ? activeClass : inactiveClass}`
-                                }
-                            >
-                                <link.icon size={20} />
-                                <span className="text-[11px] font-black uppercase tracking-wider">{link.title}</span>
-                            </NavLink>
-                        ))
-                    )}
-                </nav>
-
-                <div className="p-6 border-t-2 border-brand-border bg-brand-bg/50">
-                    <Button
-                        variant="secondary"
-                        onClick={() => setOpenLogout(true)}
-                        className="w-full flex items-center justify-center gap-2 py-4 text-[10px]"
-                    >
-                        <AiOutlineLogout size={18} className="text-red-500" />
-                        <span className="text-[8px] font-black uppercase mt-1">Quitter</span>
-                    </Button>
-                </div>
-            </aside>
-
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t-4 border-brand-border h-20 px-2 flex items-center justify-around z-50 shadow-2xl">                {isSuperAdmin ? (
-                    <>
-                        <NavLink
-                            to="/admin/profile"
-                            className={({ isActive }) =>
-                                `flex flex-col items-center justify-center flex-1 h-16 rounded-xl transition-all ${isActive ? "text-brand-primary bg-brand-primary/5 scale-105" : "text-gray-400"}`
-                            }
-                        >
-                            <AiOutlineSetting size={22} />
-                            <span className="text-[8px] font-black uppercase mt-1">Paramètres</span>
-                        </NavLink>
-                        <NavLink
-                            to="/superadmin/management"
-                            className={({ isActive }) =>
-                                `flex flex-col items-center justify-center flex-1 h-16 rounded-xl transition-all ${isActive ? "text-amber-600 bg-amber-50" : "text-gray-400"}`
-                            }
-                        >
-                            <AiOutlineTool size={22} />
-                            <span className="text-[8px] font-black uppercase mt-1">Outils</span>
-                        </NavLink>
-                    </>
-                ) : (
-                    // Admin normal : trois premiers liens standards
-                    SIDEBAR_LINKS.slice(0, 3).map((link) => (
+            <aside className={`
+                hidden md:flex flex-col fixed left-0 h-full bg-brand-card border-r-2 border-brand-border 
+                transition-all duration-300 z-40 ${isOpen ? 'w-64' : 'w-20'}
+            `}>
+                <nav className="flex-1 mt-20 p-4 space-y-2 overflow-y-auto">
+                    {links.map((link) => (
                         <NavLink
                             key={link.path}
                             to={link.path}
-                            className={({ isActive }) =>
-                                `flex flex-col items-center justify-center flex-1 h-16 rounded-xl transition-all ${isActive ? "text-brand-primary bg-brand-primary/5 scale-105" : "text-gray-400"}`
-                            }
+                            className={({ isActive }) => `
+                                flex items-center gap-4 p-3 rounded-xl transition-all font-black text-xs uppercase tracking-wider
+                                ${isActive 
+                                    ? 'bg-brand-primary text-white border-b-4 border-brand-primary-dark' 
+                                    : 'text-brand-muted hover:bg-brand-bg hover:text-brand-primary border-2 border-transparent'
+                                }
+                                ${isOpen ? 'justify-start' : 'justify-center'}
+                            `}
                         >
                             <link.icon size={22} />
-                            <span className="text-[8px] font-black uppercase mt-1">{link.title.split(' ')[0]}</span>
+                            {isOpen && <span>{link.label}</span>}
                         </NavLink>
-                    ))
-                )}
+                    ))}
+                </nav>
 
-                <button onClick={() => setOpenLogout(true)} className="flex flex-col items-center justify-center flex-1 h-16 text-red-500">
-                    <AiOutlineLogout size={20} />
-                    <span className="text-[8px] font-black uppercase mt-1">Quitter</span>
+                <div className="p-4 border-t-2 border-brand-border">
+                    <button
+                        onClick={logout}
+                        className={`
+                            flex items-center gap-4 p-3 w-full rounded-xl transition-all font-black text-xs uppercase tracking-wider
+                            text-brand-muted hover:bg-brand-primary-light hover:text-brand-primary border-2 border-transparent hover:border-brand-primary/20
+                            ${isOpen ? 'justify-start' : 'justify-center'}
+                        `}
+                    >
+                        <AiOutlineLogout size={22} />
+                        {isOpen && <span>Déconnexion</span>}
+                    </button>
+                </div>
+            </aside>
+
+            {/* Mobile Bottom Navigation */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-brand-card border-t-2 border-brand-border px-2 py-3 z-50 flex items-center justify-around shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+                {links.map((link) => (
+                    <NavLink
+                        key={link.path}
+                        to={link.path}
+                        className="flex-1 flex justify-center"
+                    >
+                        {({ isActive }) => (
+                            <div className={`
+                                flex flex-col items-center gap-1 transition-all
+                                ${isActive ? 'text-brand-primary' : 'text-brand-muted hover:text-brand-primary'}
+                            `}>
+                                <link.icon size={24} />
+                                <span className="text-[9px] font-black uppercase tracking-tighter">
+                                    {link.label}
+                                </span>
+                            </div>
+                        )}
+                    </NavLink>
+                ))}
+                
+                <button
+                    onClick={logout}
+                    className="flex-1 flex flex-col items-center gap-1 text-brand-muted hover:text-brand-primary transition-colors"
+                >
+                    <AiOutlineLogout size={24} />
+                    <span className="text-[9px] font-black uppercase">Exit</span>
                 </button>
             </nav>
-
-            <Alert
-                isOpen={openLogout}
-                variant="danger"
-                title="Déconnexion"
-                message="Souhaitez-vous vraiment quitter l'application ?"
-                confirmText="Déconnexion"
-                onClose={() => setOpenLogout(false)}
-                onConfirm={() => {
-                    setOpenLogout(false);
-                    logout();
-                    navigate("/login");
-                }}
-            />
         </>
     );
 };
 
-export default memo(Sidebar);
+export default Sidebar;

@@ -72,7 +72,7 @@ public class AdminsService {
         return adminsRepository.findById(id);
     }
 
-    //CREATE ADMIN
+    // CREATE ADMIN
     public Admins createAdmins(Admins admins) {
         return adminsRepository.save(admins);
     }
@@ -82,13 +82,23 @@ public class AdminsService {
     public AdminResponseDto updateAdmin(String email, UpdateAdminDto req) throws AdminsException {
         Admins admin = findByEmail(email)
                 .orElseThrow(() -> new AdminsException("Admin not found with email : " + email));
-        if (req.getEmail() != null && !req.getEmail().equals(admin.getEmail()) && adminsRepository.existsByEmail(req.getEmail()))
+        if (req.getEmail() != null && !req.getEmail().equals(admin.getEmail())
+                && adminsRepository.existsByEmail(req.getEmail()))
             throw new AdminsException("Email has exit use by other admin");
 
         int changes = 0;
-        if (req.getFirstName() != null) { admin.setFirstName(req.getFirstName()); changes++; }
-        if (req.getLastName() != null) { admin.setLastName(req.getLastName()); changes++; }
-        if (req.getBirthDate() != null) { admin.setBirthDate(req.getBirthDate()); changes++; }
+        if (req.getFirstName() != null) {
+            admin.setFirstName(req.getFirstName());
+            changes++;
+        }
+        if (req.getLastName() != null) {
+            admin.setLastName(req.getLastName());
+            changes++;
+        }
+        if (req.getBirthDate() != null) {
+            admin.setBirthDate(req.getBirthDate());
+            changes++;
+        }
         if (req.getGender() != null) {
             try {
                 admin.setGender(Gender.valueOf(req.getGender().toUpperCase()));
@@ -97,11 +107,26 @@ public class AdminsService {
                 throw new AdminsException("Gender invalid : " + req.getGender());
             }
         }
-        if (req.getImageUrl() != null) { admin.setImageUrl(req.getImageUrl()); changes++; }
-        if (req.getPhoneNumber() != null) { admin.setPhoneNumber(req.getPhoneNumber()); changes++; }
-        if (req.getEmail() != null) { admin.setEmail(req.getEmail()); changes++; }
-        if (req.getPassword() != null) { admin.setPassword(passwordEncoder.encode(req.getPassword())); changes++; }
-        if (req.getVerified() != null) { admin.setVerified(req.getVerified()); changes++; }
+        if (req.getImageUrl() != null) {
+            admin.setImageUrl(req.getImageUrl());
+            changes++;
+        }
+        if (req.getPhoneNumber() != null) {
+            admin.setPhoneNumber(req.getPhoneNumber());
+            changes++;
+        }
+        if (req.getEmail() != null) {
+            admin.setEmail(req.getEmail());
+            changes++;
+        }
+        if (req.getPassword() != null) {
+            admin.setPassword(passwordEncoder.encode(req.getPassword()));
+            changes++;
+        }
+        if (req.getVerified() != null) {
+            admin.setVerified(req.getVerified());
+            changes++;
+        }
 
         Admins updated = adminsRepository.save(admin);
         log.info("Admin {} mis à jour", email);
@@ -179,4 +204,4 @@ public class AdminsService {
         dto.setPhoneNumber(admin.getPhoneNumber());
         return dto;
     }
-}
+}dto.setFirstName(admin.getFirstName());dto.setLastName(admin.getLastName());dto.setEmail(admin.getEmail());dto.setRole(admin.getRole());dto.setVerified(admin.isVerified());dto.setCreatedAt(admin.getCreatedAt());dto.setPhoneNumber(admin.getPhoneNumber());return dto;}}

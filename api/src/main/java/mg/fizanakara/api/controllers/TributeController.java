@@ -21,7 +21,7 @@ import java.util.Map;
 public class TributeController {
     private final TributeService tributeService;
 
-    //  🔒 ALL ROUTES IS PROTECTED BY ADMIN TOKEN
+    // 🔒 ALL ROUTES IS PROTECTED BY ADMIN TOKEN
     // GET ALL
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
@@ -50,7 +50,7 @@ public class TributeController {
     // UPDATE BY ID
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('SUPERADMIN')")
-    public ResponseEntity<Tribute> updateTribute(@PathVariable Long id, @RequestBody  @Validated TributeDto dto) {
+    public ResponseEntity<Tribute> updateTribute(@PathVariable Long id, @RequestBody @Validated TributeDto dto) {
         log.info("Update district {}", dto.getName());
         Tribute updated = tributeService.updateTribute(id, dto);
         return ResponseEntity.ok(updated);

@@ -1,0 +1,9 @@
+import{Dt as e,Ot as t,it as n,p as r}from"./index-DRN2HZqm.js";var i=t(e(),1),a=n(),o=(0,i.forwardRef)(({label:e,options:t,error:n,containerClassName:i=``,placeholder:o=`Sélectionner...`,icon:s,className:c=``,...l},u)=>(0,a.jsxs)(`div`,{className:`w-full flex flex-col gap-2 ${i}`,children:[e&&(0,a.jsx)(`label`,{htmlFor:l.name,className:`block font-black text-brand-muted ml-1 text-[11px] uppercase tracking-[0.15em]`,children:e}),(0,a.jsxs)(`div`,{className:`relative group`,children:[s&&(0,a.jsx)(`div`,{className:`absolute inset-y-0 left-4 flex items-center text-brand-muted group-focus-within:text-brand-primary transition-colors z-10`,children:s}),(0,a.jsxs)(`select`,{ref:u,id:l.name,className:`
+                        w-full p-4 ${s?`pl-12`:`px-5`} 
+                        bg-white appearance-none 
+                        border-2 ${n?`border-brand-primary`:`border-brand-border`} border-b-4 
+                        rounded-2xl font-bold text-brand-text text-sm 
+                        outline-none focus:border-brand-primary 
+                        transition-all cursor-pointer disabled:opacity-50
+                        ${c}
+                    `,...l,children:[(0,a.jsx)(`option`,{value:``,children:o}),t.map(e=>(0,a.jsx)(`option`,{value:e.value,children:e.label},e.value))]}),(0,a.jsx)(`div`,{className:`absolute inset-y-0 right-4 flex items-center pointer-events-none text-brand-muted group-focus-within:text-brand-primary transition-colors`,children:(0,a.jsx)(r,{size:14,className:`stroke-[3px]`})})]}),n&&(0,a.jsx)(`span`,{className:`text-[10px] text-brand-primary font-black ml-2 uppercase tracking-wide`,children:n})]}));o.displayName=`Select`;var s=(0,i.memo)(o);export{s as t};

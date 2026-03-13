@@ -1,90 +1,85 @@
-// src/hooks/useDistrict.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import DistrictService from "../services/district.services";
-import { DistrictModel } from "../lib/types/models/localisation.models.types";
-import toast from "react-hot-toast";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DistrictService } from '../services/district.services';
+import { DistrictDto } from '../lib/types';
+import toast from 'react-hot-toast';
 
 export const useDistrict = (districtId?: number) => {
     const queryClient = useQueryClient();
 
-    // Récupérer tous les districts
-    const { 
-        data: districts = [], 
-        isLoading: loadingDistricts 
+    const {
+        data: districts = [],
+        isLoading,
+        error,
     } = useQuery({
-        queryKey: ["districts"],
+        queryKey: ['districts'],
         queryFn: DistrictService.getAll,
-        staleTime: 10 * 60 * 1000, // 10 minutes
+        staleTime: 10 * 60 * 1000,
     });
 
-    // Récupérer un district spécifique
-    const { 
-        data: currentDistrict, 
-        isLoading: loadingCurrentDistrict 
+    const {
+        data: currentDistrict,
+        isLoading: loadingCurrent,
     } = useQuery({
-        queryKey: ["districts", districtId],
-        queryFn: () => districtId ? DistrictService.getById(districtId) : Promise.resolve(null),
+        queryKey: ['districts', districtId],
+        queryFn: () => (districtId ? DistrictService.getById(districtId) : Promise.resolve(null)),
         enabled: !!districtId,
     });
 
-    // Mutation : Créer un district
     const createDistrict = useMutation({
-        mutationFn: (data: DistrictModel) => DistrictService.create(data),
+        mutationFn: (data: DistrictDto) => DistrictService.create(data),
         onSuccess: (newDistrict) => {
-            queryClient.invalidateQueries({ queryKey: ["districts"] });
-            toast.success(`District "${newDistrict.name}" créé`);
+            queryClient.invalidateQueries({ queryKey: ['districts'] });
+            toast.success(`District "${newDistrict.name}" created`);
         },
         onError: () => {
-            toast.error("Erreur lors de la création du district");
-        }
+            toast.error('Failed to create district');
+        },
     });
 
-    // Mutation : Mettre à jour un district
     const updateDistrict = useMutation({
-        mutationFn: ({ id, data }: { id: number; data: DistrictModel }) =>
+        mutationFn: ({ id, data }: { id: number; data: DistrictDto }) =>
             DistrictService.update(id, data),
-        onSuccess: (updatedDistrict) => {
-            queryClient.invalidateQueries({ queryKey: ["districts"] });
-            queryClient.setQueryData(["districts", updatedDistrict.id], updatedDistrict);
-            toast.success(`District "${updatedDistrict.name}" mis à jour`);
+        onSuccess: (updated) => {
+            queryClient.invalidateQueries({ queryKey: ['districts'] });
+            queryClient.setQueryData(['districts', updated.id], updated);
+            toast.success(`District "${updated.name}" updated`);
         },
         onError: () => {
-            toast.error("Erreur lors de la mise à jour");
-        }
+            toast.error('Failed to update district');
+        },
     });
 
-    // Mutation : Supprimer un district
     const deleteDistrict = useMutation({
         mutationFn: (id: number) => DistrictService.delete(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["districts"] });
-            toast.success("District supprimé");
+            queryClient.invalidateQueries({ queryKey: ['districts'] });
+            toast.success('District deleted');
         },
         onError: () => {
-            toast.error("Erreur lors de la suppression");
-        }
+            toast.error('Failed to delete district');
+        },
     });
 
-    // Mutation : Supprimer tous les districts (Action critique)
     const deleteAllDistricts = useMutation({
         mutationFn: () => DistrictService.deleteAll(),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["districts"] });
-            toast.success("Tous les districts ont été supprimés");
+            queryClient.invalidateQueries({ queryKey: ['districts'] });
+            toast.success('All districts deleted');
         },
         onError: () => {
-            toast.error("Erreur lors de la suppression");
-        }
+            toast.error('Failed to delete districts');
+        },
     });
 
     return {
         districts,
-        loadingDistricts,
         currentDistrict,
-        loadingCurrentDistrict,
+        isLoading,
+        loadingCurrent,
+        error,
         createDistrict,
         updateDistrict,
         deleteDistrict,
-        deleteAllDistricts
+        deleteAllDistricts,
     };
 };
