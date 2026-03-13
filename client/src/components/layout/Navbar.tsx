@@ -51,7 +51,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
                             FIZANAKARA
                         </h1>
                         <p className="text-[8px] text-brand-muted -mt-1 font-medium">
-                            Gestion cotisation
+                            Contribution Management
                         </p>
                     </div>
                 </div>
@@ -108,7 +108,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
                                         onClick={() => setIsProfileMenuOpen(false)}
                                     >
                                         <AiOutlineUser size={18} />
-                                        <span>Mon Profil</span>
+                                        <span>My Profile</span>
                                     </NavLink>
 
                                     {isSuperAdmin && (
@@ -127,7 +127,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
                                         className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-50 text-red-600 transition-all font-medium text-sm"
                                     >
                                         <AiOutlineLogout size={18} />
-                                        <span>Déconnexion</span>
+                                        <span>Logout</span>
                                     </button>
                                 </div>
                             </div>
