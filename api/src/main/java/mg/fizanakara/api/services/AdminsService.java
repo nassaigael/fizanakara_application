@@ -201,4 +201,4 @@ public class AdminsService {
         dto.setPhoneNumber(admin.getPhoneNumber());
         return dto;
     }
-}dto.setFirstName(admin.getFirstName());dto.setLastName(admin.getLastName());dto.setEmail(admin.getEmail());dto.setRole(admin.getRole());dto.setVerified(admin.isVerified());dto.setCreatedAt(admin.getCreatedAt());dto.setPhoneNumber(admin.getPhoneNumber());return dto;}}
+}
