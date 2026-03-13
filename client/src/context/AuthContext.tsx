@@ -60,7 +60,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             const userData = await AuthService.getMe();
 
-            // Keep the role from cache if getMe doesn't return it
             if (userData && !userData.role && cachedUser) {
                 userData.role = JSON.parse(cachedUser).role;
             }
@@ -88,12 +87,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 localStorage.setItem('accessToken', response.accessToken);
                 localStorage.setItem('refreshToken', response.refreshToken);
 
-                // Map login response user (lowercase fields) to AdminResponse
                 const fullUserData: AdminResponse = {
                     id: response.user.id,
                     email: response.user.email,
-                    firstName: response.user.firstName,
-                    lastName: response.user.lastName,
+                    firstName: response.user.firstname,
+                    lastName: response.user.lastname,
                     gender: response.user.gender,
                     role: response.role,
                     imageUrl: '',
@@ -150,7 +148,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (user?.role) updated.role = user.role;
             setUser(updated);
             localStorage.setItem('user', JSON.stringify(updated));
-            toast.success('Profile updated');
+            toast.success('Profile updated successfully');
             return response;
         } catch (err) {
             toast.error(getErrorMessage(err));
