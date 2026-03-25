@@ -88,22 +88,22 @@ const AdminProfile: React.FC = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard 
-                    title="Account Status" 
-                    status={user.verified ? "Verified" : "Pending"} 
+                <StatCard
+                    title="Account Status"
+                    status={user.verified ? "Verified" : "Pending"}
                     icon={user.verified ? <AiOutlineCheckCircle /> : <AiOutlineCloseCircle />}
                     color={user.verified ? 'green' : 'orange'}
                 />
-                <StatCard 
-                    title="Role" 
-                    status={user.role} 
-                    icon={<AiOutlineCrown />} 
+                <StatCard
+                    title="Role"
+                    status={user.role}
+                    icon={<AiOutlineCrown />}
                     color="blue"
                 />
-                <StatCard 
-                    title="Member ID" 
-                    status={`#${user.id.substring(0, 8)}`} 
-                    icon={<AiOutlineIdcard />} 
+                <StatCard
+                    title="admin id"
+                    status={user.id}
+                    icon={<AiOutlineIdcard />}
                     color="orange"
                 />
             </div>
@@ -166,7 +166,7 @@ const AdminProfile: React.FC = () => {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
                         <h2 className={`${THEME.font.h2} text-xl flex items-center gap-2 mb-2`}>
-                            <AiOutlineLock className="text-brand-primary" /> 
+                            <AiOutlineLock className="text-brand-primary" />
                             PASSWORD & SECURITY
                         </h2>
                         <p className="text-gray-500 text-sm">
