@@ -1,7 +1,8 @@
 // components/ui/ParentSearchInput.tsx
 import React, { useState, useMemo } from 'react';
-import { AiOutlineSearch, AiOutlineUser } from 'react-icons/ai';
+import { AiOutlineSearch, AiOutlineUser, AiOutlineCheck } from 'react-icons/ai';
 import { PersonResponse } from '../../lib/types';
+import { getImageUrl } from '../../lib/constant/constant';
 
 interface ParentSearchInputProps {
   members: PersonResponse[];
@@ -64,6 +65,19 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
     setSearchTerm('');
   };
 
+  // Fonction pour obtenir l'URL de l'image ou les initiales
+  const getParentAvatar = (parent: PersonResponse) => {
+    if (parent.imageUrl) {
+      return getImageUrl(parent.imageUrl, 'member');
+    }
+    return null;
+  };
+
+  // Fonction pour obtenir les initiales
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
+  };
+
   return (
     <div className="relative">
       <label className="block text-[9px] font-black uppercase tracking-wider text-gray-500 mb-2">
@@ -71,25 +85,45 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
       </label>
       
       {selectedParent ? (
-        // Affichage du parent sélectionné
+        // Affichage du parent sélectionné avec image
         <div className="bg-white border-2 border-brand-primary rounded-xl p-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand-primary/10 rounded-lg flex items-center justify-center">
-              <AiOutlineUser className="text-brand-primary" />
+            <div className="w-12 h-12 rounded-xl overflow-hidden bg-brand-primary/10 flex items-center justify-center">
+              {getParentAvatar(selectedParent) ? (
+                <img
+                  src={getParentAvatar(selectedParent)!}
+                  alt={selectedParent.firstName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials(selectedParent.firstName, selectedParent.lastName);
+                    (e.target as HTMLImageElement).parentElement!.classList.add('text-brand-primary', 'font-black', 'text-sm');
+                  }}
+                />
+              ) : (
+                <span className="text-brand-primary font-black text-sm">
+                  {getInitials(selectedParent.firstName, selectedParent.lastName)}
+                </span>
+              )}
             </div>
             <div>
               <p className="font-bold text-sm">
                 {selectedParent.firstName} {selectedParent.lastName}
               </p>
-              <p className="text-[10px] text-gray-400 font-mono">
-                ID: {selectedParent.id}
-              </p>
+              <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                <span className="font-mono">{selectedParent.id}</span>
+                <span>•</span>
+                <span>{selectedParent.status === 'STUDENT' ? 'Student' : 'Worker'}</span>
+                {selectedParent.isActiveMember && (
+                  <span className="text-green-500">• Active</span>
+                )}
+              </div>
             </div>
           </div>
           <button
             type="button"
             onClick={handleClear}
-            className="text-gray-400 hover:text-red-500 text-xs font-bold uppercase"
+            className="px-3 py-1 text-xs font-bold uppercase text-gray-400 hover:text-red-500 transition-colors"
             disabled={disabled}
           >
             Change
@@ -116,33 +150,66 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
             />
           </div>
           
-          {/* Dropdown de recherche */}
+          {/* Dropdown de recherche avec images */}
           {isOpen && searchTerm && filteredMembers.length > 0 && (
-            <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-64 overflow-y-auto">
-              {filteredMembers.map(member => (
-                <button
-                  key={member.id}
-                  type="button"
-                  onClick={() => handleSelectParent(member)}
-                  className="w-full p-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <AiOutlineUser className="text-gray-500" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-sm">
-                        {member.firstName} {member.lastName}
-                      </p>
-                      <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                        <span className="font-mono">{member.id}</span>
-                        <span>•</span>
-                        <span>{member.status === 'STUDENT' ? 'Student' : 'Worker'}</span>
+            <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-80 overflow-y-auto">
+              {filteredMembers.map(member => {
+                const avatarUrl = member.imageUrl ? getImageUrl(member.imageUrl, 'member') : null;
+                const isSelected = value === member.id;
+                
+                return (
+                  <button
+                    key={member.id}
+                    type="button"
+                    onClick={() => handleSelectParent(member)}
+                    className={`
+                      w-full p-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors
+                      ${isSelected ? 'bg-brand-primary/5' : ''}
+                    `}
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Avatar avec image ou initiales */}
+                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt={member.firstName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials(member.firstName, member.lastName);
+                              (e.target as HTMLImageElement).parentElement!.classList.add('text-gray-500', 'font-black', 'text-sm');
+                            }}
+                          />
+                        ) : (
+                          <span className="text-gray-500 font-black text-sm">
+                            {getInitials(member.firstName, member.lastName)}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-bold text-sm">
+                            {member.firstName} {member.lastName}
+                          </p>
+                          {isSelected && (
+                            <AiOutlineCheck className="text-green-500" size={16} />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                          <span className="font-mono">{member.id}</span>
+                          <span>•</span>
+                          <span>{member.status === 'STUDENT' ? 'Student' : 'Worker'}</span>
+                          {member.isActiveMember && (
+                            <span className="text-green-500">• Active</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           )}
           
