@@ -15,6 +15,7 @@ import Alert from '../../components/ui/Alert';
 import { THEME } from '../../styles/theme';
 import MemberCard from '../../components/admin/members/MemberCard';
 import MemberForm from '../../components/admin/members/MemberForm';
+import MemberDetailModal from '../../components/admin/members/MemberDetailModal';
 
 const AdminMembers: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -24,6 +25,7 @@ const AdminMembers: React.FC = () => {
     const [tributeFilter, setTributeFilter] = useState<string>('ALL');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingMember, setEditingMember] = useState<PersonResponse | null>(null);
+    const [viewingMember, setViewingMember] = useState<PersonResponse | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
     const { members, isLoading, deleteMember } = useMembers();
@@ -37,6 +39,10 @@ const AdminMembers: React.FC = () => {
     const handleEdit = (member: PersonResponse) => {
         setEditingMember(member);
         setIsFormOpen(true);
+    };
+
+    const handleView = (member: PersonResponse) => {
+        setViewingMember(member);
     };
 
     const handleAddMember = () => {
@@ -285,17 +291,40 @@ const AdminMembers: React.FC = () => {
                             member={member}
                             onEdit={handleEdit}
                             onDelete={(id) => setDeleteId(id)}
+                            onView={handleView}
                         />
                     ))}
                 </div>
             )}
 
+            {/* Member Form Modal */}
             <MemberForm
                 isOpen={isFormOpen}
                 onClose={handleCloseForm}
                 memberToEdit={editingMember}
             />
 
+            {/* Member Detail Modal */}
+            <MemberDetailModal
+                isOpen={!!viewingMember}
+                onClose={() => setViewingMember(null)}
+                member={viewingMember}
+                onEdit={() => {
+                    if (viewingMember) {
+                        const memberToEdit = viewingMember;
+                        setViewingMember(null);
+                        handleEdit(memberToEdit);
+                    }
+                }}
+                onDelete={() => {
+                    if (viewingMember) {
+                        setDeleteId(viewingMember.id);
+                        setViewingMember(null);
+                    }
+                }}
+            />
+
+            {/* Delete Confirmation Alert */}
             <Alert
                 isOpen={!!deleteId}
                 title="Delete Member"

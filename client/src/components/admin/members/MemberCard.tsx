@@ -1,51 +1,119 @@
 import React from 'react';
-import { AiOutlineMan, AiOutlineWoman, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
-import { Gender, PersonResponse } from '../../../lib/types';
-import { formatDate } from '../../../lib/helper';
+import { AiOutlinePhone, AiOutlineGlobal, AiOutlineFlag, AiOutlineEdit, AiOutlineDelete, AiOutlineEye } from 'react-icons/ai';
+import { PersonResponse } from '../../../lib/types';
+import { getInitials } from '../../../lib/helper';
+import { getImageUrl } from '../../../lib/constant/constant';
 
 interface MemberCardProps {
     member: PersonResponse;
     onEdit: (member: PersonResponse) => void;
     onDelete: (id: string) => void;
+    onView?: (member: PersonResponse) => void;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({ member, onEdit, onDelete }) => {
+const MemberCard: React.FC<MemberCardProps> = ({ member, onEdit, onDelete, onView }) => {
+    const hasImage = member.imageUrl && member.imageUrl.trim() !== '';
+    const avatarUrl = hasImage ? getImageUrl(member.imageUrl, 'member') : null;
+
+    const getStatusColor = () => {
+        if (member.isActiveMember) {
+            return 'bg-green-100 text-green-700 border-green-200';
+        }
+        return 'bg-orange-100 text-orange-700 border-orange-200';
+    };
+
+    const getStatusLabel = () => {
+        if (member.isActiveMember) return 'Active';
+        return 'Inactive';
+    };
+
     return (
-        <div className="bg-white rounded-3xl border-2 border-b-8 border-gray-100 p-6 hover:border-brand-primary transition-all">
-            <div className="flex justify-between items-start mb-4">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${
-                    member.gender === Gender.MALE ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'
-                }`}>
-                    {member.gender === Gender.MALE ? <AiOutlineMan /> : <AiOutlineWoman />}
+        <div className="bg-white rounded-2xl border-2 border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+            {/* Header with Image */}
+            <div className="relative h-28 bg-linear-to-r from-brand-primary/20 to-orange-500/20">
+                <div className="absolute -bottom-8 left-4">
+                    <div className="w-16 h-16 rounded-xl border-4 border-white shadow-lg overflow-hidden bg-white flex items-center justify-center">
+                        {avatarUrl ? (
+                            <img
+                                src={avatarUrl}
+                                alt={member.firstName}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                    (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials(member.firstName, member.lastName);
+                                    (e.target as HTMLImageElement).parentElement!.classList.add('text-lg', 'font-black', 'text-brand-primary');
+                                }}
+                            />
+                        ) : (
+                            <span className="text-lg font-black text-brand-primary">
+                                {getInitials(member.firstName, member.lastName)}
+                            </span>
+                        )}
+                    </div>
                 </div>
-                <div className="flex gap-2">
-                    <button 
-                        onClick={() => onEdit(member)} 
-                        className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-brand-primary"
-                    >
-                        <AiOutlineEdit size={20} />
-                    </button>
-                    <button 
-                        onClick={() => onDelete(member.id)} 
-                        className="p-2 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500"
-                    >
-                        <AiOutlineDelete size={20} />
-                    </button>
+                
+                {/* Status Badge */}
+                <div className="absolute top-3 right-3">
+                    <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase border ${getStatusColor()}`}>
+                        {getStatusLabel()}
+                    </span>
                 </div>
             </div>
-            
-            <h3 className="font-bold text-lg uppercase">
-                {member.lastName} <span className="text-brand-primary">{member.firstName}</span>
-            </h3>
-            <p className="text-gray-400 text-sm mb-4">{member.phoneNumber}</p>
-            
-            <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-black uppercase">
-                    {member.status}
-                </span>
-                <span className="px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-[10px] font-black uppercase">
-                    {formatDate(member.birthDate)}
-                </span>
+
+            {/* Content */}
+            <div className="pt-10 p-4">
+                {/* Name and ID */}
+                <div className="mb-3">
+                    <h3 className="font-black text-sm uppercase tracking-tight truncate">
+                        {member.lastName} <span className="text-brand-primary">{member.firstName}</span>
+                    </h3>
+                    <p className="text-[9px] font-mono text-gray-400 mt-0.5">
+                        ID: {member.id}
+                    </p>
+                </div>
+
+                {/* Info Grid */}
+                <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-gray-600">
+                        <AiOutlinePhone size={12} className="text-gray-400 shrink-0" />
+                        <span className="text-[10px] font-medium truncate">{member.phoneNumber || 'No phone'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-600">
+                        <AiOutlineGlobal size={12} className="text-gray-400 shrink-0" />
+                        <span className="text-[10px] font-medium truncate">{member.districtName}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-600">
+                        <AiOutlineFlag size={12} className="text-gray-400 shrink-0" />
+                        <span className="text-[10px] font-medium truncate">{member.tributeName}</span>
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-end gap-1 pt-3 border-t border-gray-100">
+                    {onView && (
+                        <button
+                            onClick={() => onView(member)}
+                            className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-all"
+                            title="View Details"
+                        >
+                            <AiOutlineEye size={16} />
+                        </button>
+                    )}
+                    <button
+                        onClick={() => onEdit(member)}
+                        className="p-2 rounded-lg text-gray-400 hover:text-brand-primary hover:bg-brand-primary/10 transition-all"
+                        title="Edit"
+                    >
+                        <AiOutlineEdit size={16} />
+                    </button>
+                    <button
+                        onClick={() => onDelete(member.id)}
+                        className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                        title="Delete"
+                    >
+                        <AiOutlineDelete size={16} />
+                    </button>
+                </div>
             </div>
         </div>
     );
