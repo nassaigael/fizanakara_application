@@ -26,6 +26,7 @@ const AdminMembers: React.FC = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingMember, setEditingMember] = useState<PersonResponse | null>(null);
     const [viewingMember, setViewingMember] = useState<PersonResponse | null>(null);
+    const [selectedParentForChild, setSelectedParentForChild] = useState<PersonResponse | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
     const { members, isLoading, deleteMember } = useMembers();
@@ -34,6 +35,7 @@ const AdminMembers: React.FC = () => {
     const handleCloseForm = () => {
         setIsFormOpen(false);
         setEditingMember(null);
+        setSelectedParentForChild(null);
     };
 
     const handleEdit = (member: PersonResponse) => {
@@ -46,6 +48,13 @@ const AdminMembers: React.FC = () => {
     };
 
     const handleAddMember = () => {
+        setEditingMember(null);
+        setSelectedParentForChild(null);
+        setIsFormOpen(true);
+    };
+
+    const handleAddChild = (parent: PersonResponse) => {
+        setSelectedParentForChild(parent);
         setEditingMember(null);
         setIsFormOpen(true);
     };
@@ -302,6 +311,7 @@ const AdminMembers: React.FC = () => {
                 isOpen={isFormOpen}
                 onClose={handleCloseForm}
                 memberToEdit={editingMember}
+                parentId={selectedParentForChild?.id}
             />
 
             {/* Member Detail Modal */}
@@ -319,6 +329,12 @@ const AdminMembers: React.FC = () => {
                 onDelete={() => {
                     if (viewingMember) {
                         setDeleteId(viewingMember.id);
+                        setViewingMember(null);
+                    }
+                }}
+                onAddChild={() => {
+                    if (viewingMember) {
+                        handleAddChild(viewingMember);
                         setViewingMember(null);
                     }
                 }}
