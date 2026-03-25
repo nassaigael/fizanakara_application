@@ -49,6 +49,7 @@ public class AdminsAuthController {
                 .birthDate(req.getBirthDate())
                 .gender(Gender.valueOf(req.getGender().toUpperCase()))
                 .imageUrl(req.getImageUrl())
+                .verified(req.isVerified())
                 .phoneNumber(req.getPhoneNumber())
                 .email(req.getEmail())
                 .password(req.getPassword())

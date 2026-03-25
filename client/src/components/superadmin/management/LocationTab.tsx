@@ -1,5 +1,5 @@
 import React from 'react';
-import { AiOutlineDelete } from 'react-icons/ai';
+import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
 import { District, Tribute } from '../../../lib/types';
 
 interface LocationTabProps {
@@ -9,6 +9,7 @@ interface LocationTabProps {
     icon: React.ReactNode;
     color: 'blue' | 'purple';
     onDelete: (id: number) => void;
+    onEdit: (id: number, name: string) => void;
 }
 
 const LocationTab: React.FC<LocationTabProps> = ({
@@ -17,7 +18,8 @@ const LocationTab: React.FC<LocationTabProps> = ({
     title,
     icon,
     color,
-    onDelete
+    onDelete,
+    onEdit
 }) => {
     const colorClasses = {
         blue: {
@@ -25,14 +27,18 @@ const LocationTab: React.FC<LocationTabProps> = ({
             border: 'border-blue-200 hover:border-blue-500',
             badge: 'bg-blue-100 text-blue-600 border-blue-300',
             icon: 'bg-blue-100',
-            text: 'text-blue-600'
+            text: 'text-blue-600',
+            editHover: 'hover:bg-blue-100 hover:text-blue-600',
+            deleteHover: 'hover:bg-red-100 hover:text-red-600'
         },
         purple: {
             bg: 'from-purple-50 to-pink-50',
             border: 'border-purple-200 hover:border-purple-500',
             badge: 'bg-purple-100 text-purple-600 border-purple-300',
             icon: 'bg-purple-100',
-            text: 'text-purple-600'
+            text: 'text-purple-600',
+            editHover: 'hover:bg-purple-100 hover:text-purple-600',
+            deleteHover: 'hover:bg-red-100 hover:text-red-600'
         }
     };
 
@@ -58,6 +64,12 @@ const LocationTab: React.FC<LocationTabProps> = ({
         );
     }
 
+    const handleEditClick = (e: React.MouseEvent, id: number, name: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onEdit(id, name);
+    };
+
     const handleDeleteClick = (e: React.MouseEvent, id: number) => {
         e.preventDefault();
         e.stopPropagation();
@@ -81,15 +93,23 @@ const LocationTab: React.FC<LocationTabProps> = ({
                                 <p className="text-xs text-brand-muted mt-1">ID: {item.id}</p>
                             </div>
                         </div>
-                        <button
-                            onClick={(e) => handleDeleteClick(e, item.id!)}
-                            className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-all shadow-md"
-                            title="Delete"
-                        >
-                            <AiOutlineDelete size={18} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={(e) => handleEditClick(e, item.id!, item.name)}
+                                className={`p-2 rounded-lg transition-all shadow-md ${colors.editHover} text-gray-500 hover:scale-110`}
+                                title="Edit"
+                            >
+                                <AiOutlineEdit size={18} />
+                            </button>
+                            <button
+                                onClick={(e) => handleDeleteClick(e, item.id!)}
+                                className={`p-2 rounded-lg transition-all shadow-md ${colors.deleteHover} text-gray-500 hover:scale-110`}
+                                title="Delete"
+                            >
+                                <AiOutlineDelete size={18} />
+                            </button>
+                        </div>
                     </div>
-                    {/* Élément décoratif - NE BLOQUE PAS LES CLICS */}
                     <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-bl from-white/20 to-transparent rounded-bl-full pointer-events-none"></div>
                 </div>
             ))}

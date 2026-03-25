@@ -15,11 +15,11 @@ import { districtSchema, tributeSchema } from '../../lib/validators/location.val
 import { RegisterRequest, DistrictDto, TributeDto } from '../../lib/types';
 import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
+import Input from '../../components/ui/Input';
 import { THEME } from '../../styles/theme';
 import toast from 'react-hot-toast';
 import { getErrorMessage } from '../../lib/helper';
 
-// Extracted Components
 import AdminsTab from '../../components/superadmin/management/AdminsTab';
 import LocationTab from '../../components/superadmin/management/LocationTab';
 import AdminModal from '../../components/superadmin/management/AdminModal';
@@ -28,19 +28,105 @@ import LocationModal from '../../components/superadmin/management/LocationModal'
 type TabType = 'admins' | 'districts' | 'tributes';
 type DeleteType = 'admin' | 'district' | 'tribute' | null;
 
+// Edit Modal Component
+interface EditLocationModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (name: string) => Promise<void>;
+    title: string;
+    currentName: string;
+    isLoading: boolean;
+}
+
+const EditLocationModal: React.FC<EditLocationModalProps> = ({
+    isOpen,
+    onClose,
+    onSave,
+    title,
+    currentName,
+    isLoading
+}) => {
+    const [name, setName] = useState(currentName);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        setName(currentName);
+    }, [currentName, isOpen]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!name.trim()) {
+            setError('Name is required');
+            return;
+        }
+        setError('');
+        await onSave(name.trim());
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+            <div className="bg-white rounded-3xl w-full max-w-md border-2 border-black shadow-[0_20px_25px_-5px_rgba(0,0,0,0.3)] overflow-hidden">
+                <div className="bg-linear-to-r from-brand-primary to-orange-500 p-6 text-white">
+                    <h2 className="text-2xl font-black uppercase">Edit {title}</h2>
+                    <p className="text-white/80 text-sm mt-1">Update the {title.toLowerCase()} name</p>
+                </div>
+
+                <div className="p-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <Input
+                            label="Name"
+                            name="name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            error={error}
+                            placeholder={`Enter ${title.toLowerCase()} name`}
+                            required
+                        />
+
+                        <div className="flex gap-3 pt-4 border-t-2 border-brand-border">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={onClose}
+                                className="flex-1"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                isLoading={isLoading}
+                                className="flex-1"
+                            >
+                                Save Changes
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const SuperAdminManagement: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState<TabType>((searchParams.get('tab') as TabType) || 'admins');
-
+    
     const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
     const [isDistrictModalOpen, setIsDistrictModalOpen] = useState(false);
     const [isTributeModalOpen, setIsTributeModalOpen] = useState(false);
+    
+    // Edit states
+    const [editItem, setEditItem] = useState<{ id: number; name: string; type: 'district' | 'tribute' } | null>(null);
+    
     const [deleteId, setDeleteId] = useState<string | number | null>(null);
     const [deleteType, setDeleteType] = useState<DeleteType>(null);
 
     const { admins, isLoading: loadingAdmins, createAdmin, deleteAdmin } = useAdmin();
-    const { districts, isLoading: loadingDistricts, createDistrict, deleteDistrict } = useDistrict();
-    const { tributes, isLoading: loadingTributes, createTribute, deleteTribute } = useTribute();
+    const { districts, isLoading: loadingDistricts, createDistrict, updateDistrict, deleteDistrict } = useDistrict();
+    const { tributes, isLoading: loadingTributes, createTribute, updateTribute, deleteTribute } = useTribute();
 
     useEffect(() => {
         setSearchParams({ tab: activeTab });
@@ -65,12 +151,12 @@ const SuperAdminManagement: React.FC = () => {
             }
 
             const cleanImageUrl = data.imageUrl.trim().replace(/\s+/g, '_');
-
+            
             const payload: RegisterRequest = {
                 ...data,
                 imageUrl: cleanImageUrl
             };
-
+            
             try {
                 await createAdmin.mutateAsync(payload);
                 setIsAdminModalOpen(false);
@@ -101,9 +187,29 @@ const SuperAdminManagement: React.FC = () => {
         }
     });
 
+    const handleUpdateDistrict = async (id: number, name: string) => {
+        try {
+            await updateDistrict.mutateAsync({ id, data: { name } });
+            setEditItem(null);
+        } catch (error) {
+            const errorMessage = getErrorMessage(error);
+            toast.error(`Error: ${errorMessage}`);
+        }
+    };
+
+    const handleUpdateTribute = async (id: number, name: string) => {
+        try {
+            await updateTribute.mutateAsync({ id, data: { name } });
+            setEditItem(null);
+        } catch (error) {
+            const errorMessage = getErrorMessage(error);
+            toast.error(`Error: ${errorMessage}`);
+        }
+    };
+
     const handleDelete = async () => {
         if (deleteId === null || deleteType === null) return;
-
+        
         try {
             if (deleteType === 'admin') {
                 await deleteAdmin.mutateAsync(deleteId as string);
@@ -210,6 +316,9 @@ const SuperAdminManagement: React.FC = () => {
                             setDeleteId(id);
                             setDeleteType('district');
                         }}
+                        onEdit={(id, name) => {
+                            setEditItem({ id, name, type: 'district' });
+                        }}
                     />
                 )}
 
@@ -223,6 +332,9 @@ const SuperAdminManagement: React.FC = () => {
                         onDelete={(id) => {
                             setDeleteId(id);
                             setDeleteType('tribute');
+                        }}
+                        onEdit={(id, name) => {
+                            setEditItem({ id, name, type: 'tribute' });
                         }}
                     />
                 )}
@@ -250,6 +362,24 @@ const SuperAdminManagement: React.FC = () => {
                 isOpen={isTributeModalOpen}
                 onClose={() => setIsTributeModalOpen(false)}
             />
+
+            {/* Edit Modal */}
+            {editItem && (
+                <EditLocationModal
+                    isOpen={!!editItem}
+                    onClose={() => setEditItem(null)}
+                    onSave={async (name) => {
+                        if (editItem.type === 'district') {
+                            await handleUpdateDistrict(editItem.id, name);
+                        } else {
+                            await handleUpdateTribute(editItem.id, name);
+                        }
+                    }}
+                    title={editItem.type === 'district' ? 'District' : 'Tribute'}
+                    currentName={editItem.name}
+                    isLoading={updateDistrict.isPending || updateTribute.isPending}
+                />
+            )}
 
             {/* Delete Alert */}
             <Alert

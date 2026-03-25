@@ -18,4 +18,5 @@ public class RegisterRequestDTO {
     @NotBlank @Email
     private String email;
     @NotBlank private String password;
+    private final boolean verified = true;
 }
