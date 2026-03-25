@@ -114,7 +114,7 @@ public class AdminsService {
         if (req.getEmail() != null) {
             admin.setEmail(req.getEmail());
         }
-        if (req.getPassword() != null) {
+        if (req.getPassword() != null && ! req.getPassword().isEmpty()) {
             admin.setPassword(passwordEncoder.encode(req.getPassword()));
         }
         if (req.getVerified() != null) {
