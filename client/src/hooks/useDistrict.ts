@@ -31,8 +31,9 @@ export const useDistrict = (districtId?: number) => {
             queryClient.invalidateQueries({ queryKey: ['districts'] });
             toast.success(`District "${newDistrict.name}" created`);
         },
-        onError: () => {
-            toast.error('Failed to create district');
+        onError: (error: any) => {
+            const message = error?.response?.data?.message || 'Failed to create district';
+            toast.error(message);
         },
     });
 
@@ -44,19 +45,22 @@ export const useDistrict = (districtId?: number) => {
             queryClient.setQueryData(['districts', updated.id], updated);
             toast.success(`District "${updated.name}" updated`);
         },
-        onError: () => {
-            toast.error('Failed to update district');
+        onError: (error: any) => {
+            const message = error?.response?.data?.message || 'Failed to update district';
+            toast.error(message);
         },
     });
 
     const deleteDistrict = useMutation({
         mutationFn: (id: number) => DistrictService.delete(id),
         onSuccess: () => {
+            // Invalidate and refetch districts list
             queryClient.invalidateQueries({ queryKey: ['districts'] });
-            toast.success('District deleted');
+            toast.success('District deleted successfully');
         },
-        onError: () => {
-            toast.error('Failed to delete district');
+        onError: (error: any) => {
+            const message = error?.response?.data?.message || 'Failed to delete district';
+            toast.error(message);
         },
     });
 
@@ -66,8 +70,9 @@ export const useDistrict = (districtId?: number) => {
             queryClient.invalidateQueries({ queryKey: ['districts'] });
             toast.success('All districts deleted');
         },
-        onError: () => {
-            toast.error('Failed to delete districts');
+        onError: (error: any) => {
+            const message = error?.response?.data?.message || 'Failed to delete districts';
+            toast.error(message);
         },
     });
 

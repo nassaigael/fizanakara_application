@@ -11,7 +11,14 @@ interface LocationTabProps {
     onDelete: (id: number) => void;
 }
 
-const LocationTab: React.FC<LocationTabProps> = ({ items, isLoading, title, icon, color, onDelete }) => {
+const LocationTab: React.FC<LocationTabProps> = ({
+    items,
+    isLoading,
+    title,
+    icon,
+    color,
+    onDelete
+}) => {
     const colorClasses = {
         blue: {
             bg: 'from-blue-50 to-cyan-50',
@@ -51,6 +58,12 @@ const LocationTab: React.FC<LocationTabProps> = ({ items, isLoading, title, icon
         );
     }
 
+    const handleDeleteClick = (e: React.MouseEvent, id: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onDelete(id);
+    };
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {items.map((item) => (
@@ -58,25 +71,26 @@ const LocationTab: React.FC<LocationTabProps> = ({ items, isLoading, title, icon
                     key={item.id}
                     className={`group relative overflow-hidden rounded-2xl border-2 p-5 bg-linear-to-br ${colors.bg} ${colors.border} transition-all hover:shadow-lg hover:scale-105 cursor-pointer`}
                 >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between relative z-10">
                         <div className="flex items-center gap-3 flex-1">
                             <div className={`p-3 ${colors.icon} ${colors.text} rounded-xl`}>
                                 {icon}
                             </div>
                             <div className="flex-1">
                                 <p className="font-black text-sm uppercase text-brand-text">{item.name}</p>
-                                <p className="text-xs text-brand-muted mt-1">Active Entity</p>
+                                <p className="text-xs text-brand-muted mt-1">ID: {item.id}</p>
                             </div>
                         </div>
                         <button
-                            onClick={() => onDelete(item.id!)}
-                            className={`p-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg hover:bg-red-100 text-red-600`}
+                            onClick={(e) => handleDeleteClick(e, item.id!)}
+                            className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-all shadow-md"
                             title="Delete"
                         >
                             <AiOutlineDelete size={18} />
                         </button>
                     </div>
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-bl from-white/20 to-transparent rounded-bl-full"></div>
+                    {/* Élément décoratif - NE BLOQUE PAS LES CLICS */}
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-bl from-white/20 to-transparent rounded-bl-full pointer-events-none"></div>
                 </div>
             ))}
         </div>

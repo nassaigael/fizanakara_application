@@ -31,7 +31,7 @@ type DeleteType = 'admin' | 'district' | 'tribute' | null;
 const SuperAdminManagement: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState<TabType>((searchParams.get('tab') as TabType) || 'admins');
-    
+
     const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
     const [isDistrictModalOpen, setIsDistrictModalOpen] = useState(false);
     const [isTributeModalOpen, setIsTributeModalOpen] = useState(false);
@@ -65,12 +65,12 @@ const SuperAdminManagement: React.FC = () => {
             }
 
             const cleanImageUrl = data.imageUrl.trim().replace(/\s+/g, '_');
-            
+
             const payload: RegisterRequest = {
                 ...data,
                 imageUrl: cleanImageUrl
             };
-            
+
             try {
                 await createAdmin.mutateAsync(payload);
                 setIsAdminModalOpen(false);
@@ -103,8 +103,6 @@ const SuperAdminManagement: React.FC = () => {
 
     const handleDelete = async () => {
         if (deleteId === null || deleteType === null) return;
-        
-        console.log(`Deleting ${deleteType} with ID:`, deleteId);
 
         try {
             if (deleteType === 'admin') {
