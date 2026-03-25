@@ -1,7 +1,6 @@
 package mg.fizanakara.api.security;
 
 import mg.fizanakara.api.models.Admins;
-import mg.fizanakara.api.models.enums.Role;  // ← AJOUT : Import enum Role pour mapping dynamique
 import mg.fizanakara.api.repository.AdminsRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;

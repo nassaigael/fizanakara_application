@@ -133,10 +133,10 @@ const SuperAdminManagement: React.FC = () => {
         <div className={THEME.section}>
             {/* Header */}
             <div className="relative overflow-hidden rounded-3xl border-2 border-b-4 border-brand-border shadow-lg mb-8">
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/10 to-purple-500/10"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-brand-primary/10 to-purple-500/10"></div>
                 <div className="relative flex flex-col md:flex-row md:items-center justify-between p-8 gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-gradient-to-br from-brand-primary via-orange-500 to-red-500 text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform hover:scale-110 transition-transform">
+                        <div className="p-4 bg-linear-to-br from-brand-primary via-orange-500 to-red-500 text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform hover:scale-110 transition-transform">
                             {activeTab === 'admins' && <AiOutlineUser size={32} />}
                             {activeTab === 'districts' && <AiOutlineEnvironment size={32} />}
                             {activeTab === 'tributes' && <AiOutlineFlag size={32} />}
@@ -174,7 +174,7 @@ const SuperAdminManagement: React.FC = () => {
                         className={`
                             flex items-center gap-2 px-4 md:px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap
                             ${activeTab === tab.id
-                                ? 'bg-gradient-to-r from-brand-primary to-orange-500 text-white shadow-lg scale-105'
+                                ? 'bg-linear-to-r from-brand-primary to-orange-500 text-white shadow-lg scale-105'
                                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                             }
                         `}

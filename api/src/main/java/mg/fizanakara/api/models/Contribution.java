@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import mg.fizanakara.api.models.Person;  // ← FIX : Import Person (remplace Members)
 import mg.fizanakara.api.models.enums.ContributionStatus;
 
 import java.math.BigDecimal;
@@ -51,13 +50,13 @@ public class Contribution {
     private LocalDate dueDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)  // FK vers persons.id
-    @NotNull(message = "Person is required")  // ← FIX : Message pour Person
+    @JoinColumn(name = "member_id", nullable = false)
+    @NotNull(message = "Person is required")
     @JsonIgnore
-    private Person member;  // ← FIX : Typé Person (générique, remplace Members)
+    private Person member;
 
     @Column(name = "child_id", nullable = true)
-    private String childId;  // Optionnel pour mineurs
+    private String childId;
 
     @Column(name = "sequence_suffix", nullable = true)
     private String sequenceSuffix;

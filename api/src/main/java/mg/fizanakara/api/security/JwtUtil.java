@@ -33,9 +33,9 @@ public class JwtUtil {
             Date now = new Date();
             Date expiry = new Date(now.getTime() + accessTokenExpirationMs);
             return Jwts.builder()
-                    .subject(subject)   // ✅ Changé : setSubject -> subject
-                    .issuedAt(now)      // ✅ Changé : setIssuedAt -> issuedAt
-                    .expiration(expiry) // ✅ Changé : setExpiration -> expiration
+                    .subject(subject)
+                    .issuedAt(now)
+                    .expiration(expiry)
                     .signWith(getSigningKey(), Jwts.SIG.HS512)
                     .compact();
         } catch (Exception e) {
@@ -54,7 +54,7 @@ public class JwtUtil {
                     .collect(Collectors.toList()));
 
             return Jwts.builder()
-                    .claims(claims)     // ✅ Changé : setClaims -> claims
+                    .claims(claims)
                     .subject(userDetails.getUsername())
                     .issuedAt(now)
                     .expiration(expiry)
@@ -113,7 +113,7 @@ public class JwtUtil {
         }
     }
 
-    @SuppressWarnings("unchecked") // ✅ AJOUT : Pour supprimer l'alerte de cast
+    @SuppressWarnings("unchecked")
     public List<String> getRoles(String token) {
         try {
             Claims claims = Jwts.parser()

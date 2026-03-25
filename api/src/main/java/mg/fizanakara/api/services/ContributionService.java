@@ -44,16 +44,16 @@ public class ContributionService {
                 .collect(Collectors.toList());
     }
 
-    // GET BY PERSON AND YEAR (utilise membreId standard)
+    // GET BY PERSON AND YEAR
     @Transactional(readOnly = true)
     public List<ContributionResponseDto> getContributionsByPersonAndYear(String personId, Year year) {
         log.info("Retrieving contributions for person ID: {} and year: {}", personId, year);
-        return contributionRepository.findByMemberIdAndYear(personId, year).stream()  // ← FIX : Appel standard
+        return contributionRepository.findByMemberIdAndYear(personId, year).stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
     }
 
-    // BATCH CRÉATION ANNUELLE (unifié pour Persons)
+    // BATCH CRÉATION ANNUELLE
     @Transactional
     public List<ContributionResponseDto> createContributionsForYear(ContributionYearDto dto) {
         Year year = dto.getYear();
@@ -122,7 +122,7 @@ public class ContributionService {
         if (dto.getMemberId() != null) {
             Person person = personRepository.findById(dto.getMemberId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Person ID"));
-            contribution.setMember(person);  // ← FIX : OK avec type Person
+            contribution.setMember(person);
         }
 
         log.info("Updating contribution ID: {}", id);
@@ -207,7 +207,7 @@ public class ContributionService {
                 .amount(amount)
                 .status(status)
                 .dueDate(LocalDate.of(year.getValue(), 12, 31))
-                .member(person)  // ← FIX : OK avec type Person
+                .member(person)
                 .childId(childId)
                 .build();
 
@@ -218,7 +218,7 @@ public class ContributionService {
         return contributionRepository.save(contribution);
     }
 
-    // CALCUL AMOUNT (adapté pour Person)
+    // CALCUL AMOUNT
     private BigDecimal calculateAmountForUser(Person person, Year year) {
         int age = person.calculateAgeAtYear(person.getBirthDate(), year);
         MemberStatus status = person.getStatus();

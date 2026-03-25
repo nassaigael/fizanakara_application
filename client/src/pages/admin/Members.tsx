@@ -111,7 +111,7 @@ const AdminMembers: React.FC = () => {
             </div>
 
             <div className="bg-white p-4 rounded-2xl border-2 border-gray-100 mb-6 flex flex-wrap gap-4">
-                <div className="flex-1 min-w-[300px] relative">
+                <div className="flex-1 min-w-75 relative">
                     <AiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                         type="text"

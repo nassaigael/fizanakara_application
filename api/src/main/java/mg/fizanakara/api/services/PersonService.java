@@ -30,7 +30,7 @@ public class PersonService {
     private final SequenceService sequenceService;
     private final ContributionService contributionService;
 
-    // GET ALL (unifié)
+    // GET ALL
     @Transactional 
     public List<PersonResponseDto> getAllPersons() {
         log.info("Retrieving all persons");
@@ -48,12 +48,12 @@ public class PersonService {
         return mapToResponseDto(person);
     }
 
-    // CREATE PERSON (isolé ou avec parentId)
+    // CREATE PERSON
     @Transactional
     public PersonResponseDto createPerson(PersonDto dto) {
         log.info("Creating person: {} {} (parentId: {})", dto.getFirstName(), dto.getLastName(), dto.getParentId());
 
-        // Duplicate check (comme avant)
+        // DUPLICATE PERSON
         boolean hasDuplicate = personRepository.hasDuplicateByKeyFields(
                 dto.getFirstName(), dto.getLastName(), dto.getBirthDate(), dto.getPhoneNumber(),
                 dto.getDistrictId(), dto.getTributeId(), dto.getStatus(), null);
@@ -73,11 +73,9 @@ public class PersonService {
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Parent ID: " + dto.getParentId()));
         }
 
-        // ← FIX : Calcule éligibilité AVANT builder (utilise dto.birthDate)
         Year currentYear = Year.now();
         boolean isEligible = calculateEligibilityFromDto(dto.getBirthDate(), currentYear);  // Méthode helper (ci-dessous)
 
-        // Builder chain simple (comme ton exemple)
         Person person = Person.builder()
                 .firstName(dto.getFirstName())
                 .lastName(dto.getLastName())
@@ -88,31 +86,28 @@ public class PersonService {
                 .status(dto.getStatus())
                 .district(district)
                 .tribute(tribute)
-                .parent(parent)  // Null si isolé
-                .isActiveMember(isEligible)  // ← FIX : Valeur bool pré-calculée (pas person.*)
+                .parent(parent)
+                .isActiveMember(isEligible)
                 .build();
 
-        // ID/seq auto (set après build)
         person.setSequenceNumber(sequenceService.getNextSequence("mbr_seq"));
         person.setId(person.generatedCustomId());
         person.setCreatedAt(LocalDate.now());
 
         Person saved = personRepository.save(person);
 
-        // Bidirectionnel si parent
         if (parent != null) {
             parent.getChildren().add(saved);
             personRepository.save(parent);
         }
 
-        // Auto-cotisation si active
         if (isEligible) {
             contributionService.createSingleContributionForPerson(currentYear, saved.getId());
         }
 
         return mapToResponseDto(saved);
     }
-    // PROMOTION À 18 ANS (active membre sans casser liens)
+    // PROMOTION À 18 ANS
     @Transactional
     public PersonResponseDto promoteToActiveMember(String personId) {
         Person person = personRepository.findById(personId)
@@ -120,11 +115,10 @@ public class PersonService {
 
         Year currentYear = Year.now();
         if (person.isEligibleForContribution(currentYear) && !person.isActiveMember()) {
-            person.setIsActiveMember(true);  // ← FIX : setIsActiveMember OK avec @Setter
-            person.setStatus(MemberStatus.WORKER);  // Default adulte
+            person.setIsActiveMember(true);
+            person.setStatus(MemberStatus.WORKER);
             Person promoted = personRepository.save(person);
 
-            // Auto-cotisation si pas encore
             contributionService.createSingleContributionForPerson(currentYear, personId);
 
             log.info("Person {} promoted to active member (parent link preserved: {})", personId, person.getParent() != null ? person.getParent().getId() : "none");
@@ -134,14 +128,13 @@ public class PersonService {
         return mapToResponseDto(person);
     }
 
-    // UPDATE (partial, comme avant)
     @Transactional
     public PersonResponseDto updatePerson(String id, PersonDto dto) {
         log.info("Updating person ID: {}", id);
         Person person = personRepository.findById(id)
                 .orElseThrow(() -> new PersonNotFoundException("Person not found with ID: " + id));
 
-        // Set champs si non null (comme avant)
+        // SET ALL ATTRIBUTE IF NULL
         if (dto.getFirstName() != null) person.setFirstName(dto.getFirstName());
         if (dto.getLastName() != null) person.setLastName(dto.getLastName());
         if (dto.getBirthDate() != null) person.setBirthDate(dto.getBirthDate());
@@ -164,9 +157,8 @@ public class PersonService {
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Tribute ID"));
             person.setTribute(tribute);
         }
-        // Pas de changement parentId (non modifiable via update, pour éviter boucles)
 
-        // Duplicate check post-update
+        // DUPLICATE CHECK
         if (personRepository.hasDuplicateByKeyFields(
                 person.getFirstName(), person.getLastName(), person.getBirthDate(), person.getPhoneNumber(),
                 person.getDistrict().getId(), person.getTribute().getId(), person.getStatus(), id)) {
@@ -194,7 +186,7 @@ public class PersonService {
         log.info("All persons deleted");
     }
 
-    // GET BY DISTRICT (exemple fusionné)
+    // GET BY DISTRICT
     @Transactional 
     public List<PersonResponseDto> getPersonsByDistrictId(Long districtId) {
         log.info("Retrieving persons by district ID: {}", districtId);
@@ -203,7 +195,7 @@ public class PersonService {
                 .collect(Collectors.toList());
     }
 
-    // GET CHILDREN BY PARENT ID (nouveau)
+    // GET CHILDREN BY PARENT ID
     @Transactional 
     public List<PersonResponseDto> getChildrenByParentId(String parentId) {
         log.info("Retrieving children for parent ID: {}", parentId);
@@ -212,7 +204,6 @@ public class PersonService {
                 .collect(Collectors.toList());
     }
 
-    // Mapping enrichi
     private PersonResponseDto mapToResponseDto(Person person) {
         PersonResponseDto dto = new PersonResponseDto();
         dto.setId(person.getId());
@@ -225,7 +216,7 @@ public class PersonService {
         dto.setCreatedAt(person.getCreatedAt());
         dto.setSequenceNumber(person.getSequenceNumber());
         dto.setStatus(person.getStatus());
-        dto.setIsActiveMember(person.isActiveMember());  // ← FIX : setIsActiveMember maintenant OK avec @Data/@Setter
+        dto.setIsActiveMember(person.isActiveMember());
 
         dto.setDistrictId(person.getDistrict().getId());
         dto.setDistrictName(person.getDistrict().getName());
@@ -241,17 +232,10 @@ public class PersonService {
         return dto;
     }
 
-    // ← AJOUT : Helper privé pour calcul éligibilité (basé sur birthDate du DTO, avant build)
     private boolean calculateEligibilityFromDto(LocalDate birthDate, Year year) {
         LocalDate endOfYear = LocalDate.of(year.getValue(), 12, 31);
         int age = endOfYear.getYear() - birthDate.getYear() -
                 (endOfYear.isBefore(birthDate.withDayOfYear(birthDate.getDayOfYear())) ? 1 : 0);
         return age >= 18;
-    }
-
-    // Private helper pour findEntityById (comme avant)
-    private Person findEntityById(String id) {
-        return personRepository.findById(id)
-                .orElseThrow(() -> new PersonNotFoundException("Person not found with ID: " + id));
     }
 }

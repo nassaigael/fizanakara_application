@@ -54,10 +54,10 @@ const SuperAdminProfile: React.FC = () => {
     return (
         <div className={THEME.section}>
             <div className="relative overflow-hidden rounded-3xl border-2 border-b-4 border-brand-border shadow-lg mb-8">
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/10 to-orange-500/10"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-brand-primary/10 to-orange-500/10"></div>
                 <div className="relative flex items-center justify-between p-8">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-gradient-to-br from-brand-primary to-orange-500 text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform hover:scale-110 transition-transform">
+                        <div className="p-4 bg-linear-to-br from-brand-primary to-orange-500 text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform hover:scale-110 transition-transform">
                             <AiOutlineCrown size={36} />
                         </div>
                         <div className="flex-1">
@@ -107,8 +107,8 @@ const SuperAdminProfile: React.FC = () => {
 
             <div className="bg-white rounded-3xl border-2 border-b-4 border-brand-border p-8 shadow-md mb-8">
                 <div className="flex flex-col md:flex-row items-center gap-8">
-                    <div className="relative flex-shrink-0">
-                        <div className="w-40 h-40 bg-gradient-to-br from-brand-primary to-orange-500 rounded-3xl border-4 border-white shadow-xl flex items-center justify-center text-white text-6xl font-black">
+                    <div className="relative shrink-0">
+                        <div className="w-40 h-40 bg-linear-to-br from-brand-primary to-orange-500 rounded-3xl border-4 border-white shadow-xl flex items-center justify-center text-white text-6xl font-black">
                             {user.imageUrl ? (
                                 <img
                                     src={getImageUrl(user.imageUrl, 'admin')}

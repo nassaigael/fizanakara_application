@@ -120,7 +120,7 @@ const AdminProfile: React.FC = () => {
                                 className="w-48 h-48 rounded-[3rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] object-cover"
                             />
                         ) : (
-                            <div className="w-48 h-48 bg-gradient-to-br from-brand-primary to-orange-500 rounded-[3rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center text-white text-6xl font-black">
+                            <div className="w-48 h-48 bg-linear-to-br from-brand-primary to-orange-500 rounded-[3rem] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center text-white text-6xl font-black">
                                 {getInitials(user.firstName, user.lastName)}
                             </div>
                         )}

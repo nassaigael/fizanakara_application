@@ -56,7 +56,7 @@ const LocationTab: React.FC<LocationTabProps> = ({ items, isLoading, title, icon
             {items.map((item) => (
                 <div
                     key={item.id}
-                    className={`group relative overflow-hidden rounded-2xl border-2 p-5 bg-gradient-to-br ${colors.bg} ${colors.border} transition-all hover:shadow-lg hover:scale-105 cursor-pointer`}
+                    className={`group relative overflow-hidden rounded-2xl border-2 p-5 bg-linear-to-br ${colors.bg} ${colors.border} transition-all hover:shadow-lg hover:scale-105 cursor-pointer`}
                 >
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3 flex-1">
@@ -76,7 +76,7 @@ const LocationTab: React.FC<LocationTabProps> = ({ items, isLoading, title, icon
                             <AiOutlineDelete size={18} />
                         </button>
                     </div>
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-white/20 to-transparent rounded-bl-full"></div>
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-bl from-white/20 to-transparent rounded-bl-full"></div>
                 </div>
             ))}
         </div>

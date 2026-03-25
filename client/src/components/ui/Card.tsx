@@ -42,7 +42,7 @@ export const Card: React.FC<CardProps> = ({
                 <div className={`
                     p-3 sm:p-4 
                     rounded-xl sm:rounded-2xl 
-                    bg-gradient-to-br ${gradient} 
+                    bg-linear-to-br ${gradient} 
                     shadow-lg group-hover:scale-110 transition-transform
                     shrink-0
                 `}>
@@ -53,7 +53,7 @@ export const Card: React.FC<CardProps> = ({
             </div>
             
             <div className="flex items-center gap-2 mt-4">
-                <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${gradient}`} />
+                <div className={`w-2 h-2 rounded-full bg-linear-to-r ${gradient}`} />
                 <p className="text-xs text-gray-600 font-bold truncate">{subtitle}</p>
             </div>
         </div>

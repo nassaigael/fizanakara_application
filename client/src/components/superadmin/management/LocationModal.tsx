@@ -20,7 +20,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ form, title, placeholder,
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
             <div className="bg-white rounded-3xl w-full max-w-md border-2 border-black shadow-[0_20px_25px_-5px_rgba(0,0,0,0.3)] overflow-hidden">
-                <div className={`bg-gradient-to-r ${color} p-8 text-white relative`}>
+                <div className={`bg-linear-to-r ${color} p-8 text-white relative`}>
                     <button 
                         onClick={onClose} 
                         className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-xl transition-colors"

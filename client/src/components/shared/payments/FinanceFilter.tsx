@@ -35,8 +35,8 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
     };
 
     return (
-        <div className="bg-white border-4 border-black rounded-[2rem] p-4 mb-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-wrap gap-4 items-end">
-            <div className="flex-1 min-w-[200px]">
+        <div className="bg-white border-4 border-black rounded-4xl p-4 mb-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-wrap gap-4 items-end">
+            <div className="flex-1 min-w-50">
                 <label className="text-[10px] font-black uppercase mb-1 block ml-2 text-gray-400">
                     Account Status
                 </label>
@@ -49,7 +49,7 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
                 />
             </div>
 
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1 min-w-50">
                 <label className="text-[10px] font-black uppercase mb-1 block ml-2 text-gray-400">
                     Category
                 </label>

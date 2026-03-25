@@ -9,7 +9,7 @@ import mg.fizanakara.api.models.enums.MemberStatus;
 import java.time.LocalDate;
 
 @Data
-public class PersonDto {  // Input unifié (create/update)
+public class PersonDto {
     @NotBlank(message = "First name is required")
     private String firstName;
 
@@ -37,5 +37,5 @@ public class PersonDto {  // Input unifié (create/update)
     @NotNull(message = "Tribute ID is required")
     private Long tributeId;
 
-    private String parentId;  // ← AJOUT : Optionnel pour lien "fils de"
+    private String parentId;
 }

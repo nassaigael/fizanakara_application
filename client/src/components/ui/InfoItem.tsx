@@ -9,7 +9,7 @@ interface InfoItemProps {
 
 const InfoItem: React.FC<InfoItemProps> = ({ icon, label, value, badge }) => (
     <div className="flex items-center gap-3">
-        <div className="text-brand-primary flex-shrink-0">
+        <div className="text-brand-primary shrink-0">
             {icon}
         </div>
         <div className="flex-1">
