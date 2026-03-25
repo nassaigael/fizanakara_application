@@ -10,6 +10,7 @@ import {
     AiOutlineDown,
     AiOutlineLogout
 } from 'react-icons/ai';
+import { getImageUrl } from '../../lib/constant/constant';
 
 interface NavbarProps {
     toggleSidebar: () => void;
@@ -32,6 +33,15 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
             <path d="M11 5l1 1-1 1-1-1 1-1zM15 3l1 1-1 1-1-1 1-1zM18 6l1 1-1 1-1-1 1-1z" />
         </svg>
     );
+
+    // Get user initials for fallback
+    const getInitials = () => {
+        if (!user) return '?';
+        return `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
+    };
+
+    // Check if user has image
+    const hasImage = user?.imageUrl && user.imageUrl.trim() !== '';
 
     return (
         <header className="sticky top-0 z-50 h-20 bg-brand-card border-b-4 border-brand-border flex items-center justify-between px-4 md:px-6 shadow-[0_4px_0_0_var(--border-main)]">
@@ -72,8 +82,22 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
                         aria-expanded={isProfileMenuOpen}
                     >
                         <div className="relative">
-                            <div className="w-9 h-9 rounded-xl bg-brand-primary text-white flex items-center justify-center font-bold text-sm">
-                                {user?.firstName?.[0]}{user?.lastName?.[0]}
+                            {/* Avatar with image or initials */}
+                            <div className="w-9 h-9 rounded-xl bg-brand-primary text-white flex items-center justify-center font-bold text-sm overflow-hidden">
+                                {hasImage ? (
+                                    <img
+                                        src={getImageUrl(user?.imageUrl, 'admin')}
+                                        alt={user?.firstName}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            // Fallback to initials if image fails to load
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                            (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
+                                        }}
+                                    />
+                                ) : (
+                                    getInitials()
+                                )}
                             </div>
                             {isSuperAdmin && (
                                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full border-2 border-brand-card flex items-center justify-center">
@@ -96,9 +120,27 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
                             />
                             
                             <div className="absolute right-0 top-12 w-56 bg-brand-card border-4 border-brand-border rounded-2xl shadow-xl z-50 overflow-hidden">
-                                <div className="p-3 border-b-4 border-brand-border bg-brand-bg">
-                                    <p className="font-bold text-sm">{user?.firstName} {user?.lastName}</p>
-                                    <p className="text-xs text-brand-muted truncate">{user?.email}</p>
+                                <div className="p-3 border-b-4 border-brand-border bg-brand-bg flex items-center gap-3">
+                                    {/* Small avatar in dropdown */}
+                                    <div className="w-10 h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center font-bold text-sm overflow-hidden">
+                                        {hasImage ? (
+                                            <img
+                                                src={getImageUrl(user?.imageUrl, 'admin')}
+                                                alt={user?.firstName}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                    (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
+                                                }}
+                                            />
+                                        ) : (
+                                            getInitials()
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-bold text-sm truncate">{user?.firstName} {user?.lastName}</p>
+                                        <p className="text-[10px] text-brand-muted truncate">{user?.email}</p>
+                                    </div>
                                 </div>
 
                                 <div className="p-2">
