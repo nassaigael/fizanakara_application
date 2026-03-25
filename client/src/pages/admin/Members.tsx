@@ -5,72 +5,35 @@ import {
     AiOutlineSearch,
 } from 'react-icons/ai';
 import { useMembers } from '../../hooks/useMembers';
-import { useForm } from '../../hooks/useForm';
-import { useLocations } from '../../hooks/useLocations';
-import { personSchema } from '../../lib/validators/member.validator';
-import { PersonDto, Gender, MemberStatus, PersonResponse } from '../../lib/types';
+import { MemberStatus, PersonResponse } from '../../lib/types';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
 import Alert from '../../components/ui/Alert';
 import { THEME } from '../../styles/theme';
 import MemberCard from '../../components/admin/members/MemberCard';
-import MemberModal from '../../components/admin/members/MemberModal';
-import { ZodType } from 'zod';
+import MemberForm from '../../components/admin/members/MemberForm';
 
 const AdminMembers: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<MemberStatus | 'ALL'>('ALL');
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editingMember, setEditingMember] = useState<PersonResponse | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
-    const { members, isLoading, createMember, updateMember, deleteMember } = useMembers();
-    const { districts, tributes } = useLocations();
-
-    const form = useForm<PersonDto>({
-        initialValues: {
-            firstName: '',
-            lastName: '',
-            birthDate: '',
-            gender: Gender.MALE,
-            phoneNumber: '',
-            status: MemberStatus.STUDENT,
-            districtId: districts[0]?.id || 1,
-            tributeId: tributes[0]?.id || 1,
-            imageUrl: '',
-        },
-        validationSchema: personSchema as unknown as ZodType<PersonDto>,
-        onSubmit: async (data) => {
-            try {
-                if (editingId) {
-                    await updateMember.mutateAsync({ id: editingId, data });
-                } else {
-                    await createMember.mutateAsync(data);
-                }
-                handleCloseForm();
-            } catch (error) {
-                // Error handled by global toast
-            }
-        }
-    });
+    const { members, isLoading, deleteMember } = useMembers();
 
     const handleCloseForm = () => {
         setIsFormOpen(false);
-        setEditingId(null);
-        form.resetForm();
+        setEditingMember(null);
     };
 
     const handleEdit = (member: PersonResponse) => {
-        setEditingId(member.id);
-        form.setFieldValue('firstName', member.firstName);
-        form.setFieldValue('lastName', member.lastName);
-        form.setFieldValue('birthDate', member.birthDate);
-        form.setFieldValue('gender', member.gender);
-        form.setFieldValue('phoneNumber', member.phoneNumber);
-        form.setFieldValue('status', member.status);
-        form.setFieldValue('districtId', member.districtId);
-        form.setFieldValue('tributeId', member.tributeId);
-        form.setFieldValue('imageUrl', member.imageUrl);
+        setEditingMember(member);
+        setIsFormOpen(true);
+    };
+
+    const handleAddMember = () => {
+        setEditingMember(null);
         setIsFormOpen(true);
     };
 
@@ -105,7 +68,7 @@ const AdminMembers: React.FC = () => {
                     </h1>
                     <p className="text-gray-500 mt-1 uppercase">{members.length} members registered</p>
                 </div>
-                <Button onClick={() => setIsFormOpen(true)} className="flex items-center gap-2">
+                <Button onClick={handleAddMember} className="flex items-center gap-2">
                     <AiOutlinePlus /> NEW MEMBER
                 </Button>
             </div>
@@ -145,13 +108,10 @@ const AdminMembers: React.FC = () => {
                 ))}
             </div>
 
-            <MemberModal
+            <MemberForm
                 isOpen={isFormOpen}
                 onClose={handleCloseForm}
-                editingId={editingId}
-                form={form}
-                districts={districts}
-                tributes={tributes}
+                memberToEdit={editingMember}
             />
 
             <Alert
