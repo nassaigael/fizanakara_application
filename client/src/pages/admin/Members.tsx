@@ -47,6 +47,10 @@ const AdminMembers: React.FC = () => {
         setViewingMember(member);
     };
 
+    const handleViewChild = (child: PersonResponse) => {
+        setViewingMember(child);
+    };
+
     const handleAddMember = () => {
         setEditingMember(null);
         setSelectedParentForChild(null);
@@ -338,6 +342,7 @@ const AdminMembers: React.FC = () => {
                         setViewingMember(null);
                     }
                 }}
+                onViewChild={handleViewChild}
             />
 
             {/* Delete Confirmation Alert */}
