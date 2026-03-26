@@ -6,7 +6,6 @@ import {
     AiOutlineSearch,
     AiOutlineCalendar,
     AiOutlineDown,
-    AiOutlinePlus,
     AiOutlineReload,
     AiOutlinePlusCircle,
     AiOutlineMenu
@@ -122,26 +121,44 @@ const AdminFinance: React.FC = () => {
         };
     }, [filteredContributions]);
 
-    const handleGenerateAnnual = async () => {
-        if (!selectedYear) {
-            toast.error('Please select a year first');
+    // Action: Ajouter une année ET générer les cotisations automatiquement
+    const handleAddAndGenerateYear = async () => {
+        if (newYear < 2000) {
+            toast.error('Year must be 2000 or later');
             return;
         }
+        if (newYear > 2100) {
+            toast.error('Year must be 2100 or earlier');
+            return;
+        }
+        if (availableYears.includes(newYear)) {
+            toast.error(`Year ${newYear} already exists`);
+            return;
+        }
+        
+        setIsAddingYear(false);
+        
         try {
-            const result = await generateAnnualContributions.mutateAsync({ year: selectedYear });
+            // Générer les cotisations pour la nouvelle année
+            const result = await generateAnnualContributions.mutateAsync({ year: newYear });
+            
             if (result && result.length > 0) {
-                toast.success(`${result.length} contributions generated for ${selectedYear}`);
-                if (!availableYears.includes(selectedYear)) {
-                    setAvailableYears(prev => [...prev, selectedYear].sort((a, b) => a - b));
-                }
+                toast.success(`${result.length} contributions generated for ${newYear}`);
+                // Ajouter l'année aux disponibles
+                setAvailableYears(prev => [...prev, newYear].sort((a, b) => a - b));
+                setSelectedYear(newYear);
             } else {
-                toast.success(`All contributions for ${selectedYear} already exist`);
+                toast.success(`Year ${newYear} added but no eligible members found`);
+                setAvailableYears(prev => [...prev, newYear].sort((a, b) => a - b));
+                setSelectedYear(newYear);
             }
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || 'Error during generation';
+            const errorMessage = error?.response?.data?.message || 'Failed to generate contributions';
             toast.error(errorMessage);
         }
+        
         setIsActionMenuOpen(false);
+        setNewYear(currentYear + 1);
     };
 
     const handleUpdateContributions = async () => {
@@ -161,28 +178,6 @@ const AdminFinance: React.FC = () => {
             toast.error(errorMessage);
         }
         setIsActionMenuOpen(false);
-    };
-
-    const handleAddNewYear = async () => {
-        if (newYear < 2000) {
-            toast.error('Year must be 2000 or later');
-            return;
-        }
-        if (newYear > 2100) {
-            toast.error('Year must be 2100 or earlier');
-            return;
-        }
-        if (availableYears.includes(newYear)) {
-            toast.error(`Year ${newYear} already exists`);
-            return;
-        }
-        
-        setIsAddingYear(false);
-        setAvailableYears(prev => [...prev, newYear].sort((a, b) => a - b));
-        setSelectedYear(newYear);
-        setIsActionMenuOpen(false);
-        toast.success(`Year ${newYear} added. Click "Generate" to create contributions.`);
-        setNewYear(currentYear + 1);
     };
 
     const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -263,47 +258,22 @@ const AdminFinance: React.FC = () => {
                         </Button>
                         
                         {isActionMenuOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-56 bg-white border-2 border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                {/* Generate Option */}
-                                <button
-                                    onClick={handleGenerateAnnual}
-                                    disabled={!selectedYear || generateAnnualContributions.isPending}
-                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <AiOutlinePlus size={18} className="text-green-600" />
-                                    <div className="text-left">
-                                        <p className="font-black text-xs uppercase">Generate</p>
-                                        <p className="text-[9px] text-gray-400">Create contributions for {selectedYear || 'year'}</p>
-                                    </div>
-                                </button>
-                                
-                                {/* Update Option */}
-                                <button
-                                    onClick={handleUpdateContributions}
-                                    disabled={!selectedYear || regenerateForYear.isPending}
-                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <AiOutlineReload size={18} className="text-blue-600" />
-                                    <div className="text-left">
-                                        <p className="font-black text-xs uppercase">Update</p>
-                                        <p className="text-[9px] text-gray-400">Add new members for {selectedYear || 'year'}</p>
-                                    </div>
-                                </button>
-                                
-                                {/* Add Year Option */}
+                            <div className="absolute right-0 top-full mt-2 w-64 bg-white border-2 border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                {/* Add & Generate Year - Action combinée */}
                                 {!isAddingYear ? (
                                     <button
                                         onClick={handleOpenAddYear}
-                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100"
                                     >
-                                        <AiOutlinePlusCircle size={18} className="text-purple-600" />
+                                        <AiOutlinePlusCircle size={18} className="text-green-600" />
                                         <div className="text-left">
-                                            <p className="font-black text-xs uppercase">Add Year</p>
-                                            <p className="text-[9px] text-gray-400">Create a new contribution year</p>
+                                            <p className="font-black text-xs uppercase">Add Year & Generate</p>
+                                            <p className="text-[9px] text-gray-400">Create new year with contributions</p>
                                         </div>
                                     </button>
                                 ) : (
-                                    <div className="p-3 border-t border-gray-100 bg-gray-50">
+                                    <div className="p-3 border-b border-gray-100 bg-gray-50">
+                                        <p className="text-[10px] font-black uppercase text-gray-500 mb-2">New Year</p>
                                         <div className="flex items-center gap-2">
                                             <input
                                                 ref={addYearInputRef}
@@ -318,10 +288,10 @@ const AdminFinance: React.FC = () => {
                                         </div>
                                         <div className="flex gap-2 mt-2">
                                             <button
-                                                onClick={handleAddNewYear}
-                                                className="flex-1 px-2 py-1 bg-brand-primary text-white text-[10px] font-black uppercase rounded-lg hover:opacity-90"
+                                                onClick={handleAddAndGenerateYear}
+                                                className="flex-1 px-2 py-1 bg-green-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-green-700"
                                             >
-                                                Add
+                                                Generate
                                             </button>
                                             <button
                                                 onClick={handleCancelAddYear}
@@ -330,8 +300,24 @@ const AdminFinance: React.FC = () => {
                                                 Cancel
                                             </button>
                                         </div>
+                                        <p className="text-[8px] text-gray-400 mt-2 text-center">
+                                            Creates contributions for all eligible members
+                                        </p>
                                     </div>
                                 )}
+                                
+                                {/* Update Option */}
+                                <button
+                                    onClick={handleUpdateContributions}
+                                    disabled={!selectedYear || regenerateForYear.isPending}
+                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <AiOutlineReload size={18} className="text-blue-600" />
+                                    <div className="text-left">
+                                        <p className="font-black text-xs uppercase">Update</p>
+                                        <p className="text-[9px] text-gray-400">Add new members for {selectedYear || 'year'}</p>
+                                    </div>
+                                </button>
                             </div>
                         )}
                     </div>
@@ -369,12 +355,12 @@ const AdminFinance: React.FC = () => {
                         <AiOutlineWarning className="text-amber-600" size={24} />
                         <div>
                             <p className="font-black text-amber-800">
-                                {!selectedYear ? 'Select or add a year' : `No contributions for ${selectedYear}`}
+                                {!selectedYear ? 'No years available' : `No contributions for ${selectedYear}`}
                             </p>
                             <p className="text-xs text-amber-600 mt-0.5">
                                 {!selectedYear 
                                     ? 'Use the Actions menu to add a year and generate contributions'
-                                    : `Click "Generate" in Actions menu to create contributions for ${selectedYear}`
+                                    : `Click "Update" in Actions menu to add new members for ${selectedYear}`
                                 }
                             </p>
                         </div>
@@ -382,7 +368,7 @@ const AdminFinance: React.FC = () => {
                 </div>
             )}
 
-            {/* Filtres */}
+            {/* Filtres et tableau */}
             {selectedYear && filteredContributions.length > 0 && (
                 <>
                     <FinanceFilters
