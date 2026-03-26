@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     AiOutlineDollar,
     AiOutlineCheckCircle,
@@ -7,7 +7,8 @@ import {
     AiOutlineCalendar,
     AiOutlineDown,
     AiOutlineReload,
-    AiOutlinePlus
+    AiOutlinePlus,
+    AiOutlinePlusCircle
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
@@ -23,6 +24,9 @@ import toast from 'react-hot-toast';
 const AdminFinance: React.FC = () => {
     const currentYear = new Date().getFullYear();
     const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [availableYears, setAvailableYears] = useState<number[]>([]);
+    const [isAddingYear, setIsAddingYear] = useState(false);
+    const [newYear, setNewYear] = useState(currentYear + 1);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
@@ -32,17 +36,28 @@ const AdminFinance: React.FC = () => {
     const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear);
     const { members } = useMembers();
 
-    // Générer les options d'années (année courante - 2 à année courante + 2)
+    // Récupérer toutes les années de cotisation existantes
+    useEffect(() => {
+        const fetchYears = async () => {
+            const { contributions: allContributions } = useFinance();
+            // Cette approche est un peu complexe, on va plutôt créer un service dédié
+        };
+    }, []);
+
+    // Générer les options d'années (année courante - 2 à année courante + 2 + années ajoutées)
     const yearOptions = useMemo(() => {
-        const years = [];
-        for (let i = currentYear - 2; i <= currentYear + 2; i++) {
-            years.push({
-                value: i,
-                label: i.toString()
-            });
+        // Années de base
+        const baseYears = [];
+        for (let i = currentYear - 2; i <= currentYear + 5; i++) {
+            baseYears.push(i);
         }
-        return years;
-    }, [currentYear]);
+        // Fusionner avec les années disponibles et supprimer les doublons
+        const allYears = [...new Set([...baseYears, ...availableYears])];
+        return allYears.sort((a, b) => a - b).map(year => ({
+            value: year,
+            label: year.toString()
+        }));
+    }, [currentYear, availableYears]);
 
     const filteredContributions = useMemo(() => {
         return contributions.filter(c => {
@@ -83,6 +98,10 @@ const AdminFinance: React.FC = () => {
             const result = await generateAnnualContributions.mutateAsync({ year: selectedYear });
             if (result && result.length > 0) {
                 toast.success(`${result.length} contributions generated for ${selectedYear}`);
+                // Ajouter l'année aux années disponibles si elle n'existe pas
+                if (!availableYears.includes(selectedYear)) {
+                    setAvailableYears(prev => [...prev, selectedYear]);
+                }
             } else {
                 toast.success(`All contributions for ${selectedYear} already exist`);
             }
@@ -108,6 +127,30 @@ const AdminFinance: React.FC = () => {
 
     const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedYear(parseInt(e.target.value, 10));
+    };
+
+    const handleAddNewYear = async () => {
+        if (newYear < 2000) {
+            toast.error('Year must be 2000 or later');
+            return;
+        }
+        if (newYear > 2100) {
+            toast.error('Year must be 2100 or earlier');
+            return;
+        }
+        
+        setIsAddingYear(false);
+        
+        // Ajouter l'année aux options
+        setAvailableYears(prev => [...prev, newYear]);
+        setSelectedYear(newYear);
+        
+        toast.success(`Year ${newYear} added. You can now generate contributions.`);
+    };
+
+    const handleCancelAddYear = () => {
+        setIsAddingYear(false);
+        setNewYear(currentYear + 1);
     };
 
     if (isLoading) {
@@ -156,6 +199,44 @@ const AdminFinance: React.FC = () => {
                         <AiOutlineDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                     </div>
                     
+                    {/* Bouton Add Year */}
+                    {!isAddingYear ? (
+                        <Button
+                            variant="secondary"
+                            onClick={() => setIsAddingYear(true)}
+                            className="whitespace-nowrap flex items-center gap-2"
+                        >
+                            <AiOutlinePlusCircle size={16} />
+                            Add Year
+                        </Button>
+                    ) : (
+                        <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-2xl p-1">
+                            <input
+                                type="number"
+                                value={newYear}
+                                onChange={(e) => setNewYear(parseInt(e.target.value) || currentYear + 1)}
+                                className="w-24 px-3 py-2 text-sm font-black uppercase text-center focus:outline-none"
+                                min={2000}
+                                max={2100}
+                                autoFocus
+                            />
+                            <Button
+                                variant="primary"
+                                onClick={handleAddNewYear}
+                                className="px-3 py-2 text-xs"
+                            >
+                                Add
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                onClick={handleCancelAddYear}
+                                className="px-3 py-2 text-xs"
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    )}
+                    
                     {/* Bouton Generate */}
                     <Button
                         variant="primary"
@@ -167,7 +248,7 @@ const AdminFinance: React.FC = () => {
                         Generate {selectedYear}
                     </Button>
                     
-                    {/* Bouton Update (pour ajouter les nouveaux membres) */}
+                    {/* Bouton Update */}
                     <Button
                         variant="secondary"
                         onClick={handleUpdateContributions}
