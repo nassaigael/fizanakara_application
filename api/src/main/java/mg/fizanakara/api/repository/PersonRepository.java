@@ -28,7 +28,7 @@ public interface PersonRepository extends JpaRepository<Person, String> {
                                     @Param("status") MemberStatus status,
                                     @Param("currentId") String currentId);
 
-    @Query("SELECT p FROM Person p WHERE :yearValue - YEAR(p.birthDate) >= 18 OR (:yearValue = YEAR(p.birthDate) AND MONTH(p.birthDate) < 12 AND DAY(p.birthDate) <= 31)")
+    @Query("SELECT p FROM Person p WHERE YEAR(p.birthDate) <= :yearValue - 18")
     List<Person> findEligiblePersonsForContribution(@Param("yearValue") int yearValue);
 
     @Query("SELECT p FROM Person p WHERE p.district.id = :districtId")

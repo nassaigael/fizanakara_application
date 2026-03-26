@@ -53,32 +53,60 @@ public class ContributionService {
                 .collect(Collectors.toList());
     }
 
-    // BATCH CRÉATION ANNUELLE
+    // BATCH CRÉATION ANNUELLE - Version avec logs
     @Transactional
     public List<ContributionResponseDto> createContributionsForYear(ContributionYearDto dto) {
         Year year = dto.getYear();
         int yearValue = year.getValue();
+        log.info("========================================");
         log.info("Generating annual contributions for year: {}", year);
+        log.info("========================================");
 
+        // Récupérer les personnes éligibles
         List<Person> eligiblePersons = personRepository.findEligiblePersonsForContribution(yearValue);
+        log.info("Found {} eligible persons for year {}", eligiblePersons.size(), yearValue);
+
+        // Afficher les détails des personnes éligibles
+        for (Person person : eligiblePersons) {
+            int age = person.calculateAgeAtYear(person.getBirthDate(), year);
+            log.info("Eligible: {} {} - ID: {} - BirthDate: {} - Age: {} - Status: {}",
+                    person.getFirstName(),
+                    person.getLastName(),
+                    person.getId(),
+                    person.getBirthDate(),
+                    age,
+                    person.getStatus());
+        }
 
         List<ContributionResponseDto> created = new ArrayList<>();
-
         sequenceCounter.set(1);
 
         for (Person person : eligiblePersons) {
             String personId = person.getId();
-            String childId = person.isActiveMember() ? null : personId;
-            if (contributionRepository.hasDuplicateByMemberAndYear(personId, year, childId)) {
+
+            // Vérifier si une cotisation existe déjà
+            boolean exists = contributionRepository.hasDuplicateByMemberAndYear(personId, year, null);
+            log.info("Person {} already has contribution for {}: {}", personId, year, exists);
+
+            if (exists) {
                 log.warn("Contribution for person {} and year {} already exists – skipping", personId, year);
                 continue;
             }
+
+            // Calculer le montant
             BigDecimal amount = calculateAmountForUser(person, year);
-            Contribution contribution = createSingleContribution(year, amount, ContributionStatus.PENDING, personId, childId);
+            log.info("Creating contribution for {} {} - Amount: {} Ar",
+                    person.getFirstName(), person.getLastName(), amount);
+
+            // Créer la cotisation
+            Contribution contribution = createSingleContribution(year, amount, ContributionStatus.PENDING, personId,
+                    null);
             created.add(mapToResponseDto(contribution));
         }
 
+        log.info("========================================");
         log.info("Generated {} new contributions for year: {}", created.size(), year);
+        log.info("========================================");
         return created;
     }
 
@@ -117,8 +145,10 @@ public class ContributionService {
         Contribution contribution = contributionRepository.findById(id)
                 .orElseThrow(() -> new ContributionNotFoundException("Contribution not found with ID: " + id));
 
-        if (dto.getAmount() != null) contribution.setAmount(dto.getAmount());
-        if (dto.getStatus() != null) contribution.setStatus(dto.getStatus());
+        if (dto.getAmount() != null)
+            contribution.setAmount(dto.getAmount());
+        if (dto.getStatus() != null)
+            contribution.setStatus(dto.getStatus());
         if (dto.getMemberId() != null) {
             Person person = personRepository.findById(dto.getMemberId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Person ID"));
@@ -143,12 +173,15 @@ public class ContributionService {
     @Transactional
     public void updateContributionStatusAfterPayment(String contributionId) {
         Contribution contribution = contributionRepository.findById(contributionId)
-                .orElseThrow(() -> new ContributionNotFoundException("Contribution not found with ID: " + contributionId));
+                .orElseThrow(
+                        () -> new ContributionNotFoundException("Contribution not found with ID: " + contributionId));
 
         BigDecimal totalPaid = paymentRepository.getTotalPaidByContributionId(contributionId);
-        if (totalPaid == null) totalPaid = BigDecimal.ZERO;
+        if (totalPaid == null)
+            totalPaid = BigDecimal.ZERO;
 
-        log.info("Updating status for contribution ID: {} totalPaid: {} amount: {}", contributionId, totalPaid, contribution.getAmount());
+        log.info("Updating status for contribution ID: {} totalPaid: {} amount: {}", contributionId, totalPaid,
+                contribution.getAmount());
 
         if (totalPaid.compareTo(contribution.getAmount()) >= 0) {
             contribution.setStatus(ContributionStatus.PAID);
@@ -198,7 +231,8 @@ public class ContributionService {
     }
 
     // HELPER PRIVATE (adapté pour Person)
-    private Contribution createSingleContribution(Year year, BigDecimal amount, ContributionStatus status, String personId, String childId) {
+    private Contribution createSingleContribution(Year year, BigDecimal amount, ContributionStatus status,
+            String personId, String childId) {
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Person ID: " + personId));
 
