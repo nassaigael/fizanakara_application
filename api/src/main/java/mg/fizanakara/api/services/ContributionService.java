@@ -53,7 +53,7 @@ public class ContributionService {
                 .collect(Collectors.toList());
     }
 
-    // BATCH CRÉATION ANNUELLE - Version avec calcul d'âge précis
+    // BATCH CRÉATION ANNUELLE - Version corrigée
     @Transactional
     public List<ContributionResponseDto> createContributionsForYear(ContributionYearDto dto) {
         Year year = dto.getYear();
@@ -62,8 +62,7 @@ public class ContributionService {
         log.info("Generating annual contributions for year: {}", year);
         log.info("========================================");
 
-        // Calculer la date limite : 31 décembre de l'année moins 18 ans
-        // Toute personne née avant ou à cette date aura 18 ans ou plus le 31 décembre
+        // Calculer la date limite : 31 décembre de l'année - 18 ans
         LocalDate dateLimit = LocalDate.of(yearValue, 12, 31).minusYears(18);
         log.info("Date limit for eligibility (born on or before): {}", dateLimit);
 
@@ -71,20 +70,11 @@ public class ContributionService {
         List<Person> eligiblePersons = personRepository.findPersonsBornBefore(dateLimit);
         log.info("Found {} eligible persons for year {}", eligiblePersons.size(), yearValue);
 
-        // Afficher les détails des personnes éligibles
-        for (Person person : eligiblePersons) {
-            int age = person.calculateAgeAtYear(person.getBirthDate(), year);
-            log.info("Eligible: {} {} - ID: {} - BirthDate: {} - Age at end of {}: {}",
-                    person.getFirstName(),
-                    person.getLastName(),
-                    person.getId(),
-                    person.getBirthDate(),
-                    yearValue,
-                    age);
-        }
-
         List<ContributionResponseDto> created = new ArrayList<>();
-        sequenceCounter.set(1);
+
+        // Récupérer le prochain numéro de séquence pour cette année
+        int sequenceStart = getNextSequenceForYear(year);
+        AtomicInteger sequenceCounter = new AtomicInteger(sequenceStart);
 
         for (Person person : eligiblePersons) {
             String personId = person.getId();
@@ -101,16 +91,54 @@ public class ContributionService {
             log.info("Creating contribution for {} {} - Amount: {} Ar",
                     person.getFirstName(), person.getLastName(), amount);
 
-            // Créer la cotisation
-            Contribution contribution = createSingleContribution(year, amount, ContributionStatus.PENDING, personId,
-                    null);
-            created.add(mapToResponseDto(contribution));
+            // Créer la cotisation avec un suffixe unique
+            String suffix = String.format("%03d", sequenceCounter.getAndIncrement());
+            Contribution contribution = Contribution.builder()
+                    .year(year)
+                    .amount(amount)
+                    .status(ContributionStatus.PENDING)
+                    .dueDate(LocalDate.of(yearValue, 12, 31))
+                    .member(person)
+                    .build();
+            contribution.setSequenceSuffix(suffix);
+            contribution.setId(contribution.generatedCustomId());
+
+            Contribution saved = contributionRepository.save(contribution);
+            created.add(mapToResponseDto(saved));
         }
 
         log.info("========================================");
         log.info("Generated {} new contributions for year: {}", created.size(), year);
         log.info("========================================");
         return created;
+    }
+
+    // Méthode pour obtenir le prochain numéro de séquence pour une année donnée
+    private int getNextSequenceForYear(Year year) {
+        // Récupérer toutes les cotisations de l'année
+        List<Contribution> existingContributions = contributionRepository.findAll().stream()
+                .filter(c -> c.getYear().equals(year))
+                .collect(Collectors.toList());
+
+        if (existingContributions.isEmpty()) {
+            return 1;
+        }
+
+        // Trouver le plus grand suffixe
+        int maxSuffix = 0;
+        for (Contribution c : existingContributions) {
+            if (c.getSequenceSuffix() != null) {
+                try {
+                    int suffix = Integer.parseInt(c.getSequenceSuffix());
+                    if (suffix > maxSuffix) {
+                        maxSuffix = suffix;
+                    }
+                } catch (NumberFormatException e) {
+                    // Ignorer
+                }
+            }
+        }
+        return maxSuffix + 1;
     }
 
     // SINGLE POUR PERSON
@@ -203,7 +231,7 @@ public class ContributionService {
     private ContributionResponseDto mapToResponseDto(Contribution contribution) {
         ContributionResponseDto dto = new ContributionResponseDto();
         dto.setId(contribution.getId());
-        dto.setYear(contribution.getYear());
+        dto.setYear(contribution.getYear().getValue());
         dto.setAmount(contribution.getAmount());
         dto.setStatus(contribution.getStatus());
         dto.setDueDate(contribution.getDueDate());
@@ -231,28 +259,6 @@ public class ContributionService {
                 .collect(Collectors.toList()));
 
         return dto;
-    }
-
-    // HELPER PRIVATE (adapté pour Person)
-    private Contribution createSingleContribution(Year year, BigDecimal amount, ContributionStatus status,
-            String personId, String childId) {
-        Person person = personRepository.findById(personId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Person ID: " + personId));
-
-        Contribution contribution = Contribution.builder()
-                .year(year)
-                .amount(amount)
-                .status(status)
-                .dueDate(LocalDate.of(year.getValue(), 12, 31))
-                .member(person)
-                .childId(childId)
-                .build();
-
-        String suffix = String.format("%03d", sequenceCounter.getAndIncrement());
-        contribution.setSequenceSuffix(suffix);
-        contribution.setId(contribution.generatedCustomId());
-
-        return contributionRepository.save(contribution);
     }
 
     // CALCUL AMOUNT

@@ -96,7 +96,7 @@ const AdminFinance: React.FC = () => {
         try {
             const result = await regenerateForYear.mutateAsync({ year: selectedYear });
             if (result.length === 0) {
-                toast.success('No new members to add'); // Utilisation de toast.success avec message informatif
+                toast.success('No new members to add');
             } else {
                 toast.success(`${result.length} new contributions added for ${selectedYear}`);
             }
@@ -253,6 +253,7 @@ const AdminFinance: React.FC = () => {
                         <thead className="bg-gray-50 border-b-2 border-gray-200">
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Member</th>
+                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Year</th>
                                 <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Status</th>
                                 <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Amount</th>
                                 <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Paid</th>
@@ -263,7 +264,7 @@ const AdminFinance: React.FC = () => {
                         <tbody className="divide-y divide-gray-100">
                             {filteredContributions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center font-black text-gray-400">
+                                    <td colSpan={7} className="px-6 py-12 text-center font-black text-gray-400">
                                         {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
                                             ? 'No matching contributions found'
                                             : 'No contributions for this year'}
@@ -308,6 +309,9 @@ const AdminFinance: React.FC = () => {
                                                         </p>
                                                     </div>
                                                 </div>
+                                            </td>
+                                            <td className="px-6 py-4 font-black">
+                                                {contribution.year}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${

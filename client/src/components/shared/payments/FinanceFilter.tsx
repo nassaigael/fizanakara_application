@@ -34,6 +34,12 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
         setTypeFilter('all');
     };
 
+    // Fonction utilitaire pour extraire la valeur du select
+    const getValue = (val: string | React.ChangeEvent<HTMLSelectElement>): string => {
+        if (typeof val === 'string') return val;
+        return val.target?.value || '';
+    };
+
     return (
         <div className="bg-white border-4 border-black rounded-4xl p-4 mb-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-50">
@@ -44,7 +50,7 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
                     name="status"
                     options={statusOptions}
                     value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
+                    onChange={(val) => setStatusFilter(getValue(val))}
                     icon={<AiOutlineDollarCircle />}
                 />
             </div>
@@ -57,7 +63,7 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
                     name="type"
                     options={typeOptions}
                     value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value)}
+                    onChange={(val) => setTypeFilter(getValue(val))}
                     icon={<AiOutlineUser />}
                 />
             </div>
