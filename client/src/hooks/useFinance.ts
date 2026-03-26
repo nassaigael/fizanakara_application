@@ -33,12 +33,34 @@ export const useFinance = (personId?: string, year?: number) => {
         mutationFn: (data: ContributionYearRequest) => ContributionService.generateForYear(data),
         onSuccess: (newContributions) => {
             queryClient.invalidateQueries({ queryKey: ['contributions'] });
-            toast.success(
-                `${newContributions.length} contributions generated for ${newContributions[0]?.year}`,
-            );
+            if (newContributions && newContributions.length > 0) {
+                toast.success(
+                    `${newContributions.length} contributions generated for ${newContributions[0]?.year}`,
+                );
+            } else {
+                toast.success(`All contributions already exist for ${newContributions?.[0]?.year || 'this year'}`);
+            }
         },
-        onError: () => {
-            toast.error('Failed to generate contributions');
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || 'Failed to generate contributions';
+            toast.error(errorMessage);
+        },
+    });
+
+    // Nouvelle mutation pour mettre à jour les cotisations (ajouter les nouveaux membres)
+    const regenerateForYear = useMutation({
+        mutationFn: (data: ContributionYearRequest) => ContributionService.generateForYear(data),
+        onSuccess: (newContributions) => {
+            queryClient.invalidateQueries({ queryKey: ['contributions'] });
+            if (newContributions && newContributions.length > 0) {
+                toast.success(`${newContributions.length} new members added for ${newContributions[0]?.year}`);
+            } else {
+                toast.success(`No new members to add for ${newContributions?.[0]?.year || 'this year'}`);
+            }
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || 'Failed to update contributions';
+            toast.error(errorMessage);
         },
     });
 
@@ -114,6 +136,7 @@ export const useFinance = (personId?: string, year?: number) => {
         error,
         usePayments,
         generateAnnualContributions,
+        regenerateForYear,
         updateContribution,
         deleteContribution,
         addPayment,

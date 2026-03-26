@@ -53,7 +53,7 @@ public class ContributionService {
                 .collect(Collectors.toList());
     }
 
-    // BATCH CRÉATION ANNUELLE - Version avec logs
+    // BATCH CRÉATION ANNUELLE - Version avec calcul d'âge précis
     @Transactional
     public List<ContributionResponseDto> createContributionsForYear(ContributionYearDto dto) {
         Year year = dto.getYear();
@@ -62,20 +62,25 @@ public class ContributionService {
         log.info("Generating annual contributions for year: {}", year);
         log.info("========================================");
 
-        // Récupérer les personnes éligibles
-        List<Person> eligiblePersons = personRepository.findEligiblePersonsForContribution(yearValue);
+        // Calculer la date limite : 31 décembre de l'année moins 18 ans
+        // Toute personne née avant ou à cette date aura 18 ans ou plus le 31 décembre
+        LocalDate dateLimit = LocalDate.of(yearValue, 12, 31).minusYears(18);
+        log.info("Date limit for eligibility (born on or before): {}", dateLimit);
+
+        // Trouver les personnes nées avant la date limite
+        List<Person> eligiblePersons = personRepository.findPersonsBornBefore(dateLimit);
         log.info("Found {} eligible persons for year {}", eligiblePersons.size(), yearValue);
 
         // Afficher les détails des personnes éligibles
         for (Person person : eligiblePersons) {
             int age = person.calculateAgeAtYear(person.getBirthDate(), year);
-            log.info("Eligible: {} {} - ID: {} - BirthDate: {} - Age: {} - Status: {}",
+            log.info("Eligible: {} {} - ID: {} - BirthDate: {} - Age at end of {}: {}",
                     person.getFirstName(),
                     person.getLastName(),
                     person.getId(),
                     person.getBirthDate(),
-                    age,
-                    person.getStatus());
+                    yearValue,
+                    age);
         }
 
         List<ContributionResponseDto> created = new ArrayList<>();
@@ -86,8 +91,6 @@ public class ContributionService {
 
             // Vérifier si une cotisation existe déjà
             boolean exists = contributionRepository.hasDuplicateByMemberAndYear(personId, year, null);
-            log.info("Person {} already has contribution for {}: {}", personId, year, exists);
-
             if (exists) {
                 log.warn("Contribution for person {} and year {} already exists – skipping", personId, year);
                 continue;

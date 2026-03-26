@@ -5,7 +5,9 @@ import {
     AiOutlineWarning,
     AiOutlineSearch,
     AiOutlineCalendar,
-    AiOutlineDown
+    AiOutlineDown,
+    AiOutlineReload,
+    AiOutlinePlus
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
@@ -13,7 +15,8 @@ import { PaymentModal } from '../../components/shared/payments/PaymentModal';
 import { FinanceFilters } from '../../components/shared/payments/FinanceFilter';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import { formatCurrency } from '../../lib/helper';
+import { formatCurrency, getInitials } from '../../lib/helper';
+import { getImageUrl } from '../../lib/constant/constant';
 import { THEME } from '../../styles/theme';
 import toast from 'react-hot-toast';
 
@@ -26,7 +29,7 @@ const AdminFinance: React.FC = () => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedContribution, setSelectedContribution] = useState<any>(null);
 
-    const { contributions, isLoading, generateAnnualContributions } = useFinance(undefined, selectedYear);
+    const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear);
     const { members } = useMembers();
 
     // Générer les options d'années (année courante - 2 à année courante + 2)
@@ -77,10 +80,28 @@ const AdminFinance: React.FC = () => {
 
     const handleGenerateAnnual = async () => {
         try {
-            await generateAnnualContributions.mutateAsync({ year: selectedYear });
-            toast.success(`Contributions for ${selectedYear} generated successfully`);
+            const result = await generateAnnualContributions.mutateAsync({ year: selectedYear });
+            if (result && result.length > 0) {
+                toast.success(`${result.length} contributions generated for ${selectedYear}`);
+            } else {
+                toast.success(`All contributions for ${selectedYear} already exist`);
+            }
         } catch (error: any) {
             const errorMessage = error?.response?.data?.message || 'Error during generation';
+            toast.error(errorMessage);
+        }
+    };
+
+    const handleUpdateContributions = async () => {
+        try {
+            const result = await regenerateForYear.mutateAsync({ year: selectedYear });
+            if (result.length === 0) {
+                toast.success('No new members to add'); // Utilisation de toast.success avec message informatif
+            } else {
+                toast.success(`${result.length} new contributions added for ${selectedYear}`);
+            }
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || 'Error updating contributions';
             toast.error(errorMessage);
         }
     };
@@ -102,7 +123,7 @@ const AdminFinance: React.FC = () => {
 
     return (
         <div className="space-y-8">
-            {/* Header avec select dropdown */}
+            {/* Header avec select dropdown et boutons */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div className="p-4 bg-brand-primary text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -116,8 +137,9 @@ const AdminFinance: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Select dropdown pour les années */}
-                <div className="flex items-center gap-3">
+                {/* Contrôles */}
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Select année */}
                     <div className="relative">
                         <AiOutlineCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <select
@@ -134,13 +156,26 @@ const AdminFinance: React.FC = () => {
                         <AiOutlineDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                     </div>
                     
+                    {/* Bouton Generate */}
                     <Button
-                        variant="secondary"
+                        variant="primary"
                         onClick={handleGenerateAnnual}
                         isLoading={generateAnnualContributions.isPending}
-                        className="whitespace-nowrap"
+                        className="whitespace-nowrap flex items-center gap-2"
                     >
+                        <AiOutlinePlus size={16} />
                         Generate {selectedYear}
+                    </Button>
+                    
+                    {/* Bouton Update (pour ajouter les nouveaux membres) */}
+                    <Button
+                        variant="secondary"
+                        onClick={handleUpdateContributions}
+                        isLoading={regenerateForYear?.isPending}
+                        className="whitespace-nowrap flex items-center gap-2"
+                    >
+                        <AiOutlineReload size={16} />
+                        Update
                     </Button>
                 </div>
             </div>
@@ -179,7 +214,7 @@ const AdminFinance: React.FC = () => {
                                 No contributions for {selectedYear}
                             </p>
                             <p className="text-xs text-amber-600 mt-0.5">
-                                Generate contributions to start tracking payments
+                                Click "Generate {selectedYear}" to create contributions for all eligible members
                             </p>
                         </div>
                     </div>
@@ -244,10 +279,35 @@ const AdminFinance: React.FC = () => {
                                     return (
                                         <tr key={contribution.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4">
-                                                <p className="font-black text-sm">{contribution.memberName}</p>
-                                                <p className="text-[10px] text-gray-500 uppercase">
-                                                    {isStudent ? 'Student' : 'Worker'}
-                                                </p>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                                                        {member?.imageUrl ? (
+                                                            <img
+                                                                src={getImageUrl(member.imageUrl, 'member')}
+                                                                alt={member.firstName}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    const target = e.target as HTMLImageElement;
+                                                                    target.style.display = 'none';
+                                                                    if (target.parentElement) {
+                                                                        target.parentElement.innerHTML = getInitials(member.firstName, member.lastName);
+                                                                        target.parentElement.classList.add('text-sm', 'font-black', 'text-gray-500');
+                                                                    }
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <span className="text-sm font-black text-gray-500">
+                                                                {getInitials(contribution.memberName.split(' ')[0] || '', contribution.memberName.split(' ')[1] || '')}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-black text-sm">{contribution.memberName}</p>
+                                                        <p className="text-[10px] text-gray-500 uppercase">
+                                                            {isStudent ? 'Student' : 'Worker'}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${
@@ -282,7 +342,6 @@ const AdminFinance: React.FC = () => {
                                                             setSelectedContribution(contribution);
                                                             setIsPaymentModalOpen(true);
                                                         }}
-                                                        disabled={isStudent}
                                                         className="px-4 py-2 text-xs"
                                                     >
                                                         Pay

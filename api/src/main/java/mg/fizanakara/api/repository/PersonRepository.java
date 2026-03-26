@@ -15,19 +15,26 @@ import java.util.Optional;
 public interface PersonRepository extends JpaRepository<Person, String> {
 
     Optional<Person> findByPhoneNumber(String phoneNumber);
+
     boolean existsByPhoneNumber(String phoneNumber);
+
     List<Person> findByFirstNameAndLastName(String firstName, String lastName);
 
     @Query("SELECT COUNT(p) > 0 FROM Person p WHERE p.firstName = :firstName AND p.lastName = :lastName AND p.birthDate = :birthDate AND p.phoneNumber = :phoneNumber AND p.district.id = :districtId AND p.tribute.id = :tributeId AND p.status = :status AND (:currentId IS NULL OR p.id != :currentId)")
     boolean hasDuplicateByKeyFields(@Param("firstName") String firstName,
-                                    @Param("lastName") String lastName,
-                                    @Param("birthDate") LocalDate birthDate,
-                                    @Param("phoneNumber") String phoneNumber,
-                                    @Param("districtId") Long districtId,
-                                    @Param("tributeId") Long tributeId,
-                                    @Param("status") MemberStatus status,
-                                    @Param("currentId") String currentId);
+            @Param("lastName") String lastName,
+            @Param("birthDate") LocalDate birthDate,
+            @Param("phoneNumber") String phoneNumber,
+            @Param("districtId") Long districtId,
+            @Param("tributeId") Long tributeId,
+            @Param("status") MemberStatus status,
+            @Param("currentId") String currentId);
 
+    // Version CORRIGÉE : Calcule l'âge précisément à la fin de l'année
+    @Query("SELECT p FROM Person p WHERE p.birthDate <= :dateLimit")
+    List<Person> findPersonsBornBefore(@Param("dateLimit") LocalDate dateLimit);
+
+    // Garde l'ancienne méthode pour compatibilité
     @Query("SELECT p FROM Person p WHERE YEAR(p.birthDate) <= :yearValue - 18")
     List<Person> findEligiblePersonsForContribution(@Param("yearValue") int yearValue);
 
@@ -42,9 +49,11 @@ public interface PersonRepository extends JpaRepository<Person, String> {
     List<Person> findByParentId(String parentId);
 
     @Query(value = "WITH RECURSIVE family_tree AS (" +
-            "  SELECT id, parent_id, first_name, last_name, birth_date, status, is_active_member FROM persons WHERE id = :rootId " +
+            "  SELECT id, parent_id, first_name, last_name, birth_date, status, is_active_member FROM persons WHERE id = :rootId "
+            +
             "  UNION ALL " +
-            "  SELECT p.id, p.parent_id, p.first_name, p.last_name, p.birth_date, p.status, p.is_active_member FROM persons p " +
+            "  SELECT p.id, p.parent_id, p.first_name, p.last_name, p.birth_date, p.status, p.is_active_member FROM persons p "
+            +
             "  INNER JOIN family_tree ft ON p.parent_id = ft.id " +
             ") SELECT id, parent_id, first_name, last_name, birth_date, status, is_active_member FROM family_tree", nativeQuery = true)
     List<Object[]> getFamilyTree(@Param("rootId") String rootId);
