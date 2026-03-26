@@ -7,7 +7,7 @@ import {
     AiOutlineCheckCircle
 } from 'react-icons/ai';
 import { useForm } from '../../../hooks/useForm';
-import { useFinance } from '../../../hooks/useFinance';
+import { usePayment } from '../../../hooks/usePayment';
 import { paymentSchema } from '../../../lib/validators/finance.validator';
 import { PaymentStatus } from '../../../lib/types';
 import Input from '../../ui/Input';
@@ -34,7 +34,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     remainingAmount,
     onSuccess
 }) => {
-    const { addPayment } = useFinance();
+    const { addPayment } = usePayment();
     const [showSuccess, setShowSuccess] = useState(false);
 
     const {
@@ -44,20 +44,26 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         handleChange,
         handleBlur,
         handleSubmit,
-        resetForm
+        resetForm,
+        setFieldValue
     } = useForm<any>({
         initialValues: {
             amountPaid: remainingAmount || 0,
-            paymentDate: new Date().toISOString().split('T')[0],
+            paymentDate: new Date().toISOString(), // ← Format complet ISO
             status: PaymentStatus.COMPLETED,
             contributionId
         },
         validationSchema: paymentSchema,
         onSubmit: async (formData) => {
             try {
+                // S'assurer que la date est au bon format
+                const paymentDate = formData.paymentDate instanceof Date 
+                    ? formData.paymentDate.toISOString()
+                    : new Date(formData.paymentDate).toISOString();
+                
                 await addPayment.mutateAsync({
                     amountPaid: formData.amountPaid,
-                    paymentDate: formData.paymentDate,
+                    paymentDate: paymentDate,
                     status: formData.status,
                     contributionId: formData.contributionId
                 });
@@ -70,7 +76,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     onClose();
                 }, 1500);
             } catch (error) {
-                // Error handled by hook
+                console.error('Payment error:', error);
             }
         }
     });
@@ -79,6 +85,28 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         { value: PaymentStatus.COMPLETED, label: 'Completed' },
         { value: PaymentStatus.PENDING, label: 'Pending' }
     ];
+
+    // Fonction pour gérer le changement de date
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const dateValue = e.target.value;
+        if (dateValue) {
+            // Convertir YYYY-MM-DD en ISO string
+            const isoDate = new Date(dateValue).toISOString();
+            setFieldValue('paymentDate', isoDate);
+        } else {
+            setFieldValue('paymentDate', '');
+        }
+    };
+
+    // Formater la date pour l'affichage dans l'input (YYYY-MM-DD)
+    const getDisplayDate = () => {
+        if (!values.paymentDate) return '';
+        try {
+            return new Date(values.paymentDate).toISOString().split('T')[0];
+        } catch {
+            return '';
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -136,8 +164,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             label="Date"
                             name="paymentDate"
                             type="date"
-                            value={values.paymentDate}
-                            onChange={handleChange}
+                            value={getDisplayDate()}
+                            onChange={handleDateChange}
                             onBlur={handleBlur}
                             error={touched.paymentDate ? errors.paymentDate : undefined}
                             icon={<AiOutlineCalendar />}
