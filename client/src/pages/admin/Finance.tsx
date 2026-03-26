@@ -3,7 +3,9 @@ import {
     AiOutlineDollar,
     AiOutlineCheckCircle,
     AiOutlineWarning,
-    AiOutlineSearch
+    AiOutlineSearch,
+    AiOutlineCalendar,
+    AiOutlineDown
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
@@ -16,21 +18,28 @@ import { THEME } from '../../styles/theme';
 import toast from 'react-hot-toast';
 
 const AdminFinance: React.FC = () => {
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const currentYear = new Date().getFullYear();
+    const [selectedYear, setSelectedYear] = useState(currentYear);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
-
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedContribution, setSelectedContribution] = useState<any>(null);
 
     const { contributions, isLoading, generateAnnualContributions } = useFinance(undefined, selectedYear);
     const { members } = useMembers();
 
-    const years = useMemo(() => {
-        const currentYear = new Date().getFullYear();
-        return [currentYear - 1, currentYear, currentYear + 1];
-    }, []);
+    // Générer les options d'années (année courante - 2 à année courante + 2)
+    const yearOptions = useMemo(() => {
+        const years = [];
+        for (let i = currentYear - 2; i <= currentYear + 2; i++) {
+            years.push({
+                value: i,
+                label: i.toString()
+            });
+        }
+        return years;
+    }, [currentYear]);
 
     const filteredContributions = useMemo(() => {
         return contributions.filter(c => {
@@ -69,10 +78,15 @@ const AdminFinance: React.FC = () => {
     const handleGenerateAnnual = async () => {
         try {
             await generateAnnualContributions.mutateAsync({ year: selectedYear });
-            toast.success(`Contributions for ${selectedYear} generated`);
-        } catch (error) {
-            toast.error('Error during generation');
+            toast.success(`Contributions for ${selectedYear} generated successfully`);
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || 'Error during generation';
+            toast.error(errorMessage);
         }
+    };
+
+    const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedYear(parseInt(e.target.value, 10));
     };
 
     if (isLoading) {
@@ -80,7 +94,7 @@ const AdminFinance: React.FC = () => {
             <div className="flex items-center justify-center h-96">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                    <p className="font-black text-gray-500">Loading contributions...</p>
+                    <p className="font-black text-gray-500 uppercase">Loading contributions...</p>
                 </div>
             </div>
         );
@@ -88,7 +102,8 @@ const AdminFinance: React.FC = () => {
 
     return (
         <div className="space-y-8">
-            <div className="flex items-center justify-between">
+            {/* Header avec select dropdown */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div className="p-4 bg-brand-primary text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <AiOutlineDollar size={32} />
@@ -101,25 +116,36 @@ const AdminFinance: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 bg-white rounded-2xl border-2 border-gray-200 p-1">
-                    {years.map(year => (
-                        <button
-                            key={year}
-                            onClick={() => setSelectedYear(year)}
-                            className={`
-                                px-4 py-2 rounded-xl font-black text-xs transition-all
-                                ${selectedYear === year
-                                    ? 'bg-brand-primary text-white'
-                                    : 'text-gray-400 hover:bg-gray-100'
-                                }
-                            `}
+                {/* Select dropdown pour les années */}
+                <div className="flex items-center gap-3">
+                    <div className="relative">
+                        <AiOutlineCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <select
+                            value={selectedYear}
+                            onChange={handleYearChange}
+                            className="appearance-none bg-white border-2 border-gray-200 rounded-2xl py-3 pl-11 pr-10 text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:border-brand-primary"
                         >
-                            {year}
-                        </button>
-                    ))}
+                            {yearOptions.map(option => (
+                                <option key={option.value} value={option.value}>
+                                    Year {option.label}
+                                </option>
+                            ))}
+                        </select>
+                        <AiOutlineDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                    </div>
+                    
+                    <Button
+                        variant="secondary"
+                        onClick={handleGenerateAnnual}
+                        isLoading={generateAnnualContributions.isPending}
+                        className="whitespace-nowrap"
+                    >
+                        Generate {selectedYear}
+                    </Button>
                 </div>
             </div>
 
+            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <StatCard
                     title="Total Due"
@@ -143,24 +169,31 @@ const AdminFinance: React.FC = () => {
                 />
             </div>
 
+            {/* Message si aucune contribution */}
             {contributions.length === 0 && (
-                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-3xl p-6 flex items-center justify-between">
+                <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-6 flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-3">
-                        <AiOutlineWarning className="text-yellow-600" size={24} />
-                        <p className="font-black text-yellow-800">
-                            No contributions for {selectedYear}
-                        </p>
+                        <AiOutlineWarning className="text-amber-600" size={24} />
+                        <div>
+                            <p className="font-black text-amber-800">
+                                No contributions for {selectedYear}
+                            </p>
+                            <p className="text-xs text-amber-600 mt-0.5">
+                                Generate contributions to start tracking payments
+                            </p>
+                        </div>
                     </div>
                     <Button
                         variant="primary"
                         onClick={handleGenerateAnnual}
                         isLoading={generateAnnualContributions.isPending}
                     >
-                        Generate Contributions
+                        Generate {selectedYear} Contributions
                     </Button>
                 </div>
             )}
 
+            {/* Filtres */}
             <FinanceFilters
                 statusFilter={statusFilter}
                 setStatusFilter={setStatusFilter}
@@ -168,6 +201,7 @@ const AdminFinance: React.FC = () => {
                 setTypeFilter={setTypeFilter}
             />
 
+            {/* Search */}
             <div className="relative">
                 <Input
                     placeholder="Search for a member..."
@@ -177,6 +211,7 @@ const AdminFinance: React.FC = () => {
                 />
             </div>
 
+            {/* Tableau des contributions */}
             <div className="bg-white rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
@@ -194,7 +229,9 @@ const AdminFinance: React.FC = () => {
                             {filteredContributions.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-12 text-center font-black text-gray-400">
-                                        No contributions found
+                                        {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
+                                            ? 'No matching contributions found'
+                                            : 'No contributions for this year'}
                                     </td>
                                 </tr>
                             ) : (
@@ -205,7 +242,7 @@ const AdminFinance: React.FC = () => {
                                     const isPaid = remaining <= 0;
 
                                     return (
-                                        <tr key={contribution.id} className="hover:bg-gray-50">
+                                        <tr key={contribution.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <p className="font-black text-sm">{contribution.memberName}</p>
                                                 <p className="text-[10px] text-gray-500 uppercase">
@@ -213,12 +250,13 @@ const AdminFinance: React.FC = () => {
                                                 </p>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${isPaid
-                                                    ? 'bg-green-100 text-green-600'
-                                                    : remaining === contribution.amount
-                                                        ? 'bg-red-100 text-red-600'
-                                                        : 'bg-orange-100 text-orange-600'
-                                                    }`}>
+                                                <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${
+                                                    isPaid
+                                                        ? 'bg-green-100 text-green-600'
+                                                        : remaining === contribution.amount
+                                                            ? 'bg-red-100 text-red-600'
+                                                            : 'bg-orange-100 text-orange-600'
+                                                }`}>
                                                     {isPaid ? 'Paid' : remaining === contribution.amount ? 'Unpaid' : 'Partial'}
                                                 </span>
                                             </td>
@@ -259,6 +297,8 @@ const AdminFinance: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Payment Modal */}
             {isPaymentModalOpen && selectedContribution && (
                 <PaymentModal
                     isOpen={isPaymentModalOpen}
