@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
     AiOutlineDollar,
     AiOutlineCheckCircle,
@@ -6,9 +6,10 @@ import {
     AiOutlineSearch,
     AiOutlineCalendar,
     AiOutlineDown,
-    AiOutlineReload,
     AiOutlinePlus,
-    AiOutlinePlusCircle
+    AiOutlineReload,
+    AiOutlinePlusCircle,
+    AiOutlineMenu
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
@@ -23,8 +24,9 @@ import toast from 'react-hot-toast';
 
 const AdminFinance: React.FC = () => {
     const currentYear = new Date().getFullYear();
-    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedYear, setSelectedYear] = useState<number | null>(null);
     const [availableYears, setAvailableYears] = useState<number[]>([]);
+    const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
     const [isAddingYear, setIsAddingYear] = useState(false);
     const [newYear, setNewYear] = useState(currentYear + 1);
     const [searchTerm, setSearchTerm] = useState('');
@@ -32,34 +34,61 @@ const AdminFinance: React.FC = () => {
     const [typeFilter, setTypeFilter] = useState('all');
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedContribution, setSelectedContribution] = useState<any>(null);
+    
+    const actionMenuRef = useRef<HTMLDivElement>(null);
+    const addYearInputRef = useRef<HTMLInputElement>(null);
 
-    const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear);
+    const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear || undefined);
     const { members } = useMembers();
 
-    // Récupérer toutes les années de cotisation existantes
+    // Charger les années existantes depuis les cotisations
     useEffect(() => {
-        const fetchYears = async () => {
-            const { contributions: allContributions } = useFinance();
-            // Cette approche est un peu complexe, on va plutôt créer un service dédié
+        const fetchExistingYears = async () => {
+            try {
+                const allContributions = await import('../../services/contribution.services').then(
+                    module => module.ContributionService.getAll()
+                );
+                const years = [...new Set(allContributions.map(c => c.year))];
+                setAvailableYears(years.sort((a, b) => a - b));
+                if (years.length > 0 && !selectedYear) {
+                    setSelectedYear(years[years.length - 1]);
+                } else if (years.length === 0 && !selectedYear) {
+                    setSelectedYear(currentYear);
+                }
+            } catch (error) {
+                console.error('Failed to fetch years:', error);
+            }
         };
+        fetchExistingYears();
+    }, [currentYear, selectedYear]);
+
+    // Fermer le menu quand on clique dehors
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+                setIsActionMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Générer les options d'années (année courante - 2 à année courante + 2 + années ajoutées)
-    const yearOptions = useMemo(() => {
-        // Années de base
-        const baseYears = [];
-        for (let i = currentYear - 2; i <= currentYear + 5; i++) {
-            baseYears.push(i);
+    // Focus sur l'input quand on ouvre l'ajout d'année
+    useEffect(() => {
+        if (isAddingYear && addYearInputRef.current) {
+            addYearInputRef.current.focus();
         }
-        // Fusionner avec les années disponibles et supprimer les doublons
-        const allYears = [...new Set([...baseYears, ...availableYears])];
-        return allYears.sort((a, b) => a - b).map(year => ({
+    }, [isAddingYear]);
+
+    const yearOptions = useMemo(() => {
+        return availableYears.map(year => ({
             value: year,
             label: year.toString()
         }));
-    }, [currentYear, availableYears]);
+    }, [availableYears]);
 
     const filteredContributions = useMemo(() => {
+        if (!selectedYear) return [];
         return contributions.filter(c => {
             const member = members.find(m => m.id === c.memberId);
             const memberName = member ? `${member.firstName} ${member.lastName}` : c.memberName;
@@ -79,7 +108,7 @@ const AdminFinance: React.FC = () => {
 
             return matchesSearch && matchesStatus && matchesType;
         });
-    }, [contributions, members, searchTerm, statusFilter, typeFilter]);
+    }, [contributions, members, searchTerm, statusFilter, typeFilter, selectedYear]);
 
     const stats = useMemo(() => {
         const totalAmount = filteredContributions.reduce((sum, c) => sum + (c.amount || 0), 0);
@@ -94,13 +123,16 @@ const AdminFinance: React.FC = () => {
     }, [filteredContributions]);
 
     const handleGenerateAnnual = async () => {
+        if (!selectedYear) {
+            toast.error('Please select a year first');
+            return;
+        }
         try {
             const result = await generateAnnualContributions.mutateAsync({ year: selectedYear });
             if (result && result.length > 0) {
                 toast.success(`${result.length} contributions generated for ${selectedYear}`);
-                // Ajouter l'année aux années disponibles si elle n'existe pas
                 if (!availableYears.includes(selectedYear)) {
-                    setAvailableYears(prev => [...prev, selectedYear]);
+                    setAvailableYears(prev => [...prev, selectedYear].sort((a, b) => a - b));
                 }
             } else {
                 toast.success(`All contributions for ${selectedYear} already exist`);
@@ -109,9 +141,14 @@ const AdminFinance: React.FC = () => {
             const errorMessage = error?.response?.data?.message || 'Error during generation';
             toast.error(errorMessage);
         }
+        setIsActionMenuOpen(false);
     };
 
     const handleUpdateContributions = async () => {
+        if (!selectedYear) {
+            toast.error('Please select a year first');
+            return;
+        }
         try {
             const result = await regenerateForYear.mutateAsync({ year: selectedYear });
             if (result.length === 0) {
@@ -123,10 +160,7 @@ const AdminFinance: React.FC = () => {
             const errorMessage = error?.response?.data?.message || 'Error updating contributions';
             toast.error(errorMessage);
         }
-    };
-
-    const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedYear(parseInt(e.target.value, 10));
+        setIsActionMenuOpen(false);
     };
 
     const handleAddNewYear = async () => {
@@ -138,19 +172,31 @@ const AdminFinance: React.FC = () => {
             toast.error('Year must be 2100 or earlier');
             return;
         }
+        if (availableYears.includes(newYear)) {
+            toast.error(`Year ${newYear} already exists`);
+            return;
+        }
         
         setIsAddingYear(false);
-        
-        // Ajouter l'année aux options
-        setAvailableYears(prev => [...prev, newYear]);
+        setAvailableYears(prev => [...prev, newYear].sort((a, b) => a - b));
         setSelectedYear(newYear);
-        
-        toast.success(`Year ${newYear} added. You can now generate contributions.`);
+        setIsActionMenuOpen(false);
+        toast.success(`Year ${newYear} added. Click "Generate" to create contributions.`);
+        setNewYear(currentYear + 1);
+    };
+
+    const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedYear(parseInt(e.target.value, 10));
     };
 
     const handleCancelAddYear = () => {
         setIsAddingYear(false);
         setNewYear(currentYear + 1);
+    };
+
+    const handleOpenAddYear = () => {
+        setIsAddingYear(true);
+        setNewYear(availableYears.length > 0 ? Math.max(...availableYears) + 1 : currentYear + 1);
     };
 
     if (isLoading) {
@@ -166,7 +212,7 @@ const AdminFinance: React.FC = () => {
 
     return (
         <div className="space-y-8">
-            {/* Header avec select dropdown et boutons */}
+            {/* Header avec select dropdown et actions menu */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div className="p-4 bg-brand-primary text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -182,82 +228,113 @@ const AdminFinance: React.FC = () => {
 
                 {/* Contrôles */}
                 <div className="flex flex-wrap items-center gap-3">
-                    {/* Select année */}
+                    {/* Select année - seulement les années générées */}
                     <div className="relative">
                         <AiOutlineCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <select
-                            value={selectedYear}
+                            value={selectedYear || ''}
                             onChange={handleYearChange}
-                            className="appearance-none bg-white border-2 border-gray-200 rounded-2xl py-3 pl-11 pr-10 text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:border-brand-primary"
+                            className="appearance-none bg-white border-2 border-gray-200 rounded-2xl py-3 pl-11 pr-10 text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:border-brand-primary min-w-32"
                         >
-                            {yearOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    Year {option.label}
-                                </option>
-                            ))}
+                            {yearOptions.length === 0 ? (
+                                <option value="" disabled>No years available</option>
+                            ) : (
+                                yearOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        Year {option.label}
+                                    </option>
+                                ))
+                            )}
                         </select>
                         <AiOutlineDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                     </div>
                     
-                    {/* Bouton Add Year */}
-                    {!isAddingYear ? (
+                    {/* Actions Dropdown Menu */}
+                    <div className="relative" ref={actionMenuRef}>
                         <Button
-                            variant="secondary"
-                            onClick={() => setIsAddingYear(true)}
+                            variant="primary"
+                            onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
                             className="whitespace-nowrap flex items-center gap-2"
+                            disabled={!selectedYear && availableYears.length === 0}
                         >
-                            <AiOutlinePlusCircle size={16} />
-                            Add Year
+                            <AiOutlineMenu size={16} />
+                            Actions
+                            <AiOutlineDown size={12} className={`transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
                         </Button>
-                    ) : (
-                        <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-2xl p-1">
-                            <input
-                                type="number"
-                                value={newYear}
-                                onChange={(e) => setNewYear(parseInt(e.target.value) || currentYear + 1)}
-                                className="w-24 px-3 py-2 text-sm font-black uppercase text-center focus:outline-none"
-                                min={2000}
-                                max={2100}
-                                autoFocus
-                            />
-                            <Button
-                                variant="primary"
-                                onClick={handleAddNewYear}
-                                className="px-3 py-2 text-xs"
-                            >
-                                Add
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                onClick={handleCancelAddYear}
-                                className="px-3 py-2 text-xs"
-                            >
-                                Cancel
-                            </Button>
-                        </div>
-                    )}
-                    
-                    {/* Bouton Generate */}
-                    <Button
-                        variant="primary"
-                        onClick={handleGenerateAnnual}
-                        isLoading={generateAnnualContributions.isPending}
-                        className="whitespace-nowrap flex items-center gap-2"
-                    >
-                        <AiOutlinePlus size={16} />
-                        Generate {selectedYear}
-                    </Button>
-                    
-                    {/* Bouton Update */}
-                    <Button
-                        variant="secondary"
-                        onClick={handleUpdateContributions}
-                        isLoading={regenerateForYear?.isPending}
-                        className="whitespace-nowrap flex items-center gap-2"
-                    >
-                        <AiOutlineReload size={16} />
-                        Update
-                    </Button>
+                        
+                        {isActionMenuOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-56 bg-white border-2 border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                {/* Generate Option */}
+                                <button
+                                    onClick={handleGenerateAnnual}
+                                    disabled={!selectedYear || generateAnnualContributions.isPending}
+                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <AiOutlinePlus size={18} className="text-green-600" />
+                                    <div className="text-left">
+                                        <p className="font-black text-xs uppercase">Generate</p>
+                                        <p className="text-[9px] text-gray-400">Create contributions for {selectedYear || 'year'}</p>
+                                    </div>
+                                </button>
+                                
+                                {/* Update Option */}
+                                <button
+                                    onClick={handleUpdateContributions}
+                                    disabled={!selectedYear || regenerateForYear.isPending}
+                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <AiOutlineReload size={18} className="text-blue-600" />
+                                    <div className="text-left">
+                                        <p className="font-black text-xs uppercase">Update</p>
+                                        <p className="text-[9px] text-gray-400">Add new members for {selectedYear || 'year'}</p>
+                                    </div>
+                                </button>
+                                
+                                {/* Add Year Option */}
+                                {!isAddingYear ? (
+                                    <button
+                                        onClick={handleOpenAddYear}
+                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                                    >
+                                        <AiOutlinePlusCircle size={18} className="text-purple-600" />
+                                        <div className="text-left">
+                                            <p className="font-black text-xs uppercase">Add Year</p>
+                                            <p className="text-[9px] text-gray-400">Create a new contribution year</p>
+                                        </div>
+                                    </button>
+                                ) : (
+                                    <div className="p-3 border-t border-gray-100 bg-gray-50">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                ref={addYearInputRef}
+                                                type="number"
+                                                value={newYear}
+                                                onChange={(e) => setNewYear(parseInt(e.target.value) || currentYear + 1)}
+                                                className="w-full px-3 py-2 text-sm font-black uppercase text-center border-2 border-gray-200 rounded-xl focus:border-brand-primary focus:outline-none"
+                                                min={2000}
+                                                max={2100}
+                                                placeholder="Year"
+                                            />
+                                        </div>
+                                        <div className="flex gap-2 mt-2">
+                                            <button
+                                                onClick={handleAddNewYear}
+                                                className="flex-1 px-2 py-1 bg-brand-primary text-white text-[10px] font-black uppercase rounded-lg hover:opacity-90"
+                                            >
+                                                Add
+                                            </button>
+                                            <button
+                                                onClick={handleCancelAddYear}
+                                                className="flex-1 px-2 py-1 bg-gray-200 text-gray-600 text-[10px] font-black uppercase rounded-lg hover:bg-gray-300"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -286,161 +363,161 @@ const AdminFinance: React.FC = () => {
             </div>
 
             {/* Message si aucune contribution */}
-            {contributions.length === 0 && (
+            {(!selectedYear || filteredContributions.length === 0) && (
                 <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-6 flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-3">
                         <AiOutlineWarning className="text-amber-600" size={24} />
                         <div>
                             <p className="font-black text-amber-800">
-                                No contributions for {selectedYear}
+                                {!selectedYear ? 'Select or add a year' : `No contributions for ${selectedYear}`}
                             </p>
                             <p className="text-xs text-amber-600 mt-0.5">
-                                Click "Generate {selectedYear}" to create contributions for all eligible members
+                                {!selectedYear 
+                                    ? 'Use the Actions menu to add a year and generate contributions'
+                                    : `Click "Generate" in Actions menu to create contributions for ${selectedYear}`
+                                }
                             </p>
                         </div>
                     </div>
-                    <Button
-                        variant="primary"
-                        onClick={handleGenerateAnnual}
-                        isLoading={generateAnnualContributions.isPending}
-                    >
-                        Generate {selectedYear} Contributions
-                    </Button>
                 </div>
             )}
 
             {/* Filtres */}
-            <FinanceFilters
-                statusFilter={statusFilter}
-                setStatusFilter={setStatusFilter}
-                typeFilter={typeFilter}
-                setTypeFilter={setTypeFilter}
-            />
+            {selectedYear && filteredContributions.length > 0 && (
+                <>
+                    <FinanceFilters
+                        statusFilter={statusFilter}
+                        setStatusFilter={setStatusFilter}
+                        typeFilter={typeFilter}
+                        setTypeFilter={setTypeFilter}
+                    />
 
-            {/* Search */}
-            <div className="relative">
-                <Input
-                    placeholder="Search for a member..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    icon={<AiOutlineSearch />}
-                />
-            </div>
+                    {/* Search */}
+                    <div className="relative">
+                        <Input
+                            placeholder="Search for a member..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            icon={<AiOutlineSearch />}
+                        />
+                    </div>
 
-            {/* Tableau des contributions */}
-            <div className="bg-white rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b-2 border-gray-200">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Member</th>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Year</th>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Status</th>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Amount</th>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Paid</th>
-                                <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Remaining</th>
-                                <th className="px-6 py-4 text-right text-xs font-black uppercase text-gray-400">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {filteredContributions.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center font-black text-gray-400">
-                                        {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
-                                            ? 'No matching contributions found'
-                                            : 'No contributions for this year'}
-                                    </td>
-                                </tr>
-                            ) : (
-                                filteredContributions.map((contribution) => {
-                                    const member = members.find(m => m.id === contribution.memberId);
-                                    const isStudent = member?.status === 'STUDENT';
-                                    const remaining = contribution.remaining || 0;
-                                    const isPaid = remaining <= 0;
-
-                                    return (
-                                        <tr key={contribution.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
-                                                        {member?.imageUrl ? (
-                                                            <img
-                                                                src={getImageUrl(member.imageUrl, 'member')}
-                                                                alt={member.firstName}
-                                                                className="w-full h-full object-cover"
-                                                                onError={(e) => {
-                                                                    const target = e.target as HTMLImageElement;
-                                                                    target.style.display = 'none';
-                                                                    if (target.parentElement) {
-                                                                        target.parentElement.innerHTML = getInitials(member.firstName, member.lastName);
-                                                                        target.parentElement.classList.add('text-sm', 'font-black', 'text-gray-500');
-                                                                    }
-                                                                }}
-                                                            />
-                                                        ) : (
-                                                            <span className="text-sm font-black text-gray-500">
-                                                                {getInitials(contribution.memberName.split(' ')[0] || '', contribution.memberName.split(' ')[1] || '')}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-black text-sm">{contribution.memberName}</p>
-                                                        <p className="text-[10px] text-gray-500 uppercase">
-                                                            {isStudent ? 'Student' : 'Worker'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 font-black">
-                                                {contribution.year}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${
-                                                    isPaid
-                                                        ? 'bg-green-100 text-green-600'
-                                                        : remaining === contribution.amount
-                                                            ? 'bg-red-100 text-red-600'
-                                                            : 'bg-orange-100 text-orange-600'
-                                                }`}>
-                                                    {isPaid ? 'Paid' : remaining === contribution.amount ? 'Unpaid' : 'Partial'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-black">
-                                                {formatCurrency(contribution.amount)}
-                                            </td>
-                                            <td className="px-6 py-4 font-black text-green-600">
-                                                {formatCurrency(contribution.totalPaid)}
-                                            </td>
-                                            <td className="px-6 py-4 font-black text-red-600">
-                                                {formatCurrency(remaining)}
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                {isPaid ? (
-                                                    <span className="inline-flex items-center gap-1 text-green-600 font-black text-[10px] uppercase">
-                                                        <AiOutlineCheckCircle size={16} />
-                                                        Settled
-                                                    </span>
-                                                ) : (
-                                                    <Button
-                                                        variant="primary"
-                                                        onClick={() => {
-                                                            setSelectedContribution(contribution);
-                                                            setIsPaymentModalOpen(true);
-                                                        }}
-                                                        className="px-4 py-2 text-xs"
-                                                    >
-                                                        Pay
-                                                    </Button>
-                                                )}
+                    {/* Tableau des contributions */}
+                    <div className="bg-white rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50 border-b-2 border-gray-200">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Member</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Year</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Status</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Amount</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Paid</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Remaining</th>
+                                        <th className="px-6 py-4 text-right text-xs font-black uppercase text-gray-400">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {filteredContributions.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-12 text-center font-black text-gray-400">
+                                                {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
+                                                    ? 'No matching contributions found'
+                                                    : 'No contributions for this year'}
                                             </td>
                                         </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                                    ) : (
+                                        filteredContributions.map((contribution) => {
+                                            const member = members.find(m => m.id === contribution.memberId);
+                                            const isStudent = member?.status === 'STUDENT';
+                                            const remaining = contribution.remaining || 0;
+                                            const isPaid = remaining <= 0;
+
+                                            return (
+                                                <tr key={contribution.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                                                                {member?.imageUrl ? (
+                                                                    <img
+                                                                        src={getImageUrl(member.imageUrl, 'member')}
+                                                                        alt={member.firstName}
+                                                                        className="w-full h-full object-cover"
+                                                                        onError={(e) => {
+                                                                            const target = e.target as HTMLImageElement;
+                                                                            target.style.display = 'none';
+                                                                            if (target.parentElement) {
+                                                                                target.parentElement.innerHTML = getInitials(member.firstName, member.lastName);
+                                                                                target.parentElement.classList.add('text-sm', 'font-black', 'text-gray-500');
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-sm font-black text-gray-500">
+                                                                        {getInitials(contribution.memberName.split(' ')[0] || '', contribution.memberName.split(' ')[1] || '')}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-black text-sm">{contribution.memberName}</p>
+                                                                <p className="text-[10px] text-gray-500 uppercase">
+                                                                    {isStudent ? 'Student' : 'Worker'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 font-black">
+                                                        {contribution.year}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${
+                                                            isPaid
+                                                                ? 'bg-green-100 text-green-600'
+                                                                : remaining === contribution.amount
+                                                                    ? 'bg-red-100 text-red-600'
+                                                                    : 'bg-orange-100 text-orange-600'
+                                                        }`}>
+                                                            {isPaid ? 'Paid' : remaining === contribution.amount ? 'Unpaid' : 'Partial'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 font-black">
+                                                        {formatCurrency(contribution.amount)}
+                                                    </td>
+                                                    <td className="px-6 py-4 font-black text-green-600">
+                                                        {formatCurrency(contribution.totalPaid)}
+                                                    </td>
+                                                    <td className="px-6 py-4 font-black text-red-600">
+                                                        {formatCurrency(remaining)}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        {isPaid ? (
+                                                            <span className="inline-flex items-center gap-1 text-green-600 font-black text-[10px] uppercase">
+                                                                <AiOutlineCheckCircle size={16} />
+                                                                Settled
+                                                            </span>
+                                                        ) : (
+                                                            <Button
+                                                                variant="primary"
+                                                                onClick={() => {
+                                                                    setSelectedContribution(contribution);
+                                                                    setIsPaymentModalOpen(true);
+                                                                }}
+                                                                className="px-4 py-2 text-xs"
+                                                            >
+                                                                Pay
+                                                            </Button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
+            )}
 
             {/* Payment Modal */}
             {isPaymentModalOpen && selectedContribution && (
