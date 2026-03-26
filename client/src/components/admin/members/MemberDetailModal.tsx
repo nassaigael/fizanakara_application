@@ -101,17 +101,23 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         return 'Recently';
     };
 
+    // Fonction pour obtenir l'URL de l'image de l'enfant
+    const getChildAvatarUrl = (child: PersonResponse) => {
+        if (child.imageUrl && child.imageUrl.trim() !== '') {
+            return getImageUrl(child.imageUrl, 'member');
+        }
+        return null;
+    };
+
     return createPortal(
         <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl border-4 border-white flex flex-col animate-in zoom-in duration-300">
                 <div className={`relative h-32 bg-linear-to-r ${genderColor} overflow-hidden shrink-0`}>
-                    {/* Pattern décoratif simple */}
                     <div className="absolute inset-0 opacity-20">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                         <div className="absolute bottom-0 left-0 w-64 h-64 bg-black rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
                     </div>
                     
-                    {/* Badges dans le header */}
                     <div className="absolute top-3 right-3 flex gap-2 z-10">
                         <div className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-wider backdrop-blur-sm bg-white/90 shadow-sm flex items-center gap-1 ${statusBadge.bg}`}>
                             {statusBadge.icon}
@@ -123,12 +129,10 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                     </div>
                     
-                    {/* Icône de genre flottante */}
-                    <div className="absolute bottom-2 left-3 flex items-center gap-1  ml-1 px-1 py-1 rounded-full bg-white/90 opacity-70 backdrop-blur-sm shadow-sm z-10">
+                    <div className="absolute bottom-2 left-3 flex items-center gap-1 ml-1 px-1 py-1 rounded-full bg-white/90 opacity-70 backdrop-blur-sm shadow-sm z-10">
                         <span className={isMale ? 'text-blue-600' : 'text-pink-600'}>{genderIcon}</span>
                     </div>
                     
-                    {/* Bouton fermer */}
                     <button
                         onClick={onClose}
                         className="absolute top-3 left-3 z-10 p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white transition-all backdrop-blur-sm hover:scale-110"
@@ -137,7 +141,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     </button>
                 </div>
 
-                {/* Avatar - Positionné comme dans MemberCard */}
                 <div className="relative px-4">
                     <div className="absolute -top-10 left-4">
                         <div className="relative group">
@@ -164,9 +167,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     </div>
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 pt-12">
-                    {/* En-tête avec nom et infos */}
                     <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                         <div className="w-full md:w-auto">
                             <div className="flex items-center gap-2 mb-2">
@@ -218,7 +219,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Grille d'informations - Style comme MemberCard */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                         <InfoRow
                             icon={<AiOutlineIdcard size={14} />}
@@ -252,7 +252,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         />
                     </div>
 
-                    {/* Section Parent */}
                     {member.parentName && (
                         <div className="bg-indigo-50 rounded-xl p-4 mb-6 border border-indigo-100">
                             <div className="flex items-center gap-2 mb-2">
@@ -279,7 +278,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                     )}
 
-                    {/* Section Enfants */}
+                    {/* Section Enfants avec photos réelles */}
                     <div className="mb-4">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
@@ -316,6 +315,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 {member.children?.map((child) => {
                                     const childIsMale = child.gender === Gender.MALE;
                                     const childAge = calculateAge(child.birthDate);
+                                    const childAvatarUrl = getChildAvatarUrl(child);
                                     
                                     return (
                                         <div
@@ -324,8 +324,28 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                             className="group bg-white border-2 border-gray-100 rounded-xl p-3 hover:shadow-lg hover:border-brand-primary/30 transition-all cursor-pointer"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-black ${childIsMale ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>
-                                                    {getInitials(child.firstName, child.lastName)}
+                                                {/* Avatar avec photo réelle de l'enfant */}
+                                                <div className={`w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center text-sm font-black ${
+                                                    childAvatarUrl 
+                                                        ? 'bg-gray-100' 
+                                                        : childIsMale 
+                                                            ? 'bg-blue-100 text-blue-600' 
+                                                            : 'bg-pink-100 text-pink-600'
+                                                }`}>
+                                                    {childAvatarUrl ? (
+                                                        <img
+                                                            src={childAvatarUrl}
+                                                            alt={child.firstName}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                                (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials(child.firstName, child.lastName);
+                                                                (e.target as HTMLImageElement).parentElement!.classList.add('text-sm', 'font-black', childIsMale ? 'text-blue-600' : 'text-pink-600');
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        getInitials(child.firstName, child.lastName)
+                                                    )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-black text-xs uppercase truncate">
@@ -346,7 +366,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         )}
                     </div>
 
-                    {/* Pied de page */}
                     <div className="flex gap-3 pt-4 border-t-2 border-gray-100 mt-4">
                         <Button
                             variant="secondary"
@@ -372,7 +391,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     );
 };
 
-// Composant InfoRow pour les informations
 interface InfoRowProps {
     icon: React.ReactNode;
     label: string;
