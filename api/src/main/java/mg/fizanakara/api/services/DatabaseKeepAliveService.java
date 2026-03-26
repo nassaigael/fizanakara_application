@@ -17,7 +17,7 @@ public class DatabaseKeepAliveService {
         this.keepAliveRepository = keepAliveRepository;
     }
 
-    @Scheduled(fixedRate = 10 * 60 * 1000)  // Toutes les 10 minutes (600 000 ms)
+    @Scheduled(fixedRate = 10 * 60 * 1000)
     public void keepDatabaseAlive() {
         try {
             keepAliveRepository.pingDatabase();

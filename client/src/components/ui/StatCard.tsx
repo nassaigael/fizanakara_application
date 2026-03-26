@@ -16,7 +16,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, status, icon, color }) => {
 
     return (
         <div className="bg-white rounded-2xl border-2 border-b-4 border-brand-border p-6 hover:shadow-lg transition-all">
-            <div className={`p-3 bg-gradient-to-br ${colorClasses[color]} text-white rounded-2xl w-fit mb-4`}>
+            <div className={`p-3 bg-linear-to-br ${colorClasses[color]} text-white rounded-2xl w-fit mb-4`}>
                 {icon}
             </div>
             <h3 className="font-black text-xs uppercase text-brand-muted mb-2">{title}</h3>

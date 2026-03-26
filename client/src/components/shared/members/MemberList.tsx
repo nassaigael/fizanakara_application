@@ -221,7 +221,7 @@ const StatCard: React.FC<{ title: string; value: number; color: string }> = ({ t
     };
     
     return (
-        <div className={`bg-gradient-to-br ${colors[color as keyof typeof colors]} rounded-2xl p-4 border-2`}>
+        <div className={`bg-linear-to-br ${colors[color as keyof typeof colors]} rounded-2xl p-4 border-2`}>
             <p className="text-2xl font-black">{value}</p>
             <p className="text-xs font-bold uppercase">{title}</p>
         </div>

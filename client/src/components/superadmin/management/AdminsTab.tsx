@@ -48,7 +48,7 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
                         <tr key={admin.id} className="hover:bg-gray-50 transition-colors">
                             <td className="py-4 px-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-brand-border flex items-center justify-center bg-gradient-to-br from-brand-primary to-orange-500 shadow-md">
+                                    <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-brand-border flex items-center justify-center bg-linear-to-br from-brand-primary to-orange-500 shadow-md">
                                         {admin.imageUrl ? (
                                             <img
                                                 src={getImageUrl(admin.imageUrl, 'admin')}
@@ -66,7 +66,7 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
                                         )}
                                     </div>
                                     <div>
-                                        <p className="font-black text-sm text-brand-text truncate max-w-[150px] uppercase">
+                                        <p className="font-black text-sm text-brand-text truncate max-w-37.5 uppercase">
                                             {admin.firstName} {admin.lastName}
                                         </p>
                                         <p className="text-[10px] font-bold text-brand-muted tracking-tighter">

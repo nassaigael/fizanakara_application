@@ -28,7 +28,7 @@ const ForgotPassword: React.FC = () => {
 
     if (isSubmitted) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-linear-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute inset-0" style={{
                         backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
@@ -62,7 +62,7 @@ const ForgotPassword: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-linear-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
             <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0" style={{
                     backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
@@ -74,7 +74,7 @@ const ForgotPassword: React.FC = () => {
                 <div className="bg-white rounded-[3rem] border-4 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
                     <div className="bg-black p-8">
                         <Link to="/login" className="inline-block mb-4">
-                            <Button variant="ghost" className="!p-2 !text-white hover:!bg-white/10">
+                            <Button variant="ghost" className="p-2! text-white! hover:bg-white/10!">
                                 <AiOutlineArrowLeft size={20} />
                             </Button>
                         </Link>

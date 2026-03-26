@@ -12,7 +12,7 @@ export const ScreenLoading: React.FC<ScreenLoadingProps> = ({
   subMessage = 'Veuillez patienter...'
 }) => {
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-brand-bg via-brand-bg to-brand-bg/95 flex flex-col items-center justify-center z-[9999] overflow-hidden">
+    <div className="fixed inset-0 bg-linear-to-br from-brand-bg via-brand-bg to-brand-bg/95 flex flex-col items-center justify-center z-9999 overflow-hidden">
       <div className="absolute inset-0 opacity-[0.03]">
         <div className="absolute top-10 right-20 w-72 h-72 bg-brand-primary rounded-full blur-3xl"></div>
         <div className="absolute bottom-10 left-20 w-64 h-64 bg-brand-secondary rounded-full blur-3xl"></div>
@@ -20,7 +20,7 @@ export const ScreenLoading: React.FC<ScreenLoadingProps> = ({
 
       <div className="relative z-10 flex flex-col items-center justify-center gap-8 px-4">
         <div className="relative">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-brand-primary to-brand-secondary p-1 shadow-2xl">
+          <div className="w-24 h-24 rounded-full bg-linear-to-r from-brand-primary to-brand-secondary p-1 shadow-2xl">
             <div className="w-full h-full rounded-full bg-brand-bg flex items-center justify-center">
               <AiOutlineLoading3Quarters 
                 size={48} 
@@ -34,7 +34,7 @@ export const ScreenLoading: React.FC<ScreenLoadingProps> = ({
         </div>
 
         <div className="text-center space-y-3">
-          <h2 className={`${THEME.font.h1} text-2xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary animate-pulse`}>
+          <h2 className={`${THEME.font.h1} text-2xl md:text-4xl text-transparent bg-clip-text bg-linear-to-r from-brand-primary to-brand-secondary animate-pulse`}>
             {message}
           </h2>
           <p className={`${THEME.font.muted} text-sm md:text-base`}>

@@ -43,7 +43,7 @@ const ResetPassword: React.FC = () => {
 
     if (isSubmitted) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-linear-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute inset-0" style={{
@@ -73,7 +73,7 @@ const ResetPassword: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-linear-to-br from-brand-primary to-orange-600 flex items-center justify-center p-4">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0" style={{

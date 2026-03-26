@@ -44,16 +44,19 @@ public class AdminsService {
         return adminsRepository.save(admin);
     }
 
+    // LOGIN
     public boolean login(String email, String rawPassword) {
         return adminsRepository.findByEmail(email)
                 .map(admins -> passwordEncoder.matches(rawPassword, admins.getPassword()))
                 .orElse(false);
     }
 
+    // FIND ADMIN BY EMAIL
     public Optional<Admins> findByEmail(String email) {
         return adminsRepository.findByEmail(email);
     }
 
+    // SAVE ADMIN
     public Admins save(Admins admin) {
         return adminsRepository.save(admin);
     }
@@ -86,46 +89,36 @@ public class AdminsService {
                 && adminsRepository.existsByEmail(req.getEmail()))
             throw new AdminsException("Email has exit use by other admin");
 
-        int changes = 0;
         if (req.getFirstName() != null) {
             admin.setFirstName(req.getFirstName());
-            changes++;
         }
         if (req.getLastName() != null) {
             admin.setLastName(req.getLastName());
-            changes++;
         }
         if (req.getBirthDate() != null) {
             admin.setBirthDate(req.getBirthDate());
-            changes++;
         }
         if (req.getGender() != null) {
             try {
                 admin.setGender(Gender.valueOf(req.getGender().toUpperCase()));
-                changes++;
             } catch (IllegalArgumentException e) {
                 throw new AdminsException("Gender invalid : " + req.getGender());
             }
         }
         if (req.getImageUrl() != null) {
             admin.setImageUrl(req.getImageUrl());
-            changes++;
         }
         if (req.getPhoneNumber() != null) {
             admin.setPhoneNumber(req.getPhoneNumber());
-            changes++;
         }
         if (req.getEmail() != null) {
             admin.setEmail(req.getEmail());
-            changes++;
         }
-        if (req.getPassword() != null) {
+        if (req.getPassword() != null && ! req.getPassword().isEmpty()) {
             admin.setPassword(passwordEncoder.encode(req.getPassword()));
-            changes++;
         }
         if (req.getVerified() != null) {
             admin.setVerified(req.getVerified());
-            changes++;
         }
 
         Admins updated = adminsRepository.save(admin);
@@ -204,4 +197,4 @@ public class AdminsService {
         dto.setPhoneNumber(admin.getPhoneNumber());
         return dto;
     }
-}dto.setFirstName(admin.getFirstName());dto.setLastName(admin.getLastName());dto.setEmail(admin.getEmail());dto.setRole(admin.getRole());dto.setVerified(admin.isVerified());dto.setCreatedAt(admin.getCreatedAt());dto.setPhoneNumber(admin.getPhoneNumber());return dto;}}
+}

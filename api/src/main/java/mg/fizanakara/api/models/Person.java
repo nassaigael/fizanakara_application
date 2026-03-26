@@ -9,8 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import mg.fizanakara.api.models.enums.Gender;
 import mg.fizanakara.api.models.enums.MemberStatus;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -24,16 +25,16 @@ import java.util.List;
         @Index(name = "idx_persons_tribute_id", columnList = "tribute_id")
 })
 @Getter
-@Setter  // ← AJOUT EXPLICITE : Génère tous setters (y compris setIsActiveMember)
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public class Person extends Users {  // Hérite profil commun (nom, birthDate, gender, etc.)
+public class Person extends Users {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @NotNull(message = "Status is required")
-    private MemberStatus status = MemberStatus.STUDENT;  // Default pour mineurs
+    private MemberStatus status = MemberStatus.STUDENT;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "district_id", nullable = false)
@@ -48,30 +49,29 @@ public class Person extends Users {  // Hérite profil commun (nom, birthDate, g
     private Tribute tribute;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")  // Self-reference : lien permanent "fils de" (nullable pour racines)
+    @JoinColumn(name = "parent_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     @JsonIgnore
     private Person parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
     @JsonIgnore
     @Builder.Default
-    private List<Person> children = new ArrayList<>();  // Ses propres enfants (tous âges)
+    private List<Person> children = new ArrayList<>();
 
     @Column(name = "is_active_member", nullable = false)
-    private boolean isActiveMember = false;  // Devient true à 18 ans (promotion) – SETTER GÉNÉRÉ PAR @Setter
+    private boolean isActiveMember = false;
 
     @Override
     public String generatedCustomId() {
-        return "MBR" + String.format("%08d", this.getSequenceNumber());  // Prefix "PRS" pour Person
+        return "MBR" + String.format("%08d", this.getSequenceNumber());
     }
 
-    // Utilitaire : Éligibilité cotisation (basé sur âge)
     public boolean isEligibleForContribution(Year year) {
         int age = calculateAgeAtYear(this.getBirthDate(), year);
         return age >= 18;
     }
 
-    // Calcul âge fin d'année (copié de tes services)
     public int calculateAgeAtYear(LocalDate birthDate, Year year) {
         LocalDate endOfYear = LocalDate.of(year.getValue(), 12, 31);
         return endOfYear.getYear() - birthDate.getYear() -

@@ -20,7 +20,7 @@ const LoadingScreen: React.FC = () => {
     }, []);
 
     return (
-        <div className="h-screen w-full flex items-center justify-center bg-gradient-to-br from-brand-primary to-orange-500">
+        <div className="h-screen w-full flex items-center justify-center bg-linear-to-br from-brand-primary to-orange-500">
             <div className="text-center text-white px-4">
                 <div className="mb-8 flex justify-center">
                     <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-lg rounded-3xl border-2 border-white/30 flex items-center justify-center animate-pulse">

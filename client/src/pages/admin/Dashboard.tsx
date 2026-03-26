@@ -174,7 +174,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="bg-gradient-to-br from-brand-primary to-orange-600 rounded-3xl border-2 border-black p-6 text-white">
+                <div className="bg-linear-to-br from-brand-primary to-orange-600 rounded-3xl border-2 border-black p-6 text-white">
                     <h2 className={`${THEME.font.h2} text-xl mb-6 flex items-center gap-2`}>
                         <AiOutlineCalendar /> QUICK ACTIONS
                     </h2>

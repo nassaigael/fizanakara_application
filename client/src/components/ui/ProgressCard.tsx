@@ -37,8 +37,8 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
                     <p className="text-xs sm:text-sm text-gray-500 mt-1 font-semibold">{subtitle}</p>
                 </div>
                 
-                <div className="w-full sm:w-auto text-right bg-gradient-to-br from-red-50 to-orange-50 px-4 sm:px-6 py-3 rounded-xl sm:rounded-2xl border-2 border-red-200">
-                    <p className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                <div className="w-full sm:w-auto text-right bg-linear-to-br from-red-50 to-orange-50 px-4 sm:px-6 py-3 rounded-xl sm:rounded-2xl border-2 border-red-200">
+                    <p className="text-2xl sm:text-3xl font-black bg-linear-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
                         {Math.round(progress)}%
                     </p>
                     <p className="text-[10px] sm:text-xs text-gray-600 font-bold mt-1">
@@ -49,10 +49,10 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
 
             <div className="relative w-full bg-gray-200 rounded-full h-6 sm:h-8 overflow-hidden shadow-inner">
                 <div
-                    className="h-full rounded-full bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 transition-all duration-1000 ease-out relative overflow-hidden"
+                    className="h-full rounded-full bg-linear-to-r from-red-500 via-orange-500 to-yellow-500 transition-all duration-1000 ease-out relative overflow-hidden"
                     style={{ width: `${progress}%` }}
                 >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer" />
+                    <div className="absolute inset-0 bg-linear-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer" />
                 </div>
                 
                 {progress > 10 && (

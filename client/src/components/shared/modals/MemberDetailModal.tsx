@@ -23,7 +23,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({ member, on
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white w-full max-w-2xl rounded-[3rem] border-2 border-b-8 border-gray-200 overflow-hidden shadow-2xl">
-                <div className="relative h-32 bg-gradient-to-r from-brand-primary to-orange-500">
+                <div className="relative h-32 bg-linear-to-r from-brand-primary to-orange-500">
                     <button 
                         onClick={onClose} 
                         className="absolute top-4 right-4 p-2 bg-black/20 text-white rounded-full hover:bg-black/40 transition-colors z-10"
