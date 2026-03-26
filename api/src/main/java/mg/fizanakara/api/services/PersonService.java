@@ -32,7 +32,6 @@ public class PersonService {
     private final DistrictRepository districtRepository;
     private final TributeRepository tributeRepository;
     private final SequenceService sequenceService;
-    private final ContributionService contributionService;
     private final ContributionRepository contributionRepository;
     private final PaymentRepository paymentRepository;
 
@@ -54,7 +53,7 @@ public class PersonService {
         return mapToResponseDto(person);
     }
 
-    // CREATE PERSON
+    // CREATE PERSON - Sans génération automatique de contribution
     @Transactional
     public PersonResponseDto createPerson(PersonDto dto) {
         log.info("Creating person: {} {} (parentId: {})", dto.getFirstName(), dto.getLastName(), dto.getParentId());
@@ -80,8 +79,7 @@ public class PersonService {
         }
 
         Year currentYear = Year.now();
-        boolean isEligible = calculateEligibilityFromDto(dto.getBirthDate(), currentYear); // Méthode helper
-                                                                                           // (ci-dessous)
+        boolean isEligible = calculateEligibilityFromDto(dto.getBirthDate(), currentYear);
 
         Person person = Person.builder()
                 .firstName(dto.getFirstName())
@@ -108,14 +106,12 @@ public class PersonService {
             personRepository.save(parent);
         }
 
-        if (isEligible) {
-            contributionService.createSingleContributionForPerson(currentYear, saved.getId());
-        }
+        log.info("Member created successfully without contribution. ID: {}", saved.getId());
 
         return mapToResponseDto(saved);
     }
 
-    // PROMOTION À 18 ANS
+    // PROMOTION À 18 ANS - Sans génération automatique de contribution
     @Transactional
     public PersonResponseDto promoteToActiveMember(String personId) {
         Person person = personRepository.findById(personId)
@@ -127,10 +123,7 @@ public class PersonService {
             person.setStatus(MemberStatus.WORKER);
             Person promoted = personRepository.save(person);
 
-            contributionService.createSingleContributionForPerson(currentYear, personId);
-
-            log.info("Person {} promoted to active member (parent link preserved: {})", personId,
-                    person.getParent() != null ? person.getParent().getId() : "none");
+            log.info("Person {} promoted to active member. Contribution must be created manually", personId);
             return mapToResponseDto(promoted);
         }
         log.info("Person {} already active or not eligible", personId);
@@ -186,101 +179,49 @@ public class PersonService {
         return mapToResponseDto(updated);
     }
 
-    // DELETE BY ID
+    // DELETE BY ID - Rend les enfants indépendants avant de supprimer le parent
     @Transactional
     public void deletePerson(String id) {
         Person person = personRepository.findById(id)
                 .orElseThrow(() -> new PersonNotFoundException("Person not found with ID: " + id));
 
         log.info("Deleting person with ID: {}", id);
-        log.info("Person details - Name: {} {}, Age: {}, Has parent: {}, Has children: {}",
-                person.getFirstName(), person.getLastName(),
-                calculateAge(person.getBirthDate()),
-                person.getParent() != null,
-                !person.getChildren().isEmpty());
+        log.info("Person details - Name: {} {}, Has children: {}",
+                person.getFirstName(), person.getLastName(), !person.getChildren().isEmpty());
 
-        // 1. Gérer les enfants de la personne supprimée
+        // 1. Rendre tous les enfants indépendants (parent_id = null) AVANT de supprimer le parent
+        //    Cela supprime la dépendance de clé étrangère
         if (!person.getChildren().isEmpty()) {
-            log.info("Person {} has {} children. They will become independent (parent = null)",
-                    person.getId(), person.getChildren().size());
-
+            log.info("Person has {} children. Making them independent first", person.getChildren().size());
+            
             for (Person child : person.getChildren()) {
-                // 1a. Supprimer TOUTES les contributions de l'enfant
-                // (car l'enfant devient indépendant, ses cotisations sont à son nom)
-                List<Contribution> childContributions = contributionRepository.findByMemberId(child.getId());
-                if (!childContributions.isEmpty()) {
-                    log.info("Deleting {} contributions for child {} before making them independent",
-                            childContributions.size(), child.getId());
-
-                    for (Contribution contribution : childContributions) {
-                        // Supprimer les paiements associés
-                        List<Payment> payments = paymentRepository.findByContributionId(contribution.getId());
-                        if (!payments.isEmpty()) {
-                            paymentRepository.deleteAll(payments);
-                            log.debug("Deleted {} payments for contribution {}", payments.size(), contribution.getId());
-                        }
-                    }
-                    contributionRepository.deleteAll(childContributions);
-                }
-
-                // 1b. Supprimer également les contributions où l'enfant est child_id
-                List<Contribution> childContributionsAsChild = contributionRepository.findByChildId(child.getId());
-                if (!childContributionsAsChild.isEmpty()) {
-                    log.info("Deleting {} contributions where child is child_id", childContributionsAsChild.size());
-                    for (Contribution contribution : childContributionsAsChild) {
-                        List<Payment> payments = paymentRepository.findByContributionId(contribution.getId());
-                        if (!payments.isEmpty()) {
-                            paymentRepository.deleteAll(payments);
-                        }
-                    }
-                    contributionRepository.deleteAll(childContributionsAsChild);
-                }
-
-                // 1c. Rendre l'enfant indépendant (parent = null)
                 child.setParent(null);
                 personRepository.save(child);
                 log.debug("Child {} is now independent", child.getId());
             }
         }
 
-        // 2. Supprimer les contributions de la personne elle-même
-        List<Contribution> contributions = contributionRepository.findByMemberId(id);
-        if (!contributions.isEmpty()) {
-            log.info("Deleting {} contributions for person {}", contributions.size(), id);
-
-            for (Contribution contribution : contributions) {
-                List<Payment> payments = paymentRepository.findByContributionId(contribution.getId());
-                if (!payments.isEmpty()) {
-                    paymentRepository.deleteAll(payments);
-                    log.debug("Deleted {} payments for contribution {}", payments.size(), contribution.getId());
-                }
-            }
-            contributionRepository.deleteAll(contributions);
-        }
-
-        // 3. Supprimer les contributions où cette personne est référencée comme
-        // child_id
-        List<Contribution> contributionsAsChild = contributionRepository.findByChildId(id);
-        if (!contributionsAsChild.isEmpty()) {
-            log.info("Deleting {} contributions where person is child_id", contributionsAsChild.size());
-            for (Contribution contribution : contributionsAsChild) {
+        // 2. Supprimer les contributions du parent
+        List<Contribution> parentContributions = contributionRepository.findByMemberId(id);
+        if (!parentContributions.isEmpty()) {
+            log.info("Deleting {} contributions for parent", parentContributions.size());
+            for (Contribution contribution : parentContributions) {
                 List<Payment> payments = paymentRepository.findByContributionId(contribution.getId());
                 if (!payments.isEmpty()) {
                     paymentRepository.deleteAll(payments);
                 }
             }
-            contributionRepository.deleteAll(contributionsAsChild);
+            contributionRepository.deleteAll(parentContributions);
         }
 
-        // 4. Retirer la personne de la liste des enfants de son parent
-        if (person.getParent() != null) {
-            Person parent = person.getParent();
-            parent.getChildren().remove(person);
-            personRepository.save(parent);
-            log.info("Removed person from parent's children list: {}", parent.getId());
+        // 3. Supprimer les contributions où le parent est child_id (par sécurité)
+        List<Contribution> parentContributionsAsChild = contributionRepository.findByChildId(id);
+        if (!parentContributionsAsChild.isEmpty()) {
+            log.info("Deleting {} contributions where parent is child_id", parentContributionsAsChild.size());
+            contributionRepository.deleteAll(parentContributionsAsChild);
         }
 
-        // 5. Supprimer la personne
+        // 4. Supprimer le parent (maintenant aucun enfant ne pointe vers lui)
         personRepository.delete(person);
         log.info("Successfully deleted person with ID: {}", id);
     }
@@ -338,18 +279,6 @@ public class PersonService {
         dto.setChildren(person.getChildren());
 
         return dto;
-    }
-
-    // Helper pour calculer l'âge
-    private int calculateAge(LocalDate birthDate) {
-        LocalDate today = LocalDate.now();
-        int age = today.getYear() - birthDate.getYear();
-        if (today.getMonthValue() < birthDate.getMonthValue() ||
-                (today.getMonthValue() == birthDate.getMonthValue() &&
-                        today.getDayOfMonth() < birthDate.getDayOfMonth())) {
-            age--;
-        }
-        return age;
     }
 
     private boolean calculateEligibilityFromDto(LocalDate birthDate, Year year) {
