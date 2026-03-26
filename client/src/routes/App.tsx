@@ -16,12 +16,11 @@ const NotFound = lazy(() => import('../pages/common/NotFound'));
 
 const SuperAdminDashboard = lazy(() => import('../pages/superadmin/Dashboard'));
 const SuperAdminManagement = lazy(() => import('../pages/superadmin/Management'));
-const SuperAdminProfile = lazy(() => import('../pages/superadmin/Profile'));
 
 const AdminDashboard = lazy(() => import('../pages/admin/Dashboard'));
 const AdminMembers = lazy(() => import('../pages/admin/Members'));
 const AdminFinance = lazy(() => import('../pages/admin/Finance'));
-const AdminProfile = lazy(() => import('../pages/admin/Profile'));
+const Profile = lazy(() => import('../pages/common/Profile'));
 
 export function App() {
     const { isAuthenticated, isSuperAdmin } = useAuth();
@@ -51,7 +50,7 @@ export function App() {
                     <Route element={<ProtectedRoute requiredRole={UserRole.SUPERADMIN} />}>
                         <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
                         <Route path="/superadmin/management" element={<SuperAdminManagement />} />
-                        <Route path="/superadmin/profile" element={<SuperAdminProfile />} />
+                        <Route path="/superadmin/profile" element={<Profile />} />
                         <Route path="/superadmin" element={<Navigate to="/superadmin/dashboard" replace />} />
                     </Route>
 
@@ -59,7 +58,7 @@ export function App() {
                         <Route path="/admin/dashboard" element={<AdminDashboard />} />
                         <Route path="/admin/members" element={<AdminMembers />} />
                         <Route path="/admin/finance" element={<AdminFinance />} />
-                        <Route path="/admin/profile" element={<AdminProfile />} />
+                        <Route path="/admin/profile" element={<Profile />} />
                         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
                     </Route>
 
