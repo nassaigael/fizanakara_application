@@ -29,7 +29,7 @@ import java.time.Year;
 public class Contribution {
 
     @Id
-    private String id;  // "COT2026-001" (unique)
+    private String id;
 
     @Column(nullable = false)
     @NotNull(message = "Year is required")
