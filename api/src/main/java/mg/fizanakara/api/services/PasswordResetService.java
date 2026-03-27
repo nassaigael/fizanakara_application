@@ -34,7 +34,7 @@ public class PasswordResetService {
     @Value("${app.token.expiration.minutes:30}")
     private long tokenExpirationMinutes;
 
-    @Value("${app.client.reset.url:http://localhost:3000/reset-password}")
+    @Value("${app.client.reset.url:http://localhost:3000/reset-password/}")
     private String clientResetUrl;
 
     private final String emailSubject = "Réinitialisation de mot de passe - Fizanakara";
@@ -76,7 +76,7 @@ public class PasswordResetService {
 
         log.info("Token of reinitialisation of password created for admin : {}", admin.getEmail());
 
-        String resetLink = clientResetUrl + "?token=" + token;
+        String resetLink = clientResetUrl + "/" + token;
         String emailBody = String.format(emailBodyTemplate, tokenExpirationMinutes, resetLink);
 
         String toAddress = admin.getFirstName() + " " + admin.getLastName() + " <" + admin.getEmail() + ">";
