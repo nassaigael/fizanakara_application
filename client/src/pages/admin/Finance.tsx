@@ -40,7 +40,6 @@ const AdminFinance: React.FC = () => {
     const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear || undefined);
     const { members } = useMembers();
 
-    // Charger les années existantes depuis les cotisations
     useEffect(() => {
         const fetchExistingYears = async () => {
             try {
@@ -61,7 +60,6 @@ const AdminFinance: React.FC = () => {
         fetchExistingYears();
     }, [currentYear, selectedYear]);
 
-    // Fermer le menu quand on clique dehors
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
@@ -72,7 +70,6 @@ const AdminFinance: React.FC = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Focus sur l'input quand on ouvre l'ajout d'année
     useEffect(() => {
         if (isAddingYear && addYearInputRef.current) {
             addYearInputRef.current.focus();
@@ -88,24 +85,42 @@ const AdminFinance: React.FC = () => {
 
     const filteredContributions = useMemo(() => {
         if (!selectedYear) return [];
+        
         return contributions.filter(c => {
             const member = members.find(m => m.id === c.memberId);
             const memberName = member ? `${member.firstName} ${member.lastName}` : c.memberName;
-
-            const matchesSearch = memberName?.toLowerCase().includes(searchTerm.toLowerCase());
-
-            const remaining = c.remaining || 0;
-            let matchesStatus = true;
-            if (statusFilter === 'UNPAID') matchesStatus = remaining === c.amount;
-            if (statusFilter === 'PARTIAL') matchesStatus = remaining > 0 && remaining < c.amount;
-            if (statusFilter === 'PAID') matchesStatus = remaining <= 0;
-
-            const isStudent = member?.status === 'STUDENT';
-            let matchesType = true;
-            if (typeFilter === 'STUDENT') matchesType = isStudent;
-            if (typeFilter === 'WORKER') matchesType = !isStudent;
-
-            return matchesSearch && matchesStatus && matchesType;
+            
+            // 1. Filtre par recherche
+            if (searchTerm && !memberName.toLowerCase().includes(searchTerm.toLowerCase())) {
+                return false;
+            }
+            
+            // 2. Filtre par type (Student/Worker)
+            if (typeFilter !== 'all') {
+                const isStudent = member?.status === 'STUDENT';
+                if (typeFilter === 'STUDENT' && !isStudent) return false;
+                if (typeFilter === 'WORKER' && isStudent) return false;
+            }
+            
+            // 3. Filtre par statut de paiement (Account Status)
+            if (statusFilter !== 'all') {
+                const totalPaid = c.totalPaid ?? 0;
+                const amount = c.amount ?? 0;
+                const remaining = amount - totalPaid;
+                
+                if (statusFilter === 'UNPAID') {
+                    // UNPAID = reste à payer > 0 (non complètement payé)
+                    return remaining > 0;
+                } else if (statusFilter === 'PARTIAL') {
+                    // PARTIAL = a payé partiellement mais pas fini
+                    return totalPaid > 0 && remaining > 0;
+                } else if (statusFilter === 'PAID') {
+                    // PAID = plus de reste à payer
+                    return remaining <= 0;
+                }
+            }
+            
+            return true;
         });
     }, [contributions, members, searchTerm, statusFilter, typeFilter, selectedYear]);
 
@@ -117,49 +132,10 @@ const AdminFinance: React.FC = () => {
             totalPaid,
             remaining: totalAmount - totalPaid,
             count: filteredContributions.length,
-            paidCount: filteredContributions.filter(c => (c.remaining || 0) <= 0).length
+            paidCount: filteredContributions.filter(c => (c.totalPaid ?? 0) >= (c.amount ?? 0)).length
         };
     }, [filteredContributions]);
 
-    // Action: Ajouter une année ET générer les cotisations automatiquement
-    const handleAddAndGenerateYear = async () => {
-        if (newYear < 2000) {
-            toast.error('Year must be 2000 or later');
-            return;
-        }
-        if (newYear > 2100) {
-            toast.error('Year must be 2100 or earlier');
-            return;
-        }
-        if (availableYears.includes(newYear)) {
-            toast.error(`Year ${newYear} already exists`);
-            return;
-        }
-        
-        setIsAddingYear(false);
-        
-        try {
-            // Générer les cotisations pour la nouvelle année
-            const result = await generateAnnualContributions.mutateAsync({ year: newYear });
-            
-            if (result && result.length > 0) {
-                toast.success(`${result.length} contributions generated for ${newYear}`);
-                // Ajouter l'année aux disponibles
-                setAvailableYears(prev => [...prev, newYear].sort((a, b) => a - b));
-                setSelectedYear(newYear);
-            } else {
-                toast.success(`Year ${newYear} added but no eligible members found`);
-                setAvailableYears(prev => [...prev, newYear].sort((a, b) => a - b));
-                setSelectedYear(newYear);
-            }
-        } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || 'Failed to generate contributions';
-            toast.error(errorMessage);
-        }
-        
-        setIsActionMenuOpen(false);
-        setNewYear(currentYear + 1);
-    };
 
     const handleUpdateContributions = async () => {
         if (!selectedYear) {
@@ -178,6 +154,43 @@ const AdminFinance: React.FC = () => {
             toast.error(errorMessage);
         }
         setIsActionMenuOpen(false);
+    };
+
+    const handleAddAndGenerateYear = async () => {
+        if (newYear < 2000) {
+            toast.error('Year must be 2000 or later');
+            return;
+        }
+        if (newYear > 2100) {
+            toast.error('Year must be 2100 or earlier');
+            return;
+        }
+        if (availableYears.includes(newYear)) {
+            toast.error(`Year ${newYear} already exists`);
+            return;
+        }
+        
+        setIsAddingYear(false);
+        
+        try {
+            const result = await generateAnnualContributions.mutateAsync({ year: newYear });
+            
+            if (result && result.length > 0) {
+                toast.success(`${result.length} contributions generated for ${newYear}`);
+                setAvailableYears(prev => [...prev, newYear].sort((a, b) => a - b));
+                setSelectedYear(newYear);
+            } else {
+                toast.success(`Year ${newYear} added but no eligible members found`);
+                setAvailableYears(prev => [...prev, newYear].sort((a, b) => a - b));
+                setSelectedYear(newYear);
+            }
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || 'Failed to generate contributions';
+            toast.error(errorMessage);
+        }
+        
+        setIsActionMenuOpen(false);
+        setNewYear(currentYear + 1);
     };
 
     const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -207,7 +220,6 @@ const AdminFinance: React.FC = () => {
 
     return (
         <div className="space-y-8">
-            {/* Header avec select dropdown et actions menu */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div className="p-4 bg-brand-primary text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -221,9 +233,7 @@ const AdminFinance: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Contrôles */}
                 <div className="flex flex-wrap items-center gap-3">
-                    {/* Select année - seulement les années générées */}
                     <div className="relative">
                         <AiOutlineCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <select
@@ -244,7 +254,6 @@ const AdminFinance: React.FC = () => {
                         <AiOutlineDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                     </div>
                     
-                    {/* Actions Dropdown Menu */}
                     <div className="relative" ref={actionMenuRef}>
                         <Button
                             variant="primary"
@@ -259,7 +268,6 @@ const AdminFinance: React.FC = () => {
                         
                         {isActionMenuOpen && (
                             <div className="absolute right-0 top-full mt-2 w-64 bg-white border-2 border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                {/* Add & Generate Year - Action combinée */}
                                 {!isAddingYear ? (
                                     <button
                                         onClick={handleOpenAddYear}
@@ -306,7 +314,6 @@ const AdminFinance: React.FC = () => {
                                     </div>
                                 )}
                                 
-                                {/* Update Option */}
                                 <button
                                     onClick={handleUpdateContributions}
                                     disabled={!selectedYear || regenerateForYear.isPending}
@@ -324,7 +331,6 @@ const AdminFinance: React.FC = () => {
                 </div>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <StatCard
                     title="Total Due"
@@ -348,19 +354,25 @@ const AdminFinance: React.FC = () => {
                 />
             </div>
 
-            {/* Message si aucune contribution */}
             {(!selectedYear || filteredContributions.length === 0) && (
                 <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-6 flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-3">
                         <AiOutlineWarning className="text-amber-600" size={24} />
                         <div>
                             <p className="font-black text-amber-800">
-                                {!selectedYear ? 'No years available' : `No contributions for ${selectedYear}`}
+                                {!selectedYear 
+                                    ? 'Select or add a year' 
+                                    : contributions.length === 0 
+                                        ? `No contributions for ${selectedYear}`
+                                        : `No matching contributions found for ${selectedYear}`
+                                }
                             </p>
                             <p className="text-xs text-amber-600 mt-0.5">
                                 {!selectedYear 
                                     ? 'Use the Actions menu to add a year and generate contributions'
-                                    : `Click "Update" in Actions menu to add new members for ${selectedYear}`
+                                    : contributions.length === 0
+                                        ? `Click "Actions" → "Add Year & Generate" to create contributions for ${selectedYear}`
+                                        : 'Try adjusting your filters or search criteria'
                                 }
                             </p>
                         </div>
@@ -368,7 +380,6 @@ const AdminFinance: React.FC = () => {
                 </div>
             )}
 
-            {/* Filtres et tableau */}
             {selectedYear && filteredContributions.length > 0 && (
                 <>
                     <FinanceFilters
@@ -378,7 +389,6 @@ const AdminFinance: React.FC = () => {
                         setTypeFilter={setTypeFilter}
                     />
 
-                    {/* Search */}
                     <div className="relative">
                         <Input
                             placeholder="Search for a member..."
@@ -388,7 +398,37 @@ const AdminFinance: React.FC = () => {
                         />
                     </div>
 
-                    {/* Tableau des contributions */}
+                    {(statusFilter !== 'all' || typeFilter !== 'all' || searchTerm !== '') && (
+                        <div className="flex flex-wrap items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                            <span className="text-[9px] font-black text-gray-500 uppercase">Active filters:</span>
+                            {searchTerm && (
+                                <span className="px-2 py-1 bg-gray-200 rounded-lg text-[8px] font-black">
+                                    Search: {searchTerm}
+                                </span>
+                            )}
+                            {statusFilter !== 'all' && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[8px] font-black">
+                                    {statusFilter === 'UNPAID' ? 'Unpaid' : statusFilter === 'PARTIAL' ? 'Partial' : 'Paid'}
+                                </span>
+                            )}
+                            {typeFilter !== 'all' && (
+                                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-[8px] font-black">
+                                    {typeFilter === 'STUDENT' ? 'Students' : 'Workers'}
+                                </span>
+                            )}
+                            <button
+                                onClick={() => {
+                                    setSearchTerm('');
+                                    setStatusFilter('all');
+                                    setTypeFilter('all');
+                                }}
+                                className="ml-auto text-[8px] font-black text-red-500 hover:text-red-600"
+                            >
+                                Clear all
+                            </button>
+                        </div>
+                    )}
+
                     <div className="bg-white rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full">
@@ -404,100 +444,93 @@ const AdminFinance: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {filteredContributions.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={7} className="px-6 py-12 text-center font-black text-gray-400">
-                                                {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
-                                                    ? 'No matching contributions found'
-                                                    : 'No contributions for this year'}
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        filteredContributions.map((contribution) => {
-                                            const member = members.find(m => m.id === contribution.memberId);
-                                            const isStudent = member?.status === 'STUDENT';
-                                            const remaining = contribution.remaining || 0;
-                                            const isPaid = remaining <= 0;
+                                    {filteredContributions.map((contribution) => {
+                                        const member = members.find(m => m.id === contribution.memberId);
+                                        const isStudent = member?.status === 'STUDENT';
+                                        const totalPaid = contribution.totalPaid ?? 0;
+                                        const amount = contribution.amount ?? 0;
+                                        const remaining = amount - totalPaid;
+                                        const isPaid = totalPaid >= amount;
+                                        const isUnpaid = totalPaid === 0;
 
-                                            return (
-                                                <tr key={contribution.id} className="hover:bg-gray-50 transition-colors">
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
-                                                                {member?.imageUrl ? (
-                                                                    <img
-                                                                        src={getImageUrl(member.imageUrl, 'member')}
-                                                                        alt={member.firstName}
-                                                                        className="w-full h-full object-cover"
-                                                                        onError={(e) => {
-                                                                            const target = e.target as HTMLImageElement;
-                                                                            target.style.display = 'none';
-                                                                            if (target.parentElement) {
-                                                                                target.parentElement.innerHTML = getInitials(member.firstName, member.lastName);
-                                                                                target.parentElement.classList.add('text-sm', 'font-black', 'text-gray-500');
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                ) : (
-                                                                    <span className="text-sm font-black text-gray-500">
-                                                                        {getInitials(contribution.memberName.split(' ')[0] || '', contribution.memberName.split(' ')[1] || '')}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-black text-sm">{contribution.memberName}</p>
-                                                                <p className="text-[10px] text-gray-500 uppercase">
-                                                                    {isStudent ? 'Student' : 'Worker'}
-                                                                </p>
-                                                            </div>
+                                        return (
+                                            <tr key={contribution.id} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                                                            {member?.imageUrl ? (
+                                                                <img
+                                                                    src={getImageUrl(member.imageUrl, 'member')}
+                                                                    alt={member.firstName}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        const target = e.target as HTMLImageElement;
+                                                                        target.style.display = 'none';
+                                                                        if (target.parentElement) {
+                                                                            target.parentElement.innerHTML = getInitials(member.firstName, member.lastName);
+                                                                            target.parentElement.classList.add('text-sm', 'font-black', 'text-gray-500');
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <span className="text-sm font-black text-gray-500">
+                                                                    {getInitials(contribution.memberName.split(' ')[0] || '', contribution.memberName.split(' ')[1] || '')}
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 font-black">
-                                                        {contribution.year}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${
-                                                            isPaid
-                                                                ? 'bg-green-100 text-green-600'
-                                                                : remaining === contribution.amount
-                                                                    ? 'bg-red-100 text-red-600'
-                                                                    : 'bg-orange-100 text-orange-600'
-                                                        }`}>
-                                                            {isPaid ? 'Paid' : remaining === contribution.amount ? 'Unpaid' : 'Partial'}
+                                                        <div>
+                                                            <p className="font-black text-sm">{contribution.memberName}</p>
+                                                            <p className="text-[10px] text-gray-500 uppercase">
+                                                                {isStudent ? 'Student' : 'Worker'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 font-black">
+                                                    {contribution.year}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${
+                                                        isPaid
+                                                            ? 'bg-green-100 text-green-600'
+                                                            : isUnpaid
+                                                                ? 'bg-red-100 text-red-600'
+                                                                : 'bg-orange-100 text-orange-600'
+                                                    }`}>
+                                                        {isPaid ? 'Paid' : isUnpaid ? 'Unpaid' : 'Partial'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 font-black">
+                                                    {formatCurrency(amount)}
+                                                </td>
+                                                <td className="px-6 py-4 font-black text-green-600">
+                                                    {formatCurrency(totalPaid)}
+                                                </td>
+                                                <td className="px-6 py-4 font-black text-red-600">
+                                                    {formatCurrency(remaining)}
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    {isPaid ? (
+                                                        <span className="inline-flex items-center gap-1 text-green-600 font-black text-[10px] uppercase">
+                                                            <AiOutlineCheckCircle size={16} />
+                                                            Settled
                                                         </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 font-black">
-                                                        {formatCurrency(contribution.amount)}
-                                                    </td>
-                                                    <td className="px-6 py-4 font-black text-green-600">
-                                                        {formatCurrency(contribution.totalPaid)}
-                                                    </td>
-                                                    <td className="px-6 py-4 font-black text-red-600">
-                                                        {formatCurrency(remaining)}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        {isPaid ? (
-                                                            <span className="inline-flex items-center gap-1 text-green-600 font-black text-[10px] uppercase">
-                                                                <AiOutlineCheckCircle size={16} />
-                                                                Settled
-                                                            </span>
-                                                        ) : (
-                                                            <Button
-                                                                variant="primary"
-                                                                onClick={() => {
-                                                                    setSelectedContribution(contribution);
-                                                                    setIsPaymentModalOpen(true);
-                                                                }}
-                                                                className="px-4 py-2 text-xs"
-                                                            >
-                                                                Pay
-                                                            </Button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
+                                                    ) : (
+                                                        <Button
+                                                            variant="primary"
+                                                            onClick={() => {
+                                                                setSelectedContribution(contribution);
+                                                                setIsPaymentModalOpen(true);
+                                                            }}
+                                                            className="px-4 py-2 text-xs"
+                                                        >
+                                                            Pay
+                                                        </Button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -505,7 +538,6 @@ const AdminFinance: React.FC = () => {
                 </>
             )}
 
-            {/* Payment Modal */}
             {isPaymentModalOpen && selectedContribution && (
                 <PaymentModal
                     isOpen={isPaymentModalOpen}
