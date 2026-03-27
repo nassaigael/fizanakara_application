@@ -33,9 +33,10 @@ const AdminFinance: React.FC = () => {
     const [typeFilter, setTypeFilter] = useState('all');
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedContribution, setSelectedContribution] = useState<any>(null);
-    
+
     const actionMenuRef = useRef<HTMLDivElement>(null);
     const addYearInputRef = useRef<HTMLInputElement>(null);
+    const filtersRef = useRef<HTMLDivElement>(null);
 
     const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear || undefined);
     const { members } = useMembers();
@@ -85,41 +86,35 @@ const AdminFinance: React.FC = () => {
 
     const filteredContributions = useMemo(() => {
         if (!selectedYear) return [];
-        
+
         return contributions.filter(c => {
             const member = members.find(m => m.id === c.memberId);
             const memberName = member ? `${member.firstName} ${member.lastName}` : c.memberName;
-            
-            // 1. Filtre par recherche
+
             if (searchTerm && !memberName.toLowerCase().includes(searchTerm.toLowerCase())) {
                 return false;
             }
-            
-            // 2. Filtre par type (Student/Worker)
+
             if (typeFilter !== 'all') {
                 const isStudent = member?.status === 'STUDENT';
                 if (typeFilter === 'STUDENT' && !isStudent) return false;
                 if (typeFilter === 'WORKER' && isStudent) return false;
             }
-            
-            // 3. Filtre par statut de paiement (Account Status)
+
             if (statusFilter !== 'all') {
                 const totalPaid = c.totalPaid ?? 0;
                 const amount = c.amount ?? 0;
                 const remaining = amount - totalPaid;
-                
+
                 if (statusFilter === 'UNPAID') {
-                    // UNPAID = reste à payer > 0 (non complètement payé)
                     return remaining > 0;
                 } else if (statusFilter === 'PARTIAL') {
-                    // PARTIAL = a payé partiellement mais pas fini
                     return totalPaid > 0 && remaining > 0;
                 } else if (statusFilter === 'PAID') {
-                    // PAID = plus de reste à payer
                     return remaining <= 0;
                 }
             }
-            
+
             return true;
         });
     }, [contributions, members, searchTerm, statusFilter, typeFilter, selectedYear]);
@@ -169,12 +164,12 @@ const AdminFinance: React.FC = () => {
             toast.error(`Year ${newYear} already exists`);
             return;
         }
-        
+
         setIsAddingYear(false);
-        
+
         try {
             const result = await generateAnnualContributions.mutateAsync({ year: newYear });
-            
+
             if (result && result.length > 0) {
                 toast.success(`${result.length} contributions generated for ${newYear}`);
                 setAvailableYears(prev => [...prev, newYear].sort((a, b) => a - b));
@@ -188,7 +183,7 @@ const AdminFinance: React.FC = () => {
             const errorMessage = error?.response?.data?.message || 'Failed to generate contributions';
             toast.error(errorMessage);
         }
-        
+
         setIsActionMenuOpen(false);
         setNewYear(currentYear + 1);
     };
@@ -219,169 +214,150 @@ const AdminFinance: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="p-4 bg-brand-primary text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                        <AiOutlineDollar size={32} />
-                    </div>
-                    <div>
-                        <h1 className={`${THEME.font.h1} text-3xl uppercase`}>Finance</h1>
-                        <p className={`${THEME.font.muted} mt-1 text-xs uppercase tracking-widest`}>
-                            Contribution Management
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="relative">
-                        <AiOutlineCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <select
-                            value={selectedYear || ''}
-                            onChange={handleYearChange}
-                            className="appearance-none bg-white border-2 border-gray-200 rounded-2xl py-3 pl-11 pr-10 text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:border-brand-primary min-w-32"
-                        >
-                            {yearOptions.length === 0 ? (
-                                <option value="" disabled>No years available</option>
-                            ) : (
-                                yearOptions.map(option => (
-                                    <option key={option.value} value={option.value}>
-                                        Year {option.label}
-                                    </option>
-                                ))
-                            )}
-                        </select>
-                        <AiOutlineDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-                    </div>
-                    
-                    <div className="relative" ref={actionMenuRef}>
-                        <Button
-                            variant="primary"
-                            onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-                            className="whitespace-nowrap flex items-center gap-2"
-                            disabled={!selectedYear && availableYears.length === 0}
-                        >
-                            <AiOutlineMenu size={16} />
-                            Actions
-                            <AiOutlineDown size={12} className={`transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
-                        </Button>
-                        
-                        {isActionMenuOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-64 bg-white border-2 border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                {!isAddingYear ? (
-                                    <button
-                                        onClick={handleOpenAddYear}
-                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100"
-                                    >
-                                        <AiOutlinePlusCircle size={18} className="text-green-600" />
-                                        <div className="text-left">
-                                            <p className="font-black text-xs uppercase">Add Year & Generate</p>
-                                            <p className="text-[9px] text-gray-400">Create new year with contributions</p>
-                                        </div>
-                                    </button>
-                                ) : (
-                                    <div className="p-3 border-b border-gray-100 bg-gray-50">
-                                        <p className="text-[10px] font-black uppercase text-gray-500 mb-2">New Year</p>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                ref={addYearInputRef}
-                                                type="number"
-                                                value={newYear}
-                                                onChange={(e) => setNewYear(parseInt(e.target.value) || currentYear + 1)}
-                                                className="w-full px-3 py-2 text-sm font-black uppercase text-center border-2 border-gray-200 rounded-xl focus:border-brand-primary focus:outline-none"
-                                                min={2000}
-                                                max={2100}
-                                                placeholder="Year"
-                                            />
-                                        </div>
-                                        <div className="flex gap-2 mt-2">
-                                            <button
-                                                onClick={handleAddAndGenerateYear}
-                                                className="flex-1 px-2 py-1 bg-green-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-green-700"
-                                            >
-                                                Generate
-                                            </button>
-                                            <button
-                                                onClick={handleCancelAddYear}
-                                                className="flex-1 px-2 py-1 bg-gray-200 text-gray-600 text-[10px] font-black uppercase rounded-lg hover:bg-gray-300"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                        <p className="text-[8px] text-gray-400 mt-2 text-center">
-                                            Creates contributions for all eligible members
-                                        </p>
-                                    </div>
-                                )}
-                                
-                                <button
-                                    onClick={handleUpdateContributions}
-                                    disabled={!selectedYear || regenerateForYear.isPending}
-                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <AiOutlineReload size={18} className="text-blue-600" />
-                                    <div className="text-left">
-                                        <p className="font-black text-xs uppercase">Update</p>
-                                        <p className="text-[9px] text-gray-400">Add new members for {selectedYear || 'year'}</p>
-                                    </div>
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <StatCard
-                    title="Total Due"
-                    value={formatCurrency(stats.totalAmount)}
-                    color="bg-blue-500"
-                />
-                <StatCard
-                    title="Total Paid"
-                    value={formatCurrency(stats.totalPaid)}
-                    color="bg-green-500"
-                />
-                <StatCard
-                    title="Remaining"
-                    value={formatCurrency(stats.remaining)}
-                    color="bg-red-500"
-                />
-                <StatCard
-                    title="Payment Rate"
-                    value={`${stats.totalAmount > 0 ? ((stats.totalPaid / stats.totalAmount) * 100).toFixed(1) : 0}%`}
-                    color="bg-purple-500"
-                />
-            </div>
-
-            {(!selectedYear || filteredContributions.length === 0) && (
-                <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-6 flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex items-center gap-3">
-                        <AiOutlineWarning className="text-amber-600" size={24} />
+        <div className="h-full flex flex-col">
+            {/* Header et Stats - Non scrollable */}
+            <div className="shrink-0 space-y-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="p-4 bg-brand-primary text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                            <AiOutlineDollar size={32} />
+                        </div>
                         <div>
-                            <p className="font-black text-amber-800">
-                                {!selectedYear 
-                                    ? 'Select or add a year' 
-                                    : contributions.length === 0 
-                                        ? `No contributions for ${selectedYear}`
-                                        : `No matching contributions found for ${selectedYear}`
-                                }
-                            </p>
-                            <p className="text-xs text-amber-600 mt-0.5">
-                                {!selectedYear 
-                                    ? 'Use the Actions menu to add a year and generate contributions'
-                                    : contributions.length === 0
-                                        ? `Click "Actions" → "Add Year & Generate" to create contributions for ${selectedYear}`
-                                        : 'Try adjusting your filters or search criteria'
-                                }
+                            <h1 className={`${THEME.font.h1} text-3xl uppercase`}>Finance</h1>
+                            <p className={`${THEME.font.muted} mt-1 text-xs uppercase tracking-widest`}>
+                                Contribution Management
                             </p>
                         </div>
                     </div>
-                </div>
-            )}
 
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="relative">
+                            <AiOutlineCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <select
+                                value={selectedYear || ''}
+                                onChange={handleYearChange}
+                                className="appearance-none bg-white border-2 border-gray-200 rounded-2xl py-3 pl-11 pr-10 text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:border-brand-primary min-w-32"
+                            >
+                                {yearOptions.length === 0 ? (
+                                    <option value="" disabled>No years available</option>
+                                ) : (
+                                    yearOptions.map(option => (
+                                        <option key={option.value} value={option.value}>
+                                            Year {option.label}
+                                        </option>
+                                    ))
+                                )}
+                            </select>
+                            <AiOutlineDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                        </div>
+
+                        <div className="relative" ref={actionMenuRef}>
+                            <Button
+                                variant="primary"
+                                onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
+                                className="whitespace-nowrap flex items-center gap-2"
+                                disabled={!selectedYear && availableYears.length === 0}
+                            >
+                                <AiOutlineMenu size={16} />
+                                Actions
+                                <AiOutlineDown size={12} className={`transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
+                            </Button>
+
+                            {isActionMenuOpen && (
+                                <div className="absolute right-0 top-full mt-2 w-64 bg-white border-2 border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                    {!isAddingYear ? (
+                                        <button
+                                            onClick={handleOpenAddYear}
+                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100"
+                                        >
+                                            <AiOutlinePlusCircle size={18} className="text-green-600" />
+                                            <div className="text-left">
+                                                <p className="font-black text-xs uppercase">Add Year & Generate</p>
+                                                <p className="text-[9px] text-gray-400">Create new year with contributions</p>
+                                            </div>
+                                        </button>
+                                    ) : (
+                                        <div className="p-3 border-b border-gray-100 bg-gray-50">
+                                            <p className="text-[10px] font-black uppercase text-gray-500 mb-2">New Year</p>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    ref={addYearInputRef}
+                                                    type="number"
+                                                    value={newYear}
+                                                    onChange={(e) => setNewYear(parseInt(e.target.value) || currentYear + 1)}
+                                                    className="w-full px-3 py-2 text-sm font-black uppercase text-center border-2 border-gray-200 rounded-xl focus:border-brand-primary focus:outline-none"
+                                                    min={2000}
+                                                    max={2100}
+                                                    placeholder="Year"
+                                                />
+                                            </div>
+                                            <div className="flex gap-2 mt-2">
+                                                <button
+                                                    onClick={handleAddAndGenerateYear}
+                                                    className="flex-1 px-2 py-1 bg-green-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-green-700"
+                                                >
+                                                    Generate
+                                                </button>
+                                                <button
+                                                    onClick={handleCancelAddYear}
+                                                    className="flex-1 px-2 py-1 bg-gray-200 text-gray-600 text-[10px] font-black uppercase rounded-lg hover:bg-gray-300"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                            <p className="text-[8px] text-gray-400 mt-2 text-center">
+                                                Creates contributions for all eligible members
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={handleUpdateContributions}
+                                        disabled={!selectedYear || regenerateForYear.isPending}
+                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <AiOutlineReload size={18} className="text-blue-600" />
+                                        <div className="text-left">
+                                            <p className="font-black text-xs uppercase">Update</p>
+                                            <p className="text-[9px] text-gray-400">Add new members for {selectedYear || 'year'}</p>
+                                        </div>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <StatCard
+                        title="Total Due"
+                        value={formatCurrency(stats.totalAmount)}
+                        color="bg-blue-500"
+                    />
+                    <StatCard
+                        title="Total Paid"
+                        value={formatCurrency(stats.totalPaid)}
+                        color="bg-green-500"
+                    />
+                    <StatCard
+                        title="Remaining"
+                        value={formatCurrency(stats.remaining)}
+                        color="bg-red-500"
+                    />
+                    <StatCard
+                        title="Payment Rate"
+                        value={`${stats.totalAmount > 0 ? ((stats.totalPaid / stats.totalAmount) * 100).toFixed(1) : 0}%`}
+                        color="bg-purple-500"
+                    />
+                </div>
+            </div>
+
+            {/* Filtres section - Sticky */}
             {selectedYear && filteredContributions.length > 0 && (
-                <>
+                <div
+                    ref={filtersRef}
+                    className="sticky top-0 z-20 bg-brand-bg pt-4 pb-2 -mt-2 space-y-4"
+                >
                     <FinanceFilters
                         statusFilter={statusFilter}
                         setStatusFilter={setStatusFilter}
@@ -428,19 +404,24 @@ const AdminFinance: React.FC = () => {
                             </button>
                         </div>
                     )}
+                </div>
+            )}
 
-                    <div className="bg-white rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-50 border-b-2 border-gray-200">
+            {/* Tableau des contributions - Scrollable */}
+            <div className="flex-1 min-h-0 mt-4">
+                {selectedYear && filteredContributions.length > 0 ? (
+                    <div className="bg-white rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden h-full flex flex-col">
+                        <div className="flex-1 overflow-auto">
+                            <table className="w-full min-w-175">
+                                <thead className="bg-gray-50 border-b-2 border-gray-200 sticky top-0 z-10">
                                     <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Member</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Year</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Status</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Amount</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Paid</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black uppercase text-gray-400">Remaining</th>
-                                        <th className="px-6 py-4 text-right text-xs font-black uppercase text-gray-400">Actions</th>
+                                        <th className="px-4 py-4 text-left text-xs font-black uppercase text-gray-400">Member</th>
+                                        <th className="px-4 py-4 text-left text-xs font-black uppercase text-gray-400">Year</th>
+                                        <th className="px-4 py-4 text-left text-xs font-black uppercase text-gray-400">Status</th>
+                                        <th className="px-4 py-4 text-left text-xs font-black uppercase text-gray-400">Amount</th>
+                                        <th className="px-4 py-4 text-left text-xs font-black uppercase text-gray-400">Paid</th>
+                                        <th className="px-4 py-4 text-left text-xs font-black uppercase text-gray-400">Remaining</th>
+                                        <th className="px-4 py-4 text-right text-xs font-black uppercase text-gray-400">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -455,9 +436,9 @@ const AdminFinance: React.FC = () => {
 
                                         return (
                                             <tr key={contribution.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-6 py-4">
+                                                <td className="px-4 py-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                                                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
                                                             {member?.imageUrl ? (
                                                                 <img
                                                                     src={getImageUrl(member.imageUrl, 'member')}
@@ -486,30 +467,29 @@ const AdminFinance: React.FC = () => {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 font-black">
+                                                <td className="px-4 py-4 font-black">
                                                     {contribution.year}
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${
-                                                        isPaid
+                                                <td className="px-4 py-4">
+                                                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${isPaid
                                                             ? 'bg-green-100 text-green-600'
                                                             : isUnpaid
                                                                 ? 'bg-red-100 text-red-600'
                                                                 : 'bg-orange-100 text-orange-600'
-                                                    }`}>
+                                                        }`}>
                                                         {isPaid ? 'Paid' : isUnpaid ? 'Unpaid' : 'Partial'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 font-black">
+                                                <td className="px-4 py-4 font-black">
                                                     {formatCurrency(amount)}
                                                 </td>
-                                                <td className="px-6 py-4 font-black text-green-600">
+                                                <td className="px-4 py-4 font-black text-green-600">
                                                     {formatCurrency(totalPaid)}
                                                 </td>
-                                                <td className="px-6 py-4 font-black text-red-600">
+                                                <td className="px-4 py-4 font-black text-red-600">
                                                     {formatCurrency(remaining)}
                                                 </td>
-                                                <td className="px-6 py-4 text-right">
+                                                <td className="px-4 py-4 text-right">
                                                     {isPaid ? (
                                                         <span className="inline-flex items-center gap-1 text-green-600 font-black text-[10px] uppercase">
                                                             <AiOutlineCheckCircle size={16} />
@@ -534,9 +514,38 @@ const AdminFinance: React.FC = () => {
                                 </tbody>
                             </table>
                         </div>
+                        <div className="px-4 py-3 bg-gray-50 border-t-2 border-gray-200 shrink-0">
+                            <p className="text-[10px] font-black text-gray-400 uppercase">
+                                Showing {filteredContributions.length} of {contributions.length} contributions
+                            </p>
+                        </div>
                     </div>
-                </>
-            )}
+                ) : (
+                    <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-6 flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex items-center gap-3">
+                            <AiOutlineWarning className="text-amber-600" size={24} />
+                            <div>
+                                <p className="font-black text-amber-800">
+                                    {!selectedYear
+                                        ? 'Select or add a year'
+                                        : contributions.length === 0
+                                            ? `No contributions for ${selectedYear}`
+                                            : `No matching contributions found for ${selectedYear}`
+                                    }
+                                </p>
+                                <p className="text-xs text-amber-600 mt-0.5">
+                                    {!selectedYear
+                                        ? 'Use the Actions menu to add a year and generate contributions'
+                                        : contributions.length === 0
+                                            ? `Click "Actions" → "Add Year & Generate" to create contributions for ${selectedYear}`
+                                            : 'Try adjusting your filters or search criteria'
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
 
             {isPaymentModalOpen && selectedContribution && (
                 <PaymentModal
