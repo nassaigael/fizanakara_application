@@ -4,14 +4,16 @@ import {
     AiOutlineClose,
     AiOutlineDollar,
     AiOutlineCalendar,
-    AiOutlineCheckCircle
+    AiOutlineCheckCircle,
+    AiOutlineClockCircle,
+    AiOutlineInfoCircle,
+    AiOutlineWarning
 } from 'react-icons/ai';
 import { useForm } from '../../../hooks/useForm';
-import { useFinance } from '../../../hooks/useFinance';
+import { usePayment } from '../../../hooks/usePayment';
 import { paymentSchema } from '../../../lib/validators/finance.validator';
 import { PaymentStatus } from '../../../lib/types';
 import Input from '../../ui/Input';
-import Select from '../../ui/Select';
 import Button from '../../ui/Button';
 import { formatCurrency } from '../../../lib/helper';
 
@@ -34,35 +36,73 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     remainingAmount,
     onSuccess
 }) => {
-    const { addPayment } = useFinance();
+    const { addPayment } = usePayment();
     const [showSuccess, setShowSuccess] = useState(false);
+    const [selectedAmount, setSelectedAmount] = useState<number>(remainingAmount || 0);
+    const [amountError, setAmountError] = useState<string | null>(null);
+
+    // Déterminer automatiquement le statut en fonction du montant
+    const getAutoStatus = (amount: number): PaymentStatus => {
+        if (!contributionAmount || !remainingAmount) return PaymentStatus.PENDING;
+
+        const totalPaidAfter = (contributionAmount - remainingAmount) + amount;
+
+        if (totalPaidAfter >= contributionAmount) {
+            return PaymentStatus.COMPLETED;
+        }
+        return PaymentStatus.PENDING;
+    };
+
+    // Vérifier si le montant dépasse le reste à payer
+    const validateAmount = (amount: number): boolean => {
+        if (amount > (remainingAmount || 0)) {
+            setAmountError(`Amount cannot exceed remaining balance of ${formatCurrency(remainingAmount || 0)}`);
+            return false;
+        }
+        setAmountError(null);
+        return true;
+    };
+
+    // Calculer le statut automatique basé sur le montant saisi
+    const autoStatus = getAutoStatus(selectedAmount);
 
     const {
         values,
         errors,
         touched,
-        handleChange,
         handleBlur,
         handleSubmit,
-        resetForm
+        resetForm,
+        setFieldValue
     } = useForm<any>({
         initialValues: {
             amountPaid: remainingAmount || 0,
-            paymentDate: new Date().toISOString().split('T')[0],
-            status: PaymentStatus.COMPLETED,
+            paymentDate: new Date().toISOString(),
+            status: autoStatus,
             contributionId
         },
         validationSchema: paymentSchema,
         onSubmit: async (formData) => {
+            // Vérification finale avant soumission
+            if (formData.amountPaid > (remainingAmount || 0)) {
+                setAmountError(`Amount cannot exceed remaining balance of ${formatCurrency(remainingAmount || 0)}`);
+                return;
+            }
+
             try {
+                const paymentDate = formData.paymentDate instanceof Date
+                    ? formData.paymentDate.toISOString()
+                    : new Date(formData.paymentDate).toISOString();
+
+                // Utiliser le statut automatique, pas celui du formulaire
                 await addPayment.mutateAsync({
                     amountPaid: formData.amountPaid,
-                    paymentDate: formData.paymentDate,
-                    status: formData.status,
+                    paymentDate: paymentDate,
+                    status: autoStatus, // ← Statut automatique
                     contributionId: formData.contributionId
                 });
                 setShowSuccess(true);
-                
+
                 setTimeout(() => {
                     setShowSuccess(false);
                     resetForm();
@@ -70,15 +110,68 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     onClose();
                 }, 1500);
             } catch (error) {
-                // Error handled by hook
+                console.error('Payment error:', error);
             }
         }
     });
 
-    const statusOptions = [
-        { value: PaymentStatus.COMPLETED, label: 'Completed' },
-        { value: PaymentStatus.PENDING, label: 'Pending' }
-    ];
+    // Gérer le changement de montant avec validation
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const amount = parseFloat(e.target.value) || 0;
+
+        // Validation
+        if (!validateAmount(amount)) {
+            setSelectedAmount(amount);
+            setFieldValue('amountPaid', amount);
+            return;
+        }
+
+        setSelectedAmount(amount);
+        setFieldValue('amountPaid', amount);
+        
+        // Le statut est automatiquement mis à jour via autoStatus
+        // On synchronise aussi la valeur dans le formulaire
+        setFieldValue('status', autoStatus);
+    };
+
+    // Gérer le changement de date
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const dateValue = e.target.value;
+        if (dateValue) {
+            const isoDate = new Date(dateValue).toISOString();
+            setFieldValue('paymentDate', isoDate);
+        } else {
+            setFieldValue('paymentDate', '');
+        }
+    };
+
+    // Formater la date pour l'affichage dans l'input
+    const getDisplayDate = () => {
+        if (!values.paymentDate) return '';
+        try {
+            return new Date(values.paymentDate).toISOString().split('T')[0];
+        } catch {
+            return '';
+        }
+    };
+
+    // Vérifier si le montant est complet
+    const isFullPayment = selectedAmount >= (remainingAmount || 0);
+    const isOverPayment = selectedAmount > (remainingAmount || 0);
+    const remainingAfterPayment = Math.max(0, (remainingAmount || 0) - selectedAmount);
+
+    // Obtenir le label du statut
+    const getStatusLabel = () => {
+        return autoStatus === PaymentStatus.COMPLETED ? 'Completed' : 'Pending';
+    };
+
+    const getStatusIcon = () => {
+        return autoStatus === PaymentStatus.COMPLETED ? (
+            <AiOutlineCheckCircle className="text-green-500" size={14} />
+        ) : (
+            <AiOutlineClockCircle className="text-orange-500" size={14} />
+        );
+    };
 
     if (!isOpen) return null;
 
@@ -110,48 +203,152 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
                     <form onSubmit={handleSubmit} className="p-6 space-y-5">
                         {/* Summary */}
-                        <div className="bg-gray-50 border-2 border-black rounded-2xl p-4 flex justify-between">
-                            <div>
-                                <p className="text-[10px] font-black text-gray-400 uppercase">Total Due</p>
-                                <p className="font-black">{formatCurrency(contributionAmount || 0)}</p>
+                        <div className="bg-gray-50 border-2 border-black rounded-2xl p-4">
+                            <div className="flex justify-between mb-2">
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase">Total Due</p>
+                                    <p className="font-black text-lg">{formatCurrency(contributionAmount || 0)}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black text-red-400 uppercase">Remaining</p>
+                                    <p className="font-black text-lg text-red-600">{formatCurrency(remainingAmount || 0)}</p>
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-[10px] font-black text-red-400 uppercase">Remaining</p>
-                                <p className="font-black text-red-600">{formatCurrency(remainingAmount || 0)}</p>
-                            </div>
+
+                            {/* Indicateur de paiement */}
+                            {selectedAmount > 0 && !isOverPayment && (
+                                <div className={`mt-3 pt-3 border-t border-gray-200 flex justify-between items-center ${
+                                    isFullPayment ? 'text-green-600' : 'text-orange-500'
+                                }`}>
+                                    <p className="text-[9px] font-black uppercase">After this payment</p>
+                                    <p className="text-sm font-black">
+                                        {isFullPayment ? (
+                                            <span className="flex items-center gap-1">
+                                                <AiOutlineCheckCircle size={14} />
+                                                Fully settled
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1">
+                                                <AiOutlineClockCircle size={14} />
+                                                Remaining: {formatCurrency(remainingAfterPayment)}
+                                            </span>
+                                        )}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Alerte de dépassement */}
+                            {isOverPayment && (
+                                <div className="mt-3 pt-3 border-t border-red-200">
+                                    <div className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
+                                        <AiOutlineWarning size={14} className="text-red-500" />
+                                        <p className="text-[9px] font-black text-red-600 uppercase">
+                                            Overpayment detected! Maximum allowed: {formatCurrency(remainingAmount || 0)}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
-                        <Input
-                            label="Amount Paid"
-                            name="amountPaid"
-                            type="number"
-                            value={values.amountPaid?.toString()}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            error={touched.amountPaid ? errors.amountPaid : undefined}
-                            icon={<AiOutlineDollar />}
-                        />
+                        {/* Amount Input */}
+                        <div>
+                            <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-2 block">
+                                Amount Paid
+                            </label>
+                            <Input
+                                name="amountPaid"
+                                type="number"
+                                value={selectedAmount.toString()}
+                                onChange={handleAmountChange}
+                                onBlur={handleBlur}
+                                error={touched.amountPaid ? errors.amountPaid : (amountError || undefined)}
+                                icon={<AiOutlineDollar />}
+                                placeholder="Enter amount"
+                                max={remainingAmount}
+                                step="1000"
+                            />
 
+                            {/* Quick amount buttons */}
+                            {remainingAmount && remainingAmount > 0 && !isOverPayment && (
+                                <div className="flex gap-2 mt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const halfAmount = Math.min(Math.round((remainingAmount || 0) / 2), remainingAmount || 0);
+                                            setSelectedAmount(halfAmount);
+                                            setFieldValue('amountPaid', halfAmount);
+                                            setAmountError(null);
+                                        }}
+                                        className="flex-1 text-[9px] font-black py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                    >
+                                        50% ({formatCurrency(Math.min(Math.round((remainingAmount || 0) / 2), remainingAmount || 0))})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedAmount(remainingAmount || 0);
+                                            setFieldValue('amountPaid', remainingAmount || 0);
+                                            setAmountError(null);
+                                        }}
+                                        className="flex-1 text-[9px] font-black py-1.5 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 rounded-lg transition-colors"
+                                    >
+                                        Full ({formatCurrency(remainingAmount || 0)})
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Message d'information sur le montant maximum */}
+                            {remainingAmount && (
+                                <p className="text-[8px] text-gray-400 mt-2">
+                                    Maximum allowed: {formatCurrency(remainingAmount)}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Date Input */}
                         <Input
                             label="Date"
                             name="paymentDate"
                             type="date"
-                            value={values.paymentDate}
-                            onChange={handleChange}
+                            value={getDisplayDate()}
+                            onChange={handleDateChange}
                             onBlur={handleBlur}
                             error={touched.paymentDate ? errors.paymentDate : undefined}
                             icon={<AiOutlineCalendar />}
                         />
 
-                        <Select
-                            label="Payment Status"
-                            name="status"
-                            options={statusOptions}
-                            value={values.status}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            error={touched.status ? errors.status : undefined}
-                        />
+                        {/* Status Display - Automatique, non modifiable */}
+                        <div>
+                            <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-2 block">
+                                Payment Status (Auto)
+                            </label>
+                            <div className={`flex items-center justify-between p-4 rounded-2xl border-2 ${
+                                autoStatus === PaymentStatus.COMPLETED
+                                    ? 'bg-green-50 border-green-200'
+                                    : 'bg-orange-50 border-orange-200'
+                            }`}>
+                                <div className="flex items-center gap-3">
+                                    {getStatusIcon()}
+                                    <div>
+                                        <p className={`font-black text-sm ${
+                                            autoStatus === PaymentStatus.COMPLETED ? 'text-green-700' : 'text-orange-700'
+                                        }`}>
+                                            {getStatusLabel()}
+                                        </p>
+                                        <p className="text-[8px] text-gray-500 mt-0.5">
+                                            {autoStatus === PaymentStatus.COMPLETED 
+                                                ? 'Full payment - No remaining balance'
+                                                : 'Partial payment - Balance remaining'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <AiOutlineInfoCircle size={14} className="text-gray-400" />
+                            </div>
+                            <p className="text-[8px] text-gray-400 mt-2 flex items-center gap-1">
+                                <AiOutlineInfoCircle size={10} />
+                                Status is automatically determined based on payment amount
+                            </p>
+                        </div>
 
                         <div className="flex gap-3 pt-2">
                             <Button
@@ -166,6 +363,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                 type="submit"
                                 variant="primary"
                                 isLoading={addPayment.isPending}
+                                disabled={isOverPayment || selectedAmount <= 0}
                                 className="flex-1"
                             >
                                 Validate

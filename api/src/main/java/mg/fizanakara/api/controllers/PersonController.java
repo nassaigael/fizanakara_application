@@ -18,70 +18,69 @@ import java.util.Map;
 @RequestMapping("/api/admins/persons")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
 public class PersonController {
     private final PersonService personService;
 
-    // GET ALL
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<PersonResponseDto>> getAllPersons() {
         log.info("Retrieving all persons");
         return ResponseEntity.ok(personService.getAllPersons());
     }
 
-    // GET BY ID
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<PersonResponseDto> getPersonById(@PathVariable String id) {
         log.info("Retrieving person with ID: {}", id);
         return ResponseEntity.ok(personService.getPersonById(id));
     }
 
-    // CREATE (isolé ou avec parentId pour "fils de")
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<PersonResponseDto> createPerson(@RequestBody @Validated PersonDto dto) {
         log.info("Creating person: {} {}", dto.getFirstName(), dto.getLastName());
         return ResponseEntity.status(HttpStatus.CREATED).body(personService.createPerson(dto));
     }
 
-    // PROMOTION À 18 ANS
     @PostMapping("/{id}/promote")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<PersonResponseDto> promoteToActiveMember(@PathVariable String id) {
         log.info("Promoting person {} to active member", id);
         return ResponseEntity.ok(personService.promoteToActiveMember(id));
     }
 
-    // ADD ENFANT À UN PARENT (fils d'une personne existante)
     @PostMapping("/{parentId}/children")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<PersonResponseDto> addChildToPerson(@PathVariable String parentId, @RequestBody @Validated PersonDto childDto) {
-        childDto.setParentId(parentId);  // Force le lien
+        childDto.setParentId(parentId);
         log.info("Adding child to parent {}: {}", parentId, childDto.getFirstName());
         return ResponseEntity.status(HttpStatus.CREATED).body(personService.createPerson(childDto));
     }
 
-    // GET ENFANTS D'UN PARENT
     @GetMapping("/{parentId}/children")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<PersonResponseDto>> getChildrenByParentId(@PathVariable String parentId) {
         log.info("Retrieving children for parent ID: {}", parentId);
         return ResponseEntity.ok(personService.getChildrenByParentId(parentId));
     }
 
-    // UPDATE
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<PersonResponseDto> updatePerson(@PathVariable String id, @RequestBody PersonDto dto) {
         log.info("Updating person ID: {}", id);
         return ResponseEntity.ok(personService.updatePerson(id, dto));
     }
 
-    // DELETE BY ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Map<String, Object>> deletePerson(@PathVariable String id) {
         personService.deletePerson(id);
         log.info("Deleted person ID: {}", id);
         return ResponseEntity.ok(Map.of("message", "Person deleted successfully", "success", true));
     }
 
-    // DELETE ALL
     @DeleteMapping("/delete-all")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Map<String, Object>> deleteAllPersons() {
         personService.deleteAllPersons();
         log.info("All persons deleted");

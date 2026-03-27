@@ -53,33 +53,92 @@ public class ContributionService {
                 .collect(Collectors.toList());
     }
 
-    // BATCH CRÉATION ANNUELLE
+    // BATCH CRÉATION ANNUELLE - Version corrigée
     @Transactional
     public List<ContributionResponseDto> createContributionsForYear(ContributionYearDto dto) {
         Year year = dto.getYear();
         int yearValue = year.getValue();
+        log.info("========================================");
         log.info("Generating annual contributions for year: {}", year);
+        log.info("========================================");
 
-        List<Person> eligiblePersons = personRepository.findEligiblePersonsForContribution(yearValue);
+        // Calculer la date limite : 31 décembre de l'année - 18 ans
+        LocalDate dateLimit = LocalDate.of(yearValue, 12, 31).minusYears(18);
+        log.info("Date limit for eligibility (born on or before): {}", dateLimit);
+
+        // Trouver les personnes nées avant la date limite
+        List<Person> eligiblePersons = personRepository.findPersonsBornBefore(dateLimit);
+        log.info("Found {} eligible persons for year {}", eligiblePersons.size(), yearValue);
 
         List<ContributionResponseDto> created = new ArrayList<>();
 
-        sequenceCounter.set(1);
+        // Récupérer le prochain numéro de séquence pour cette année
+        int sequenceStart = getNextSequenceForYear(year);
+        AtomicInteger sequenceCounter = new AtomicInteger(sequenceStart);
 
         for (Person person : eligiblePersons) {
             String personId = person.getId();
-            String childId = person.isActiveMember() ? null : personId;
-            if (contributionRepository.hasDuplicateByMemberAndYear(personId, year, childId)) {
+
+            // Vérifier si une cotisation existe déjà
+            boolean exists = contributionRepository.hasDuplicateByMemberAndYear(personId, year, null);
+            if (exists) {
                 log.warn("Contribution for person {} and year {} already exists – skipping", personId, year);
                 continue;
             }
+
+            // Calculer le montant
             BigDecimal amount = calculateAmountForUser(person, year);
-            Contribution contribution = createSingleContribution(year, amount, ContributionStatus.PENDING, personId, childId);
-            created.add(mapToResponseDto(contribution));
+            log.info("Creating contribution for {} {} - Amount: {} Ar",
+                    person.getFirstName(), person.getLastName(), amount);
+
+            // Créer la cotisation avec un suffixe unique
+            String suffix = String.format("%03d", sequenceCounter.getAndIncrement());
+            Contribution contribution = Contribution.builder()
+                    .year(year)
+                    .amount(amount)
+                    .status(ContributionStatus.PENDING)
+                    .dueDate(LocalDate.of(yearValue, 12, 31))
+                    .member(person)
+                    .build();
+            contribution.setSequenceSuffix(suffix);
+            contribution.setId(contribution.generatedCustomId());
+
+            Contribution saved = contributionRepository.save(contribution);
+            created.add(mapToResponseDto(saved));
         }
 
+        log.info("========================================");
         log.info("Generated {} new contributions for year: {}", created.size(), year);
+        log.info("========================================");
         return created;
+    }
+
+    // Méthode pour obtenir le prochain numéro de séquence pour une année donnée
+    private int getNextSequenceForYear(Year year) {
+        // Récupérer toutes les cotisations de l'année
+        List<Contribution> existingContributions = contributionRepository.findAll().stream()
+                .filter(c -> c.getYear().equals(year))
+                .collect(Collectors.toList());
+
+        if (existingContributions.isEmpty()) {
+            return 1;
+        }
+
+        // Trouver le plus grand suffixe
+        int maxSuffix = 0;
+        for (Contribution c : existingContributions) {
+            if (c.getSequenceSuffix() != null) {
+                try {
+                    int suffix = Integer.parseInt(c.getSequenceSuffix());
+                    if (suffix > maxSuffix) {
+                        maxSuffix = suffix;
+                    }
+                } catch (NumberFormatException e) {
+                    // Ignorer
+                }
+            }
+        }
+        return maxSuffix + 1;
     }
 
     // SINGLE POUR PERSON
@@ -117,8 +176,10 @@ public class ContributionService {
         Contribution contribution = contributionRepository.findById(id)
                 .orElseThrow(() -> new ContributionNotFoundException("Contribution not found with ID: " + id));
 
-        if (dto.getAmount() != null) contribution.setAmount(dto.getAmount());
-        if (dto.getStatus() != null) contribution.setStatus(dto.getStatus());
+        if (dto.getAmount() != null)
+            contribution.setAmount(dto.getAmount());
+        if (dto.getStatus() != null)
+            contribution.setStatus(dto.getStatus());
         if (dto.getMemberId() != null) {
             Person person = personRepository.findById(dto.getMemberId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Person ID"));
@@ -143,12 +204,15 @@ public class ContributionService {
     @Transactional
     public void updateContributionStatusAfterPayment(String contributionId) {
         Contribution contribution = contributionRepository.findById(contributionId)
-                .orElseThrow(() -> new ContributionNotFoundException("Contribution not found with ID: " + contributionId));
+                .orElseThrow(
+                        () -> new ContributionNotFoundException("Contribution not found with ID: " + contributionId));
 
         BigDecimal totalPaid = paymentRepository.getTotalPaidByContributionId(contributionId);
-        if (totalPaid == null) totalPaid = BigDecimal.ZERO;
+        if (totalPaid == null)
+            totalPaid = BigDecimal.ZERO;
 
-        log.info("Updating status for contribution ID: {} totalPaid: {} amount: {}", contributionId, totalPaid, contribution.getAmount());
+        log.info("Updating status for contribution ID: {} totalPaid: {} amount: {}", contributionId, totalPaid,
+                contribution.getAmount());
 
         if (totalPaid.compareTo(contribution.getAmount()) >= 0) {
             contribution.setStatus(ContributionStatus.PAID);
@@ -167,7 +231,7 @@ public class ContributionService {
     private ContributionResponseDto mapToResponseDto(Contribution contribution) {
         ContributionResponseDto dto = new ContributionResponseDto();
         dto.setId(contribution.getId());
-        dto.setYear(contribution.getYear());
+        dto.setYear(contribution.getYear().getValue());
         dto.setAmount(contribution.getAmount());
         dto.setStatus(contribution.getStatus());
         dto.setDueDate(contribution.getDueDate());
@@ -195,27 +259,6 @@ public class ContributionService {
                 .collect(Collectors.toList()));
 
         return dto;
-    }
-
-    // HELPER PRIVATE (adapté pour Person)
-    private Contribution createSingleContribution(Year year, BigDecimal amount, ContributionStatus status, String personId, String childId) {
-        Person person = personRepository.findById(personId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Person ID: " + personId));
-
-        Contribution contribution = Contribution.builder()
-                .year(year)
-                .amount(amount)
-                .status(status)
-                .dueDate(LocalDate.of(year.getValue(), 12, 31))
-                .member(person)
-                .childId(childId)
-                .build();
-
-        String suffix = String.format("%03d", sequenceCounter.getAndIncrement());
-        contribution.setSequenceSuffix(suffix);
-        contribution.setId(contribution.generatedCustomId());
-
-        return contributionRepository.save(contribution);
     }
 
     // CALCUL AMOUNT

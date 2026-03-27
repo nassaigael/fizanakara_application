@@ -14,10 +14,22 @@ export const useFinance = (personId?: string, year?: number) => {
         error,
     } = useQuery({
         queryKey: ['contributions', personId, year],
-        queryFn: () =>
-            personId && year
-                ? ContributionService.getByPersonAndYear(personId, year)
-                : ContributionService.getAll(),
+        queryFn: async () => {
+            if (personId && year) {
+                return ContributionService.getByPersonAndYear(personId, year);
+            }
+            const allContributions = await ContributionService.getAll();
+            
+            // Filtrer par année si spécifiée
+            if (year !== undefined && year !== null) {
+                return allContributions.filter(c => {
+                    // Gérer le cas où year est une string dans la réponse
+                    const contributionYear = typeof c.year === 'string' ? parseInt(c.year, 10) : c.year;
+                    return contributionYear === year;
+                });
+            }
+            return allContributions;
+        },
         staleTime: 2 * 60 * 1000,
     });
 
@@ -33,12 +45,33 @@ export const useFinance = (personId?: string, year?: number) => {
         mutationFn: (data: ContributionYearRequest) => ContributionService.generateForYear(data),
         onSuccess: (newContributions) => {
             queryClient.invalidateQueries({ queryKey: ['contributions'] });
-            toast.success(
-                `${newContributions.length} contributions generated for ${newContributions[0]?.year}`,
-            );
+            if (newContributions && newContributions.length > 0) {
+                toast.success(
+                    `${newContributions.length} contributions generated for ${newContributions[0]?.year}`,
+                );
+            } else {
+                toast.success(`All contributions already exist for this year`);
+            }
         },
-        onError: () => {
-            toast.error('Failed to generate contributions');
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || 'Failed to generate contributions';
+            toast.error(errorMessage);
+        },
+    });
+
+    const regenerateForYear = useMutation({
+        mutationFn: (data: ContributionYearRequest) => ContributionService.generateForYear(data),
+        onSuccess: (newContributions) => {
+            queryClient.invalidateQueries({ queryKey: ['contributions'] });
+            if (newContributions && newContributions.length > 0) {
+                toast.success(`${newContributions.length} new members added for ${newContributions[0]?.year}`);
+            } else {
+                toast.success(`No new members to add for this year`);
+            }
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || 'Failed to update contributions';
+            toast.error(errorMessage);
         },
     });
 
@@ -114,6 +147,7 @@ export const useFinance = (personId?: string, year?: number) => {
         error,
         usePayments,
         generateAnnualContributions,
+        regenerateForYear,
         updateContribution,
         deleteContribution,
         addPayment,
