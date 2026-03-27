@@ -14,7 +14,6 @@ import { usePayment } from '../../../hooks/usePayment';
 import { paymentSchema } from '../../../lib/validators/finance.validator';
 import { PaymentStatus } from '../../../lib/types';
 import Input from '../../ui/Input';
-import Select from '../../ui/Select';
 import Button from '../../ui/Button';
 import { formatCurrency } from '../../../lib/helper';
 
@@ -67,20 +66,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     // Calculer le statut automatique basé sur le montant saisi
     const autoStatus = getAutoStatus(selectedAmount);
 
-    // Options pour le select (avec indication automatique)
-    const statusOptions = [
-        {
-            value: PaymentStatus.COMPLETED,
-            label: 'Completed',
-            description: 'Full payment settled'
-        },
-        {
-            value: PaymentStatus.PENDING,
-            label: 'Pending',
-            description: 'Partial payment, balance remaining'
-        }
-    ];
-
     const {
         values,
         errors,
@@ -109,10 +94,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     ? formData.paymentDate.toISOString()
                     : new Date(formData.paymentDate).toISOString();
 
+                // Utiliser le statut automatique, pas celui du formulaire
                 await addPayment.mutateAsync({
                     amountPaid: formData.amountPaid,
                     paymentDate: paymentDate,
-                    status: formData.status,
+                    status: autoStatus, // ← Statut automatique
                     contributionId: formData.contributionId
                 });
                 setShowSuccess(true);
@@ -142,10 +128,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
         setSelectedAmount(amount);
         setFieldValue('amountPaid', amount);
-
-        // Mettre à jour automatiquement le statut
-        const newStatus = getAutoStatus(amount);
-        setFieldValue('status', newStatus);
+        
+        // Le statut est automatiquement mis à jour via autoStatus
+        // On synchronise aussi la valeur dans le formulaire
+        setFieldValue('status', autoStatus);
     };
 
     // Gérer le changement de date
@@ -156,14 +142,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             setFieldValue('paymentDate', isoDate);
         } else {
             setFieldValue('paymentDate', '');
-        }
-    };
-
-    // Gérer le changement manuel du statut
-    const handleStatusChange = (val: string | React.ChangeEvent<HTMLSelectElement>) => {
-        const statusValue = typeof val === 'string' ? val : val.target?.value;
-        if (statusValue) {
-            setFieldValue('status', statusValue);
         }
     };
 
@@ -181,6 +159,19 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     const isFullPayment = selectedAmount >= (remainingAmount || 0);
     const isOverPayment = selectedAmount > (remainingAmount || 0);
     const remainingAfterPayment = Math.max(0, (remainingAmount || 0) - selectedAmount);
+
+    // Obtenir le label du statut
+    const getStatusLabel = () => {
+        return autoStatus === PaymentStatus.COMPLETED ? 'Completed' : 'Pending';
+    };
+
+    const getStatusIcon = () => {
+        return autoStatus === PaymentStatus.COMPLETED ? (
+            <AiOutlineCheckCircle className="text-green-500" size={14} />
+        ) : (
+            <AiOutlineClockCircle className="text-orange-500" size={14} />
+        );
+    };
 
     if (!isOpen) return null;
 
@@ -226,8 +217,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
                             {/* Indicateur de paiement */}
                             {selectedAmount > 0 && !isOverPayment && (
-                                <div className={`mt-3 pt-3 border-t border-gray-200 flex justify-between items-center ${isFullPayment ? 'text-green-600' : 'text-orange-500'
-                                    }`}>
+                                <div className={`mt-3 pt-3 border-t border-gray-200 flex justify-between items-center ${
+                                    isFullPayment ? 'text-green-600' : 'text-orange-500'
+                                }`}>
                                     <p className="text-[9px] font-black uppercase">After this payment</p>
                                     <p className="text-sm font-black">
                                         {isFullPayment ? (
@@ -269,7 +261,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                 value={selectedAmount.toString()}
                                 onChange={handleAmountChange}
                                 onBlur={handleBlur}
-                                error={touched.amountPaid ? errors.amountPaid : (amountError || undefined)} icon={<AiOutlineDollar />}
+                                error={touched.amountPaid ? errors.amountPaid : (amountError || undefined)}
+                                icon={<AiOutlineDollar />}
                                 placeholder="Enter amount"
                                 max={remainingAmount}
                                 step="1000"
@@ -284,7 +277,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                             const halfAmount = Math.min(Math.round((remainingAmount || 0) / 2), remainingAmount || 0);
                                             setSelectedAmount(halfAmount);
                                             setFieldValue('amountPaid', halfAmount);
-                                            setFieldValue('status', getAutoStatus(halfAmount));
                                             setAmountError(null);
                                         }}
                                         className="flex-1 text-[9px] font-black py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -296,7 +288,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                         onClick={() => {
                                             setSelectedAmount(remainingAmount || 0);
                                             setFieldValue('amountPaid', remainingAmount || 0);
-                                            setFieldValue('status', getAutoStatus(remainingAmount || 0));
                                             setAmountError(null);
                                         }}
                                         className="flex-1 text-[9px] font-black py-1.5 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 rounded-lg transition-colors"
@@ -326,47 +317,37 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             icon={<AiOutlineCalendar />}
                         />
 
-                        {/* Status Select - avec indication automatique */}
+                        {/* Status Display - Automatique, non modifiable */}
                         <div>
-                            <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
-                                Payment Status
-                                {autoStatus !== values.status && (
-                                    <span className="text-[8px] text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full">
-                                        Manual override
-                                    </span>
-                                )}
+                            <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-2 block">
+                                Payment Status (Auto)
                             </label>
-                            <Select
-                                name="status"
-                                options={statusOptions.map(opt => ({
-                                    value: opt.value,
-                                    label: `${opt.label} ${opt.value === PaymentStatus.COMPLETED ? '(Full payment)' : '(Partial payment)'}`
-                                }))}
-                                value={values.status}
-                                onChange={handleStatusChange}
-                                onBlur={handleBlur}
-                                error={touched.status ? errors.status : undefined}
-                                disabled={isOverPayment}
-                            />
-
-                            {/* Indication du statut automatique */}
-                            {!isOverPayment && autoStatus !== values.status && (
-                                <div className="mt-2 flex items-start gap-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
-                                    <AiOutlineInfoCircle size={12} className="text-blue-500 mt-0.5" />
-                                    <p className="text-[8px] text-blue-600">
-                                        Based on the amount entered, status should be <strong>{autoStatus === PaymentStatus.COMPLETED ? 'Completed' : 'Pending'}</strong>
-                                    </p>
+                            <div className={`flex items-center justify-between p-4 rounded-2xl border-2 ${
+                                autoStatus === PaymentStatus.COMPLETED
+                                    ? 'bg-green-50 border-green-200'
+                                    : 'bg-orange-50 border-orange-200'
+                            }`}>
+                                <div className="flex items-center gap-3">
+                                    {getStatusIcon()}
+                                    <div>
+                                        <p className={`font-black text-sm ${
+                                            autoStatus === PaymentStatus.COMPLETED ? 'text-green-700' : 'text-orange-700'
+                                        }`}>
+                                            {getStatusLabel()}
+                                        </p>
+                                        <p className="text-[8px] text-gray-500 mt-0.5">
+                                            {autoStatus === PaymentStatus.COMPLETED 
+                                                ? 'Full payment - No remaining balance'
+                                                : 'Partial payment - Balance remaining'}
+                                        </p>
+                                    </div>
                                 </div>
-                            )}
-
-                            {!isOverPayment && autoStatus === values.status && values.amountPaid > 0 && (
-                                <div className="mt-2 flex items-start gap-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
-                                    <AiOutlineInfoCircle size={12} className="text-gray-400 mt-0.5" />
-                                    <p className="text-[8px] text-gray-500">
-                                        Status automatically set to <strong>{autoStatus === PaymentStatus.COMPLETED ? 'Completed' : 'Pending'}</strong> based on payment amount
-                                    </p>
-                                </div>
-                            )}
+                                <AiOutlineInfoCircle size={14} className="text-gray-400" />
+                            </div>
+                            <p className="text-[8px] text-gray-400 mt-2 flex items-center gap-1">
+                                <AiOutlineInfoCircle size={10} />
+                                Status is automatically determined based on payment amount
+                            </p>
                         </div>
 
                         <div className="flex gap-3 pt-2">
