@@ -21,6 +21,11 @@ interface ReportOptions {
     generatedBy: string;
 }
 
+// Format spécifique pour le PDF (Ar)
+const formatAr = (amount: number): string => {
+    return amount.toLocaleString('fr-FR') + ' Ar';
+};
+
 export const generateContributionReport = async (options: ReportOptions) => {
     const { title, year, data, totalDue, totalPaid, totalRemaining, generatedBy } = options;
     
@@ -90,9 +95,9 @@ export const generateContributionReport = async (options: ReportOptions) => {
     const cardWidth = (pageWidth - 40) / 3;
     
     const statsCards = [
-        { title: 'Total Dû', value: formatCurrency(totalDue), color: primaryColor },
-        { title: 'Total Payé', value: formatCurrency(totalPaid), color: accentColor },
-        { title: 'Reste à Payer', value: formatCurrency(totalRemaining), color: warningColor }
+        { title: 'Total Dû', value: formatAr(totalDue), color: primaryColor },
+        { title: 'Total Payé', value: formatAr(totalPaid), color: accentColor },
+        { title: 'Reste à Payer', value: formatAr(totalRemaining), color: warningColor }
     ];
     
     statsCards.forEach((card, index) => {
@@ -130,22 +135,12 @@ export const generateContributionReport = async (options: ReportOptions) => {
     doc.setTextColor(black[0], black[1], black[2]);
     doc.text('Taux de recouvrement', 30, recoveryY + 10);
     
-    // Barre de progression
-    const barX = 80;
-    const barWidth = pageWidth - 110;
-    const barHeight = 4;
-    
-    doc.setFillColor(229, 231, 235);
-    doc.rect(barX, recoveryY + 5, barWidth, barHeight, 'F');
-    
-    const progressColor = recoveryRate >= 80 ? accentColor : recoveryRate >= 50 ? warningColor : primaryColor;
-    doc.setFillColor(progressColor[0], progressColor[1], progressColor[2]);
-    doc.rect(barX, recoveryY + 5, barWidth * (recoveryRate / 100), barHeight, 'F');
-    
-    doc.setFontSize(9);
+    // Valeur du taux avec couleur
+    const rateColor = recoveryRate >= 80 ? accentColor : recoveryRate >= 50 ? warningColor : primaryColor;
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(progressColor[0], progressColor[1], progressColor[2]);
-    doc.text(`${recoveryRate.toFixed(1)}%`, pageWidth - 25, recoveryY + 10, { align: 'right' });
+    doc.setTextColor(rateColor[0], rateColor[1], rateColor[2]);
+    doc.text(`${recoveryRate.toFixed(1)}%`, pageWidth - 45, recoveryY + 10, { align: 'right' });
     
     // ==================== TABLEAU DES CONTRIBUTIONS ====================
     const tableStartY = recoveryY + 25;
@@ -156,13 +151,13 @@ export const generateContributionReport = async (options: ReportOptions) => {
     doc.setTextColor(black[0], black[1], black[2]);
     doc.text('Détail des cotisations', 20, tableStartY);
     
-    // Préparer les données du tableau
+    // Préparer les données du tableau avec format Ar
     const tableData: any[][] = data.map(item => [
         item.memberName,
         item.year.toString(),
-        formatCurrency(item.amount),
-        formatCurrency(item.totalPaid),
-        formatCurrency(item.remaining),
+        formatAr(item.amount),
+        formatAr(item.totalPaid),
+        formatAr(item.remaining),
         item.status
     ]);
     
