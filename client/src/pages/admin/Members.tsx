@@ -28,20 +28,17 @@ const AdminMembers: React.FC = () => {
     const [viewingMember, setViewingMember] = useState<PersonResponse | null>(null);
     const [selectedParentForChild, setSelectedParentForChild] = useState<PersonResponse | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
-
-    // Refs pour le sticky
+    
     const searchBarRef = useRef<HTMLDivElement>(null);
     const [isSearchSticky, setIsSearchSticky] = useState(false);
 
     const { members, isLoading, deleteMember } = useMembers();
     const { districts, tributes } = useLocations();
 
-    // Gérer le sticky de la barre de recherche
     useEffect(() => {
         const handleScroll = () => {
             if (searchBarRef.current) {
                 const rect = searchBarRef.current.getBoundingClientRect();
-                // Quand la barre atteint le top (ou plus haut que le top)
                 setIsSearchSticky(rect.top <= 80);
             }
         };
@@ -100,7 +97,7 @@ const AdminMembers: React.FC = () => {
     const filteredMembers = useMemo(() => {
         return members.filter(member => {
             const searchLower = searchQuery.toLowerCase();
-            const matchesSearch =
+            const matchesSearch = 
                 member.id.toLowerCase().includes(searchLower) ||
                 member.firstName.toLowerCase().includes(searchLower) ||
                 member.lastName.toLowerCase().includes(searchLower) ||
@@ -146,13 +143,14 @@ const AdminMembers: React.FC = () => {
 
     return (
         <div className="relative">
-            {/* Barre de recherche sticky */}
-            <div
+            {/* Barre de recherche et filtres - Maintenant en premier */}
+            <div 
                 ref={searchBarRef}
-                className={`sticky top-0 z-30 transition-all duration-300 ${isSearchSticky
-                        ? 'bg-brand-bg/95 backdrop-blur-md shadow-lg py-4 -mt-6'
+                className={`sticky top-0 z-30 transition-all duration-300 ${
+                    isSearchSticky 
+                        ? 'bg-brand-bg/95 backdrop-blur-md shadow-lg py-4 -mt-6' 
                         : 'bg-transparent py-0'
-                    }`}
+                }`}
             >
                 <div className="bg-white rounded-2xl border-2 border-gray-100 p-4 mb-6 shadow-sm">
                     <div className="flex flex-col md:flex-row gap-4">
@@ -181,8 +179,8 @@ const AdminMembers: React.FC = () => {
                             onClick={() => setShowFilters(!showFilters)}
                             className={`
                                 flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all whitespace-nowrap
-                                ${showFilters
-                                    ? 'bg-brand-primary text-white border-brand-primary'
+                                ${showFilters 
+                                    ? 'bg-brand-primary text-white border-brand-primary' 
                                     : 'bg-white text-gray-600 border-gray-200 hover:border-brand-primary'
                                 }
                             `}
@@ -274,7 +272,7 @@ const AdminMembers: React.FC = () => {
                 </div>
             </div>
 
-            {/* Header avec titre et bouton NEW MEMBER */}
+            {/* Header avec titre et bouton NEW MEMBER - Maintenant après les filtres */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className={`${THEME.font.h1} flex items-center gap-3 uppercase`}>
