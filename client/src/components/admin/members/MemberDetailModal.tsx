@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
     AiOutlineClose,
@@ -19,12 +19,16 @@ import {
     AiOutlineUserAdd,
     AiOutlineMan,
     AiOutlineClockCircle,
-    AiOutlineGlobal
+    AiOutlineGlobal,
+    AiOutlineDollar,
+    AiOutlineHistory
 } from 'react-icons/ai';
 import { PersonResponse, MemberStatus, Gender } from '../../../lib/types';
-import { formatDate, calculateAge, getInitials } from '../../../lib/helper';
+import { formatDate, calculateAge, getInitials, formatCurrency } from '../../../lib/helper';
 import { getImageUrl } from '../../../lib/constant/constant';
 import Button from '../../ui/Button';
+import { useFinance } from '../../../hooks/useFinance';
+import { useMembers } from '../../../hooks/useMembers';
 
 interface MemberDetailModalProps {
     isOpen: boolean;
@@ -34,6 +38,7 @@ interface MemberDetailModalProps {
     onDelete?: () => void;
     onAddChild?: () => void;
     onViewChild?: (child: PersonResponse) => void;
+    onViewParent?: (parentId: string) => void;
 }
 
 const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
@@ -43,8 +48,42 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     onEdit,
     onDelete,
     onAddChild,
-    onViewChild
+    onViewChild,
+    onViewParent
 }) => {
+    const [showPaymentHistory, setShowPaymentHistory] = useState(false);
+    const [isHistorySticky, setIsHistorySticky] = useState(false);
+    const historySectionRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    
+    const { contributions } = useFinance(member?.id);
+    const { members } = useMembers();
+    
+    const memberContributions = contributions.filter(c => c.memberId === member?.id);
+    const parentMember = member?.parentId ? members.find(m => m.id === member.parentId) : null;
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (historySectionRef.current && scrollContainerRef.current) {
+                const rect = historySectionRef.current.getBoundingClientRect();
+                const containerRect = scrollContainerRef.current.getBoundingClientRect();
+                setIsHistorySticky(rect.top <= containerRect.top + 60);
+            }
+        };
+
+        const scrollElement = scrollContainerRef.current;
+        if (scrollElement && showPaymentHistory) {
+            scrollElement.addEventListener('scroll', handleScroll);
+            return () => scrollElement.removeEventListener('scroll', handleScroll);
+        }
+    }, [showPaymentHistory]);
+
+    const handleParentClick = () => {
+        if (member?.parentId && onViewParent) {
+            onViewParent(member.parentId);
+        }
+    };
+
     if (!isOpen || !member) return null;
 
     const isMale = member.gender === Gender.MALE;
@@ -87,6 +126,27 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     const hasImage = member.imageUrl && member.imageUrl.trim() !== '';
     const avatarUrl = hasImage ? getImageUrl(member.imageUrl, 'member') : null;
     const hasChildren = member.children && member.children.length > 0;
+    const hasPaymentHistory = memberContributions.length > 0;
+
+    const parentImageUrl = parentMember?.imageUrl ? getImageUrl(parentMember.imageUrl, 'member') : null;
+
+    const getContributionStatusColor = (status: string) => {
+        switch (status) {
+            case 'PAID': return 'bg-green-100 text-green-700';
+            case 'PARTIAL': return 'bg-orange-100 text-orange-700';
+            case 'PENDING': return 'bg-red-100 text-red-700';
+            default: return 'bg-gray-100 text-gray-600';
+        }
+    };
+
+    const getContributionStatusLabel = (status: string) => {
+        switch (status) {
+            case 'PAID': return 'Paid';
+            case 'PARTIAL': return 'Partial';
+            case 'PENDING': return 'Pending';
+            default: return status;
+        }
+    };
 
     const handleChildClick = (child: PersonResponse) => {
         if (onViewChild) {
@@ -101,17 +161,21 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         return 'Recently';
     };
 
-    // Fonction pour obtenir l'URL de l'image de l'enfant
-    const getChildAvatarUrl = (child: PersonResponse) => {
-        if (child.imageUrl && child.imageUrl.trim() !== '') {
-            return getImageUrl(child.imageUrl, 'member');
+    // Fonction pour formater l'ID avec préfixe MBR
+    const formatMemberId = (id: string) => {
+        if (id && !id.startsWith('MBR')) {
+            return `MBR${id}`;
         }
-        return null;
+        return id;
     };
 
     return createPortal(
         <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl border-4 border-white flex flex-col animate-in zoom-in duration-300">
+            <div 
+                ref={scrollContainerRef}
+                className="bg-white rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl border-4 border-white flex flex-col animate-in zoom-in duration-300"
+            >
+                {/* Header avec cover photo */}
                 <div className={`relative h-32 bg-linear-to-r ${genderColor} overflow-hidden shrink-0`}>
                     <div className="absolute inset-0 opacity-20">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -141,6 +205,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     </button>
                 </div>
 
+                {/* Avatar */}
                 <div className="relative px-4">
                     <div className="absolute -top-10 left-4">
                         <div className="relative group">
@@ -167,7 +232,9 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     </div>
                 </div>
 
+                {/* Content avec scroll */}
                 <div className="flex-1 overflow-y-auto p-6 pt-12">
+                    {/* En-tête avec nom et infos */}
                     <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                         <div className="w-full md:w-auto">
                             <div className="flex items-center gap-2 mb-2">
@@ -178,7 +245,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                             </div>
                             <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-[9px] font-mono bg-gray-100 px-2 py-1 rounded-full">
-                                    {member.id}
+                                    {formatMemberId(member.id)}
                                 </span>
                                 <span className="text-[9px] text-gray-400">•</span>
                                 <span className="text-[9px] text-gray-500 flex items-center gap-1">
@@ -189,6 +256,19 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                         
                         <div className="flex gap-2">
+                            {hasPaymentHistory && (
+                                <button
+                                    onClick={() => setShowPaymentHistory(!showPaymentHistory)}
+                                    className={`p-2 rounded-xl transition-all ${
+                                        showPaymentHistory 
+                                            ? 'bg-brand-primary text-white' 
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                                    title="Payment History"
+                                >
+                                    <AiOutlineHistory size={16} />
+                                </button>
+                            )}
                             {onAddChild && (
                                 <button
                                     onClick={onAddChild}
@@ -219,11 +299,12 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                     </div>
 
+                    {/* Grille d'informations */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                         <InfoRow
                             icon={<AiOutlineIdcard size={14} />}
                             label="Member ID"
-                            value={member.id}
+                            value={formatMemberId(member.id)}
                         />
                         <InfoRow
                             icon={<AiOutlineCalendar size={14} />}
@@ -252,33 +333,187 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         />
                     </div>
 
-                    {member.parentName && (
-                        <div className="bg-indigo-50 rounded-xl p-4 mb-6 border border-indigo-100">
-                            <div className="flex items-center gap-2 mb-2">
-                                <AiOutlineUser size={14} className="text-indigo-500" />
-                                <h3 className="text-[9px] font-black uppercase tracking-wider text-indigo-600">
-                                    Parent
-                                </h3>
-                            </div>
-                            <div className="flex items-center justify-between flex-wrap gap-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-indigo-200 rounded-xl flex items-center justify-center text-indigo-600 font-black text-sm">
-                                        {getInitials(member.parentName.split(' ')[0] || '', member.parentName.split(' ')[1] || '')}
+                    {/* Section Parent avec photo et navigation */}
+                    {member.parentName && member.parentId && (
+                        <div 
+                            onClick={handleParentClick}
+                            className={`bg-linear-to-r from-indigo-50 to-purple-50 rounded-xl p-4 mb-6 border border-indigo-100 cursor-pointer hover:shadow-md transition-all group ${onViewParent ? 'hover:scale-[1.01]' : ''}`}
+                        >
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-1.5 bg-indigo-100 rounded-lg">
+                                        <AiOutlineUser size={14} className="text-indigo-600" />
                                     </div>
+                                    <h3 className="text-[10px] font-black uppercase tracking-wider text-indigo-700">
+                                        Parent Information
+                                    </h3>
+                                </div>
+                                {onViewParent && (
+                                    <div className="flex items-center gap-1 text-indigo-500 text-[9px] font-black opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span>View profile</span>
+                                        <AiOutlineArrowRight size={10} />
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="flex items-center justify-between flex-wrap gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-md">
+                                            {parentImageUrl ? (
+                                                <img
+                                                    src={parentImageUrl}
+                                                    alt={member.parentName || 'Parent'}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                        if (target.parentElement) {
+                                                            const firstName = member.parentName?.split(' ')[0] || '';
+                                                            const lastName = member.parentName?.split(' ')[1] || '';
+                                                            target.parentElement.innerHTML = getInitials(firstName, lastName);
+                                                            target.parentElement.classList.add('text-xl', 'font-black', 'text-white', 'flex', 'items-center', 'justify-center');
+                                                        }
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span className="text-xl font-black text-white">
+                                                    {getInitials(
+                                                        member.parentName?.split(' ')[0] || '',
+                                                        member.parentName?.split(' ')[1] || ''
+                                                    )}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {parentMember?.isActiveMember && (
+                                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+                                        )}
+                                    </div>
+                                    
                                     <div>
-                                        <p className="font-black text-sm uppercase">{member.parentName}</p>
-                                        <p className="text-[9px] text-indigo-500">Parent / Guardian</p>
+                                        <p className="font-black text-base uppercase tracking-tight group-hover:text-indigo-700 transition-colors">
+                                            {member.parentName}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
+                                                parentMember?.status === MemberStatus.WORKER 
+                                                    ? 'bg-purple-100 text-purple-600' 
+                                                    : 'bg-amber-100 text-amber-600'
+                                            }`}>
+                                                {parentMember?.status === MemberStatus.WORKER ? 'Worker' : 'Student'}
+                                            </span>
+                                            {parentMember?.isActiveMember && (
+                                                <span className="text-[8px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
+                                                    Active
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="bg-white px-3 py-1 rounded-lg shadow-sm">
-                                    <p className="text-[7px] text-gray-400 uppercase">Relationship</p>
-                                    <p className="font-black text-xs text-indigo-600">Child</p>
+                                
+                                <div className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border border-indigo-100">
+                                    <p className="text-[7px] text-gray-400 uppercase tracking-wider text-center">Relationship</p>
+                                    <p className="font-black text-xs text-indigo-600 text-center">Child</p>
                                 </div>
                             </div>
+                            
+                            {parentMember && (
+                                <div className="mt-3 pt-2 border-t border-indigo-100 flex items-center gap-3 text-[9px] text-indigo-600">
+                                    <span className="flex items-center gap-1">
+                                        <AiOutlineIdcard size={10} />
+                                        {formatMemberId(parentMember.id)}
+                                    </span>
+                                    <span>•</span>
+                                    <span className="flex items-center gap-1">
+                                        <AiOutlinePhone size={10} />
+                                        {parentMember.phoneNumber || 'No phone'}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    {/* Section Enfants avec photos réelles */}
+                    {/* Section Historique des paiements */}
+                    {showPaymentHistory && (
+                        <div 
+                            ref={historySectionRef}
+                            className={`mb-6 border-t border-gray-100 pt-4 transition-all duration-300 ${
+                                isHistorySticky ? 'sticky top-0 z-20 bg-white shadow-md rounded-xl -mx-2 px-2' : ''
+                            }`}
+                        >
+                            <div className="flex items-center gap-2 mb-4">
+                                <AiOutlineHistory size={18} className="text-brand-primary" />
+                                <h3 className="text-sm font-black uppercase tracking-wider">
+                                    Payment History
+                                </h3>
+                                <span className="text-[9px] text-gray-400 ml-auto">
+                                    {memberContributions.length} contribution(s)
+                                </span>
+                            </div>
+                            
+                            {memberContributions.length === 0 ? (
+                                <div className="bg-gray-50 rounded-xl p-6 text-center border border-gray-200">
+                                    <AiOutlineDollar size={24} className="mx-auto text-gray-300 mb-2" />
+                                    <p className="text-xs font-bold text-gray-400 uppercase">No payment history</p>
+                                    <p className="text-[9px] text-gray-400 mt-1">No contributions recorded yet</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3 max-h-100 overflow-y-auto pr-1">
+                                    {memberContributions.map((contribution) => (
+                                        <div key={contribution.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                                            <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
+                                                <div className="flex items-center gap-2">
+                                                    <AiOutlineCalendar size={14} className="text-gray-500" />
+                                                    <span className="font-black text-sm">Year {contribution.year}</span>
+                                                </div>
+                                                <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${getContributionStatusColor(contribution.status)}`}>
+                                                    {getContributionStatusLabel(contribution.status)}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="p-3 bg-white">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-[9px] font-black text-gray-500 uppercase">Total Amount</span>
+                                                    <span className="font-black text-sm">{formatCurrency(contribution.amount)}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <span className="text-[9px] font-black text-gray-500 uppercase">Total Paid</span>
+                                                    <span className="font-black text-sm text-green-600">{formatCurrency(contribution.totalPaid)}</span>
+                                                </div>
+                                                
+                                                {contribution.payments && contribution.payments.length > 0 ? (
+                                                    <div className="mt-3 pt-3 border-t border-gray-100">
+                                                        <p className="text-[8px] font-black text-gray-400 uppercase mb-2">Payments</p>
+                                                        <div className="space-y-2">
+                                                            {contribution.payments.map((payment) => (
+                                                                <div key={payment.id} className="flex justify-between items-center py-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <AiOutlineCheckCircle size={10} className="text-green-500" />
+                                                                        <span className="text-[10px] text-gray-600">
+                                                                            {formatDate(payment.paymentDate)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <span className="font-black text-xs">
+                                                                        {formatCurrency(payment.amountPaid)}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="mt-3 pt-3 border-t border-gray-100 text-center">
+                                                        <p className="text-[8px] text-gray-400 uppercase">No payments recorded</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Section Enfants */}
                     <div className="mb-4">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
@@ -315,7 +550,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 {member.children?.map((child) => {
                                     const childIsMale = child.gender === Gender.MALE;
                                     const childAge = calculateAge(child.birthDate);
-                                    const childAvatarUrl = getChildAvatarUrl(child);
+                                    const childAvatarUrl = child.imageUrl ? getImageUrl(child.imageUrl, 'member') : null;
                                     
                                     return (
                                         <div
@@ -324,7 +559,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                             className="group bg-white border-2 border-gray-100 rounded-xl p-3 hover:shadow-lg hover:border-brand-primary/30 transition-all cursor-pointer"
                                         >
                                             <div className="flex items-center gap-3">
-                                                {/* Avatar avec photo réelle de l'enfant */}
                                                 <div className={`w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center text-sm font-black ${
                                                     childAvatarUrl 
                                                         ? 'bg-gray-100' 
@@ -338,9 +572,12 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                             alt={child.firstName}
                                                             className="w-full h-full object-cover"
                                                             onError={(e) => {
-                                                                (e.target as HTMLImageElement).style.display = 'none';
-                                                                (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials(child.firstName, child.lastName);
-                                                                (e.target as HTMLImageElement).parentElement!.classList.add('text-sm', 'font-black', childIsMale ? 'text-blue-600' : 'text-pink-600');
+                                                                const target = e.target as HTMLImageElement;
+                                                                target.style.display = 'none';
+                                                                if (target.parentElement) {
+                                                                    target.parentElement.innerHTML = getInitials(child.firstName, child.lastName);
+                                                                    target.parentElement.classList.add('text-sm', 'font-black', childIsMale ? 'text-blue-600' : 'text-pink-600');
+                                                                }
                                                             }}
                                                         />
                                                     ) : (
@@ -352,7 +589,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                         {child.firstName} {child.lastName}
                                                     </p>
                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                        <span className="text-[8px] text-gray-400">{child.id.slice(-6)}</span>
+                                                        <span className="text-[8px] text-gray-400">{formatMemberId(child.id)}</span>
                                                         <span className="text-[8px] text-gray-400">•</span>
                                                         <span className="text-[8px] text-amber-600">{childAge} ans</span>
                                                     </div>
@@ -366,6 +603,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         )}
                     </div>
 
+                    {/* Pied de page */}
                     <div className="flex gap-3 pt-4 border-t-2 border-gray-100 mt-4">
                         <Button
                             variant="secondary"

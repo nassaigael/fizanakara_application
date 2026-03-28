@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     AiOutlineTeam,
@@ -9,11 +9,12 @@ import {
     AiOutlineCalendar,
     AiOutlineFileText,
     AiOutlineCheckCircle,
+    AiOutlineDown
 } from 'react-icons/ai';
 import { useMembers } from '../../hooks/useMembers';
 import { useFinance } from '../../hooks/useFinance';
 import { Card } from '../../components/ui/Card';
-import { ProgressCard } from '../../components/ui/ProgressCard';
+import { AnnualCollectionChart } from '../../components/ui/AnnualCollectionChart';
 import { RiskMemberCard } from '../../components/ui/RiskMemberCard';
 import Button from '../../components/ui/Button';
 import { THEME } from '../../styles/theme';
@@ -21,10 +22,44 @@ import { formatCurrency, formatDate } from '../../lib/helper';
 
 const AdminDashboard: React.FC = () => {
     const navigate = useNavigate();
-    const [selectedYear] = useState(new Date().getFullYear());
+    const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+    const [availableYears, setAvailableYears] = useState<number[]>([]);
 
     const { members, isLoading: loadingMembers } = useMembers();
     const { contributions, isLoading: loadingContribs } = useFinance(undefined, selectedYear);
+
+    // Générer les données mensuelles à partir des vraies contributions
+    const monthlyData = useMemo(() => {
+        const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        const targetPerMonth = 15000; // Objectif mensuel de 15 000 Ar
+        
+        // Initialiser les données mensuelles
+        const monthlyCollected = new Array(12).fill(0);
+        
+        // Parcourir toutes les contributions de l'année sélectionnée
+        contributions.forEach(contribution => {
+            // Récupérer la date de paiement de chaque paiement
+            if (contribution.payments && contribution.payments.length > 0) {
+                contribution.payments.forEach(payment => {
+                    const paymentDate = new Date(payment.paymentDate);
+                    const paymentYear = paymentDate.getFullYear();
+                    const paymentMonth = paymentDate.getMonth();
+                    
+                    // Ajouter seulement les paiements de l'année sélectionnée
+                    if (paymentYear === selectedYear) {
+                        monthlyCollected[paymentMonth] += payment.amountPaid;
+                    }
+                });
+            }
+        });
+        
+        // Créer les données pour le graphique
+        return months.map((month, index) => ({
+            month,
+            collected: monthlyCollected[index],
+            target: targetPerMonth
+        }));
+    }, [contributions, selectedYear]);
 
     const stats = useMemo(() => {
         const totalMembers = members?.length || 0;
@@ -61,6 +96,29 @@ const AdminDashboard: React.FC = () => {
         };
     }, [members, contributions]);
 
+    // Récupérer les années disponibles depuis les cotisations
+    useEffect(() => {
+        const fetchYears = async () => {
+            try {
+                const allContributions = await import('../../services/contribution.services').then(
+                    module => module.ContributionService.getAll()
+                );
+                const years = [...new Set(allContributions.map(c => c.year))];
+                setAvailableYears(years.sort((a, b) => a - b));
+                if (years.length > 0 && !years.includes(selectedYear)) {
+                    setSelectedYear(years[years.length - 1]);
+                }
+            } catch (error) {
+                console.error('Failed to fetch years:', error);
+            }
+        };
+        fetchYears();
+    }, []);
+
+    const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedYear(parseInt(e.target.value, 10));
+    };
+
     if (loadingMembers || loadingContribs) {
         return (
             <div className="flex items-center justify-center h-96">
@@ -73,92 +131,115 @@ const AdminDashboard: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="p-4 bg-brand-primary text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                        <AiOutlineRise size={32} />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3 md:gap-4">
+                    <div className="p-3 md:p-4 bg-brand-primary text-white rounded-2xl md:rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <AiOutlineRise size={24} className="md:w-8 md:h-8" />
                     </div>
                     <div>
-                        <h1 className={`${THEME.font.h1} text-3xl`}>ADMIN DASHBOARD</h1>
-                        <p className={`${THEME.font.muted} mt-1 text-xs uppercase tracking-widest`}>
+                        <h1 className={`${THEME.font.h1} text-xl sm:text-2xl md:text-3xl uppercase`}>
+                            ADMIN DASHBOARD
+                        </h1>
+                        <p className={`${THEME.font.muted} text-[10px] sm:text-xs mt-0.5 md:mt-1 uppercase tracking-widest flex items-center gap-1 sm:gap-2`}>
+                            <AiOutlineCalendar size={10} className="sm:w-3 sm:h-3" />
                             {formatDate(new Date().toISOString(), 'long')}
                         </p>
                     </div>
                 </div>
 
-                <Button
-                    variant="primary"
-                    onClick={() => navigate('/admin/members')}
-                    className="flex items-center gap-2"
-                >
-                    <AiOutlineUserAdd size={18} />
-                    New Member
-                </Button>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    {availableYears.length > 0 && (
+                        <div className="relative">
+                            <AiOutlineCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <select
+                                value={selectedYear}
+                                onChange={handleYearChange}
+                                className="appearance-none bg-white border-2 border-gray-200 rounded-xl py-2.5 pl-10 pr-8 text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:border-brand-primary w-full sm:w-auto"
+                            >
+                                {availableYears.map(year => (
+                                    <option key={year} value={year}>
+                                        Year {year}
+                                    </option>
+                                ))}
+                            </select>
+                            <AiOutlineDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                        </div>
+                    )}
+
+                    <Button
+                        variant="primary"
+                        onClick={() => navigate('/admin/members')}
+                        className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm w-full sm:w-auto"
+                    >
+                        <AiOutlineUserAdd size={16} className="sm:w-5 sm:h-5" />
+                        <span className="font-black">NEW MEMBER</span>
+                    </Button>
+                </div>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 <Card
                     title="Members"
                     value={stats.totalMembers}
                     subtitle={`${stats.activeMembers} active`}
-                    icon={<AiOutlineTeam size={24} />}
+                    icon={<AiOutlineTeam size={20} className="sm:w-6 sm:h-6" />}
                     gradient="from-blue-500 to-cyan-500"
                 />
                 <Card
                     title="Students"
                     value={stats.students}
-                    subtitle={`${((stats.students / stats.totalMembers) * 100 || 0).toFixed(1)}%`}
-                    icon={<AiOutlineFileText size={24} />}
+                    subtitle={`${stats.totalMembers > 0 ? ((stats.students / stats.totalMembers) * 100).toFixed(1) : 0}%`}
+                    icon={<AiOutlineFileText size={20} className="sm:w-6 sm:h-6" />}
                     gradient="from-purple-500 to-pink-500"
                 />
                 <Card
                     title="Workers"
                     value={stats.workers}
-                    subtitle={`${((stats.workers / stats.totalMembers) * 100 || 0).toFixed(1)}%`}
-                    icon={<AiOutlineTeam size={24} />}
+                    subtitle={`${stats.totalMembers > 0 ? ((stats.workers / stats.totalMembers) * 100).toFixed(1) : 0}%`}
+                    icon={<AiOutlineTeam size={20} className="sm:w-6 sm:h-6" />}
                     gradient="from-orange-500 to-red-500"
                 />
                 <Card
                     title="Contributions"
                     value={formatCurrency(stats.totalDue)}
                     subtitle={`Year ${selectedYear}`}
-                    icon={<AiOutlineDollar size={24} />}
+                    icon={<AiOutlineDollar size={20} className="sm:w-6 sm:h-6" />}
                     gradient="from-green-500 to-emerald-500"
                 />
             </div>
 
-            {/* Progress Card */}
-            <ProgressCard
-                title="Annual Collection"
-                subtitle={`Recovery rate ${selectedYear}`}
-                progress={stats.progressPercent}
-                current={stats.totalPaid}
-                total={stats.totalDue}
+            {/* Annual Collection Chart - avec données dynamiques */}
+            <AnnualCollectionChart
+                selectedYear={selectedYear}
+                totalPaid={stats.totalPaid}
+                totalDue={stats.totalDue}
+                remaining={stats.totalRemaining}
+                monthlyData={monthlyData}
             />
 
             {/* Two columns layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white rounded-3xl border-2 border-b-8 border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className={`${THEME.font.h2} text-xl flex items-center gap-2`}>
-                            <AiOutlineWarning className="text-red-500" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="lg:col-span-2 bg-white rounded-2xl md:rounded-3xl border-2 border-b-8 border-gray-200 p-4 md:p-6">
+                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                        <h2 className={`${THEME.font.h2} text-base md:text-xl flex items-center gap-2`}>
+                            <AiOutlineWarning className="text-red-500 text-base md:text-xl" />
                             CRITICAL DELAYS
                         </h2>
-                        <span className="text-sm font-black text-gray-400">
+                        <span className="text-[10px] md:text-sm font-black text-gray-400">
                             {stats.atRisk.length} member(s)
                         </span>
                     </div>
 
                     {stats.atRisk.length === 0 ? (
-                        <div className="text-center py-12 opacity-50">
-                            <AiOutlineCheckCircle size={48} className="mx-auto mb-4 text-green-500" />
-                            <p className="font-black">No payment delays</p>
+                        <div className="text-center py-8 md:py-12 opacity-50">
+                            <AiOutlineCheckCircle size={32} className="sm:w-12 sm:h-12 mx-auto mb-3 md:mb-4 text-green-500" />
+                            <p className="font-black text-xs sm:text-sm">No payment delays</p>
                         </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-3 md:space-y-4">
                             {stats.atRisk.map((item, index) => (
                                 <RiskMemberCard
                                     key={item.id}
@@ -166,7 +247,7 @@ const AdminDashboard: React.FC = () => {
                                     name={item.memberName}
                                     amount={item.amount}
                                     remaining={item.remaining}
-                                    onClick={() => navigate(`/admin/finance?member=${item.memberId}`)}
+                                    onClick={() => navigate(`/admin/finance?member=${item.memberId}&year=${selectedYear}`)}
                                 />
                             ))}
                         </div>
@@ -174,32 +255,33 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="bg-linear-to-br from-brand-primary to-orange-600 rounded-3xl border-2 border-black p-6 text-white">
-                    <h2 className={`${THEME.font.h2} text-xl mb-6 flex items-center gap-2`}>
-                        <AiOutlineCalendar /> QUICK ACTIONS
+                <div className="bg-linear-to-br from-brand-primary to-orange-600 rounded-2xl md:rounded-3xl border-2 border-black p-4 md:p-6 text-white">
+                    <h2 className={`${THEME.font.h2} text-base md:text-xl mb-4 md:mb-6 flex items-center gap-2`}>
+                        <AiOutlineCalendar size={16} className="md:w-5 md:h-5" /> 
+                        QUICK ACTIONS
                     </h2>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3 md:space-y-4">
                         <QuickActionButton
                             title="Manage Members"
                             onClick={() => navigate('/admin/members')}
-                            icon={<AiOutlineTeam />}
+                            icon={<AiOutlineTeam size={16} className="md:w-5 md:h-5" />}
                         />
                         <QuickActionButton
                             title="Manage Contributions"
-                            onClick={() => navigate('/admin/finance')}
-                            icon={<AiOutlineDollar />}
+                            onClick={() => navigate(`/admin/finance?year=${selectedYear}`)}
+                            icon={<AiOutlineDollar size={16} className="md:w-5 md:h-5" />}
                         />
                         <QuickActionButton
                             title="Generate Report"
-                            onClick={() => navigate('/admin/finance?report=true')}
-                            icon={<AiOutlineFileText />}
+                            onClick={() => navigate(`/admin/finance?report=true&year=${selectedYear}`)}
+                            icon={<AiOutlineFileText size={16} className="md:w-5 md:h-5" />}
                         />
                     </div>
 
-                    <div className="mt-8 p-4 bg-white/10 rounded-2xl border-2 border-white/20">
-                        <p className="text-[10px] font-black uppercase mb-1">System Status</p>
-                        <p className="text-xs font-medium">
+                    <div className="mt-6 md:mt-8 p-3 md:p-4 bg-white/10 rounded-xl md:rounded-2xl border-2 border-white/20">
+                        <p className="text-[8px] md:text-[10px] font-black uppercase mb-1">System Status</p>
+                        <p className="text-[10px] md:text-xs font-medium">
                             ✓ Synchronized • {new Date().toLocaleTimeString('en-US')}
                         </p>
                     </div>
@@ -214,10 +296,10 @@ const QuickActionButton: React.FC<{ title: string; onClick: () => void; icon: Re
 }) => (
     <button
         onClick={onClick}
-        className="w-full flex items-center justify-between p-4 bg-white/10 hover:bg-white/20 rounded-xl border-2 border-white/20 transition-all group"
+        className="w-full flex items-center justify-between p-3 md:p-4 bg-white/10 hover:bg-white/20 rounded-xl md:rounded-2xl border-2 border-white/20 transition-all group"
     >
-        <span className="font-black uppercase text-sm">{title}</span>
-        <div className="group-hover:translate-x-2 transition-transform">
+        <span className="font-black uppercase text-xs md:text-sm">{title}</span>
+        <div className="group-hover:translate-x-1 transition-transform">
             {icon}
         </div>
     </button>
