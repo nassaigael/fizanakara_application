@@ -31,21 +31,17 @@ const AdminDashboard: React.FC = () => {
     // Générer les données mensuelles à partir des vraies contributions
     const monthlyData = useMemo(() => {
         const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-        const targetPerMonth = 15000; // Objectif mensuel de 15 000 Ar
+        const targetPerMonth = 15000;
         
-        // Initialiser les données mensuelles
         const monthlyCollected = new Array(12).fill(0);
         
-        // Parcourir toutes les contributions de l'année sélectionnée
         contributions.forEach(contribution => {
-            // Récupérer la date de paiement de chaque paiement
             if (contribution.payments && contribution.payments.length > 0) {
                 contribution.payments.forEach(payment => {
                     const paymentDate = new Date(payment.paymentDate);
                     const paymentYear = paymentDate.getFullYear();
                     const paymentMonth = paymentDate.getMonth();
                     
-                    // Ajouter seulement les paiements de l'année sélectionnée
                     if (paymentYear === selectedYear) {
                         monthlyCollected[paymentMonth] += payment.amountPaid;
                     }
@@ -53,7 +49,6 @@ const AdminDashboard: React.FC = () => {
             }
         });
         
-        // Créer les données pour le graphique
         return months.map((month, index) => ({
             month,
             collected: monthlyCollected[index],
@@ -71,8 +66,19 @@ const AdminDashboard: React.FC = () => {
         const totalPaid = contributions.reduce((sum, c) => sum + (c.totalPaid || 0), 0);
         const progressPercent = totalDue > 0 ? (totalPaid / totalDue) * 100 : 0;
 
+        // Calcul des membres à risque (retards critiques)
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        
         const atRisk = [...contributions]
-            .filter(c => (c.remaining || 0) > 0)
+            .filter(c => {
+                const remaining = c.remaining || 0;
+                const dueDate = new Date(c.dueDate);
+                const isOverdue = dueDate < today;
+                const isOverdueOrAfterAugust = isOverdue || (currentMonth >= 7);
+                
+                return remaining > 0 && isOverdueOrAfterAugust;
+            })
             .sort((a, b) => (b.remaining || 0) - (a.remaining || 0))
             .slice(0, 5)
             .map(c => ({
@@ -80,7 +86,9 @@ const AdminDashboard: React.FC = () => {
                 memberId: c.memberId,
                 memberName: c.memberName,
                 amount: c.amount,
-                remaining: c.remaining
+                remaining: c.remaining,
+                dueDate: c.dueDate,
+                isOverdue: new Date(c.dueDate) < today
             }));
 
         return {
@@ -211,7 +219,7 @@ const AdminDashboard: React.FC = () => {
                 />
             </div>
 
-            {/* Annual Collection Chart - avec données dynamiques */}
+            {/* Annual Collection Chart */}
             <AnnualCollectionChart
                 selectedYear={selectedYear}
                 totalPaid={stats.totalPaid}
@@ -247,6 +255,7 @@ const AdminDashboard: React.FC = () => {
                                     name={item.memberName}
                                     amount={item.amount}
                                     remaining={item.remaining}
+                                    isOverdue={item.isOverdue}
                                     onClick={() => navigate(`/admin/finance?member=${item.memberId}&year=${selectedYear}`)}
                                 />
                             ))}
