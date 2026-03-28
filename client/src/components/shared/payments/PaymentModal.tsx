@@ -6,20 +6,23 @@ import {
     AiOutlineCalendar,
     AiOutlineCheckCircle,
     AiOutlineClockCircle,
-    AiOutlineInfoCircle} from 'react-icons/ai';
+    AiOutlineInfoCircle
+} from 'react-icons/ai';
 import { useForm } from '../../../hooks/useForm';
 import { usePayment } from '../../../hooks/usePayment';
 import { paymentSchema } from '../../../lib/validators/finance.validator';
 import { PaymentStatus } from '../../../lib/types';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
-import { formatCurrency } from '../../../lib/helper';
+import { formatCurrency, getInitials } from '../../../lib/helper';
+import { getImageUrl } from '../../../lib/constant/constant';
 
 interface PaymentModalProps {
     isOpen: boolean;
     onClose: () => void;
     contributionId: string;
     memberName?: string;
+    memberImageUrl?: string;
     contributionAmount?: number;
     remainingAmount?: number;
     onSuccess?: () => void;
@@ -30,6 +33,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     onClose,
     contributionId,
     memberName,
+    memberImageUrl,
     contributionAmount,
     remainingAmount,
     onSuccess
@@ -96,7 +100,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 await addPayment.mutateAsync({
                     amountPaid: formData.amountPaid,
                     paymentDate: paymentDate,
-                    status: autoStatus, // ← Statut automatique
+                    status: autoStatus,
                     contributionId: formData.contributionId
                 });
                 setShowSuccess(true);
@@ -128,7 +132,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         setFieldValue('amountPaid', amount);
         
         // Le statut est automatiquement mis à jour via autoStatus
-        // On synchronise aussi la valeur dans le formulaire
         setFieldValue('status', autoStatus);
     };
 
@@ -186,8 +189,27 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             <AiOutlineClose size={20} />
                         </button>
 
-                        <div className="w-14 h-14 bg-brand-primary rounded-2xl flex items-center justify-center mb-4 border-2 border-white">
-                            <AiOutlineDollar size={28} className="text-white" />
+                        {/* Photo de profil du membre */}
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden bg-brand-primary flex items-center justify-center mb-4 border-2 border-white shadow-lg">
+                            {memberImageUrl ? (
+                                <img
+                                    src={getImageUrl(memberImageUrl, 'member')}
+                                    alt={memberName || 'Member'}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        if (target.parentElement) {
+                                            target.parentElement.innerHTML = getInitials(memberName?.split(' ')[0] || '', memberName?.split(' ')[1] || '') || '?';
+                                            target.parentElement.classList.add('text-2xl', 'font-black', 'text-white', 'bg-brand-primary', 'flex', 'items-center', 'justify-center');
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-brand-primary flex items-center justify-center">
+                                    <AiOutlineDollar size={28} className="text-white" />
+                                </div>
+                            )}
                         </div>
                         <h2 className="text-xl font-black uppercase">
                             Register a Payment

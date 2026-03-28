@@ -33,7 +33,7 @@ const AdminFinance: React.FC = () => {
     const [typeFilter, setTypeFilter] = useState('all');
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedContribution, setSelectedContribution] = useState<any>(null);
-    
+
     const actionMenuRef = useRef<HTMLDivElement>(null);
     const addYearInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,26 +85,26 @@ const AdminFinance: React.FC = () => {
 
     const filteredContributions = useMemo(() => {
         if (!selectedYear) return [];
-        
+
         return contributions.filter(c => {
             const member = members.find(m => m.id === c.memberId);
             const memberName = member ? `${member.firstName} ${member.lastName}` : c.memberName;
-            
+
             if (searchTerm && !memberName.toLowerCase().includes(searchTerm.toLowerCase())) {
                 return false;
             }
-            
+
             if (typeFilter !== 'all') {
                 const isStudent = member?.status === 'STUDENT';
                 if (typeFilter === 'STUDENT' && !isStudent) return false;
                 if (typeFilter === 'WORKER' && isStudent) return false;
             }
-            
+
             if (statusFilter !== 'all') {
                 const totalPaid = c.totalPaid ?? 0;
                 const amount = c.amount ?? 0;
                 const remaining = amount - totalPaid;
-                
+
                 if (statusFilter === 'UNPAID') {
                     return remaining > 0;
                 } else if (statusFilter === 'PARTIAL') {
@@ -113,7 +113,7 @@ const AdminFinance: React.FC = () => {
                     return remaining <= 0;
                 }
             }
-            
+
             return true;
         });
     }, [contributions, members, searchTerm, statusFilter, typeFilter, selectedYear]);
@@ -165,12 +165,12 @@ const AdminFinance: React.FC = () => {
             toast.error(`Year ${newYear} already exists`);
             return;
         }
-        
+
         setIsAddingYear(false);
-        
+
         try {
             const result = await generateAnnualContributions.mutateAsync({ year: newYear });
-            
+
             if (result && result.length > 0) {
                 toast.success(`${result.length} contributions generated for ${newYear}`);
                 setAvailableYears(prev => [...prev, newYear].sort((a, b) => a - b));
@@ -184,7 +184,7 @@ const AdminFinance: React.FC = () => {
             const errorMessage = error?.response?.data?.message || 'Failed to generate contributions';
             toast.error(errorMessage);
         }
-        
+
         setIsActionMenuOpen(false);
         setNewYear(currentYear + 1);
     };
@@ -252,7 +252,7 @@ const AdminFinance: React.FC = () => {
                             </select>
                             <AiOutlineDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                         </div>
-                        
+
                         <div className="relative" ref={actionMenuRef}>
                             <Button
                                 variant="primary"
@@ -264,7 +264,7 @@ const AdminFinance: React.FC = () => {
                                 Actions
                                 <AiOutlineDown size={12} className={`transition-transform ${isActionMenuOpen ? 'rotate-180' : ''}`} />
                             </Button>
-                            
+
                             {isActionMenuOpen && (
                                 <div className="absolute right-0 top-full mt-2 w-64 bg-white border-2 border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
                                     {!isAddingYear ? (
@@ -312,7 +312,7 @@ const AdminFinance: React.FC = () => {
                                             </p>
                                         </div>
                                     )}
-                                    
+
                                     <button
                                         onClick={handleUpdateContributions}
                                         disabled={!selectedYear || regenerateForYear.isPending}
@@ -538,13 +538,12 @@ const AdminFinance: React.FC = () => {
                                                         {contribution.year}
                                                     </td>
                                                     <td className="px-4 py-4">
-                                                        <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${
-                                                            isPaid
+                                                        <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${isPaid
                                                                 ? 'bg-green-100 text-green-600'
                                                                 : isUnpaid
                                                                     ? 'bg-red-100 text-red-600'
                                                                     : 'bg-orange-100 text-orange-600'
-                                                        }`}>
+                                                            }`}>
                                                             {isPaid ? 'Paid' : isUnpaid ? 'Unpaid' : 'Partial'}
                                                         </span>
                                                     </td>
@@ -603,6 +602,7 @@ const AdminFinance: React.FC = () => {
                     }}
                     contributionId={selectedContribution.id}
                     memberName={selectedContribution.memberName}
+                    memberImageUrl={members.find(m => m.id === selectedContribution.memberId)?.imageUrl}
                     contributionAmount={selectedContribution.amount}
                     remainingAmount={selectedContribution.remaining}
                     onSuccess={() => {
