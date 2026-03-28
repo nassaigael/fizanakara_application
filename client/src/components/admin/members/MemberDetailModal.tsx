@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
     AiOutlineClose,
@@ -19,12 +19,14 @@ import {
     AiOutlineUserAdd,
     AiOutlineMan,
     AiOutlineClockCircle,
-    AiOutlineGlobal
-} from 'react-icons/ai';
+    AiOutlineGlobal,
+    AiOutlineDollar,
+    AiOutlineHistory} from 'react-icons/ai';
 import { PersonResponse, MemberStatus, Gender } from '../../../lib/types';
-import { formatDate, calculateAge, getInitials } from '../../../lib/helper';
+import { formatDate, calculateAge, getInitials, formatCurrency } from '../../../lib/helper';
 import { getImageUrl } from '../../../lib/constant/constant';
 import Button from '../../ui/Button';
+import { useFinance } from '../../../hooks/useFinance';
 
 interface MemberDetailModalProps {
     isOpen: boolean;
@@ -45,6 +47,34 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     onAddChild,
     onViewChild
 }) => {
+    const [showPaymentHistory, setShowPaymentHistory] = useState(false);
+    const [isHistorySticky, setIsHistorySticky] = useState(false);
+    const historySectionRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    
+    const { contributions } = useFinance(member?.id);
+    
+    // Filtrer les contributions du membre
+    const memberContributions = contributions.filter(c => c.memberId === member?.id);
+
+    // Gérer le sticky de la section historique
+    useEffect(() => {
+        const handleScroll = () => {
+            if (historySectionRef.current && scrollContainerRef.current) {
+                const rect = historySectionRef.current.getBoundingClientRect();
+                const containerRect = scrollContainerRef.current.getBoundingClientRect();
+                // Si la section atteint le haut du conteneur
+                setIsHistorySticky(rect.top <= containerRect.top + 60);
+            }
+        };
+
+        const scrollElement = scrollContainerRef.current;
+        if (scrollElement && showPaymentHistory) {
+            scrollElement.addEventListener('scroll', handleScroll);
+            return () => scrollElement.removeEventListener('scroll', handleScroll);
+        }
+    }, [showPaymentHistory]);
+
     if (!isOpen || !member) return null;
 
     const isMale = member.gender === Gender.MALE;
@@ -87,6 +117,25 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     const hasImage = member.imageUrl && member.imageUrl.trim() !== '';
     const avatarUrl = hasImage ? getImageUrl(member.imageUrl, 'member') : null;
     const hasChildren = member.children && member.children.length > 0;
+    const hasPaymentHistory = memberContributions.length > 0;
+
+    const getContributionStatusColor = (status: string) => {
+        switch (status) {
+            case 'PAID': return 'bg-green-100 text-green-700';
+            case 'PARTIAL': return 'bg-orange-100 text-orange-700';
+            case 'PENDING': return 'bg-red-100 text-red-700';
+            default: return 'bg-gray-100 text-gray-600';
+        }
+    };
+
+    const getContributionStatusLabel = (status: string) => {
+        switch (status) {
+            case 'PAID': return 'Paid';
+            case 'PARTIAL': return 'Partial';
+            case 'PENDING': return 'Pending';
+            default: return status;
+        }
+    };
 
     const handleChildClick = (child: PersonResponse) => {
         if (onViewChild) {
@@ -101,17 +150,13 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         return 'Recently';
     };
 
-    // Fonction pour obtenir l'URL de l'image de l'enfant
-    const getChildAvatarUrl = (child: PersonResponse) => {
-        if (child.imageUrl && child.imageUrl.trim() !== '') {
-            return getImageUrl(child.imageUrl, 'member');
-        }
-        return null;
-    };
-
     return createPortal(
         <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl border-4 border-white flex flex-col animate-in zoom-in duration-300">
+            <div 
+                ref={scrollContainerRef}
+                className="bg-white rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl border-4 border-white flex flex-col animate-in zoom-in duration-300"
+            >
+                {/* Header avec cover photo */}
                 <div className={`relative h-32 bg-linear-to-r ${genderColor} overflow-hidden shrink-0`}>
                     <div className="absolute inset-0 opacity-20">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -141,6 +186,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     </button>
                 </div>
 
+                {/* Avatar */}
                 <div className="relative px-4">
                     <div className="absolute -top-10 left-4">
                         <div className="relative group">
@@ -167,7 +213,9 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     </div>
                 </div>
 
+                {/* Content avec scroll */}
                 <div className="flex-1 overflow-y-auto p-6 pt-12">
+                    {/* En-tête avec nom et infos */}
                     <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                         <div className="w-full md:w-auto">
                             <div className="flex items-center gap-2 mb-2">
@@ -189,6 +237,19 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                         
                         <div className="flex gap-2">
+                            {hasPaymentHistory && (
+                                <button
+                                    onClick={() => setShowPaymentHistory(!showPaymentHistory)}
+                                    className={`p-2 rounded-xl transition-all ${
+                                        showPaymentHistory 
+                                            ? 'bg-brand-primary text-white' 
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                                    title="Payment History"
+                                >
+                                    <AiOutlineHistory size={16} />
+                                </button>
+                            )}
                             {onAddChild && (
                                 <button
                                     onClick={onAddChild}
@@ -219,6 +280,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                     </div>
 
+                    {/* Grille d'informations */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                         <InfoRow
                             icon={<AiOutlineIdcard size={14} />}
@@ -252,6 +314,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         />
                     </div>
 
+                    {/* Section Parent */}
                     {member.parentName && (
                         <div className="bg-indigo-50 rounded-xl p-4 mb-6 border border-indigo-100">
                             <div className="flex items-center gap-2 mb-2">
@@ -278,7 +341,90 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                     )}
 
-                    {/* Section Enfants avec photos réelles */}
+                    {/* Section Historique des paiements avec sticky */}
+                    {showPaymentHistory && (
+                        <div 
+                            ref={historySectionRef}
+                            className={`mb-6 border-t border-gray-100 pt-4 transition-all duration-300 ${
+                                isHistorySticky ? 'sticky top-0 z-20 bg-white shadow-md rounded-xl -mx-2 px-2' : ''
+                            }`}
+                        >
+                            <div className="flex items-center gap-2 mb-4">
+                                <AiOutlineHistory size={18} className="text-brand-primary" />
+                                <h3 className="text-sm font-black uppercase tracking-wider">
+                                    Payment History
+                                </h3>
+                                <span className="text-[9px] text-gray-400 ml-auto">
+                                    {memberContributions.length} contribution(s)
+                                </span>
+                            </div>
+                            
+                            {memberContributions.length === 0 ? (
+                                <div className="bg-gray-50 rounded-xl p-6 text-center border border-gray-200">
+                                    <AiOutlineDollar size={24} className="mx-auto text-gray-300 mb-2" />
+                                    <p className="text-xs font-bold text-gray-400 uppercase">No payment history</p>
+                                    <p className="text-[9px] text-gray-400 mt-1">No contributions recorded yet</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3 max-h-100 overflow-y-auto pr-1">
+                                    {memberContributions.map((contribution) => (
+                                        <div key={contribution.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                                            {/* En-tête de l'année */}
+                                            <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
+                                                <div className="flex items-center gap-2">
+                                                    <AiOutlineCalendar size={14} className="text-gray-500" />
+                                                    <span className="font-black text-sm">Year {contribution.year}</span>
+                                                </div>
+                                                <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${getContributionStatusColor(contribution.status)}`}>
+                                                    {getContributionStatusLabel(contribution.status)}
+                                                </span>
+                                            </div>
+                                            
+                                            {/* Détails de la cotisation */}
+                                            <div className="p-3 bg-white">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-[9px] font-black text-gray-500 uppercase">Total Amount</span>
+                                                    <span className="font-black text-sm">{formatCurrency(contribution.amount)}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <span className="text-[9px] font-black text-gray-500 uppercase">Total Paid</span>
+                                                    <span className="font-black text-sm text-green-600">{formatCurrency(contribution.totalPaid)}</span>
+                                                </div>
+                                                
+                                                {/* Liste des paiements */}
+                                                {contribution.payments && contribution.payments.length > 0 ? (
+                                                    <div className="mt-3 pt-3 border-t border-gray-100">
+                                                        <p className="text-[8px] font-black text-gray-400 uppercase mb-2">Payments</p>
+                                                        <div className="space-y-2">
+                                                            {contribution.payments.map((payment) => (
+                                                                <div key={payment.id} className="flex justify-between items-center py-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <AiOutlineCheckCircle size={10} className="text-green-500" />
+                                                                        <span className="text-[10px] text-gray-600">
+                                                                            {formatDate(payment.paymentDate)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <span className="font-black text-xs">
+                                                                        {formatCurrency(payment.amountPaid)}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="mt-3 pt-3 border-t border-gray-100 text-center">
+                                                        <p className="text-[8px] text-gray-400 uppercase">No payments recorded</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Section Enfants */}
                     <div className="mb-4">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
@@ -315,7 +461,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 {member.children?.map((child) => {
                                     const childIsMale = child.gender === Gender.MALE;
                                     const childAge = calculateAge(child.birthDate);
-                                    const childAvatarUrl = getChildAvatarUrl(child);
                                     
                                     return (
                                         <div
@@ -324,28 +469,8 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                             className="group bg-white border-2 border-gray-100 rounded-xl p-3 hover:shadow-lg hover:border-brand-primary/30 transition-all cursor-pointer"
                                         >
                                             <div className="flex items-center gap-3">
-                                                {/* Avatar avec photo réelle de l'enfant */}
-                                                <div className={`w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center text-sm font-black ${
-                                                    childAvatarUrl 
-                                                        ? 'bg-gray-100' 
-                                                        : childIsMale 
-                                                            ? 'bg-blue-100 text-blue-600' 
-                                                            : 'bg-pink-100 text-pink-600'
-                                                }`}>
-                                                    {childAvatarUrl ? (
-                                                        <img
-                                                            src={childAvatarUrl}
-                                                            alt={child.firstName}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => {
-                                                                (e.target as HTMLImageElement).style.display = 'none';
-                                                                (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials(child.firstName, child.lastName);
-                                                                (e.target as HTMLImageElement).parentElement!.classList.add('text-sm', 'font-black', childIsMale ? 'text-blue-600' : 'text-pink-600');
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        getInitials(child.firstName, child.lastName)
-                                                    )}
+                                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-black ${childIsMale ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>
+                                                    {getInitials(child.firstName, child.lastName)}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-black text-xs uppercase truncate">
@@ -366,6 +491,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         )}
                     </div>
 
+                    {/* Pied de page */}
                     <div className="flex gap-3 pt-4 border-t-2 border-gray-100 mt-4">
                         <Button
                             variant="secondary"
@@ -391,6 +517,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     );
 };
 
+// Composant InfoRow
 interface InfoRowProps {
     icon: React.ReactNode;
     label: string;
