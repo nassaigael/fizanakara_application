@@ -19,9 +19,13 @@ import { RiskMemberCard } from '../../components/ui/RiskMemberCard';
 import Button from '../../components/ui/Button';
 import { THEME } from '../../styles/theme';
 import { formatCurrency, formatDate } from '../../lib/helper';
+import { generateContributionReport } from '../../services/report.service';
+import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const AdminDashboard: React.FC = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
     const [availableYears, setAvailableYears] = useState<number[]>([]);
 
@@ -32,23 +36,23 @@ const AdminDashboard: React.FC = () => {
     const monthlyData = useMemo(() => {
         const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
         const targetPerMonth = 15000;
-        
+
         const monthlyCollected = new Array(12).fill(0);
-        
+
         contributions.forEach(contribution => {
             if (contribution.payments && contribution.payments.length > 0) {
                 contribution.payments.forEach(payment => {
                     const paymentDate = new Date(payment.paymentDate);
                     const paymentYear = paymentDate.getFullYear();
                     const paymentMonth = paymentDate.getMonth();
-                    
+
                     if (paymentYear === selectedYear) {
                         monthlyCollected[paymentMonth] += payment.amountPaid;
                     }
                 });
             }
         });
-        
+
         return months.map((month, index) => ({
             month,
             collected: monthlyCollected[index],
@@ -69,14 +73,14 @@ const AdminDashboard: React.FC = () => {
         // Calcul des membres à risque (retards critiques)
         const today = new Date();
         const currentMonth = today.getMonth();
-        
+
         const atRisk = [...contributions]
             .filter(c => {
                 const remaining = c.remaining || 0;
                 const dueDate = new Date(c.dueDate);
                 const isOverdue = dueDate < today;
                 const isOverdueOrAfterAugust = isOverdue || (currentMonth >= 7);
-                
+
                 return remaining > 0 && isOverdueOrAfterAugust;
             })
             .sort((a, b) => (b.remaining || 0) - (a.remaining || 0))
@@ -125,6 +129,41 @@ const AdminDashboard: React.FC = () => {
 
     const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedYear(parseInt(e.target.value, 10));
+    };
+
+    const handleGenerateReport = async () => {
+        try {
+            // Récupérer toutes les contributions pour l'année sélectionnée
+            const allContributions = await import('../../services/contribution.services').then(
+                module => module.ContributionService.getAll()
+            );
+            
+            const filteredContributions = allContributions.filter(c => c.year === selectedYear);
+            
+            const reportData = filteredContributions.map(c => ({
+                memberName: c.memberName,
+                year: c.year,
+                amount: c.amount,
+                totalPaid: c.totalPaid,
+                remaining: c.remaining,
+                status: c.status === 'PAID' ? 'Payé' : c.status === 'PARTIAL' ? 'Partiel' : 'En attente'
+            }));
+            
+            generateContributionReport({
+                title: 'Rapport des Cotisations',
+                year: selectedYear,
+                data: reportData,
+                totalDue: stats.totalDue,
+                totalPaid: stats.totalPaid,
+                totalRemaining: stats.totalRemaining,
+                generatedBy: `${user?.firstName} ${user?.lastName} (${user?.email})`
+            });
+            
+            toast.success(`Rapport ${selectedYear} généré avec succès`);
+        } catch (error) {
+            console.error('Error generating report:', error);
+            toast.error('Erreur lors de la génération du rapport');
+        }
     };
 
     if (loadingMembers || loadingContribs) {
@@ -266,7 +305,7 @@ const AdminDashboard: React.FC = () => {
                 {/* Quick Actions */}
                 <div className="bg-linear-to-br from-brand-primary to-orange-600 rounded-2xl md:rounded-3xl border-2 border-black p-4 md:p-6 text-white">
                     <h2 className={`${THEME.font.h2} text-base md:text-xl mb-4 md:mb-6 flex items-center gap-2`}>
-                        <AiOutlineCalendar size={16} className="md:w-5 md:h-5" /> 
+                        <AiOutlineCalendar size={16} className="md:w-5 md:h-5" />
                         QUICK ACTIONS
                     </h2>
 
@@ -283,7 +322,7 @@ const AdminDashboard: React.FC = () => {
                         />
                         <QuickActionButton
                             title="Generate Report"
-                            onClick={() => navigate(`/admin/finance?report=true&year=${selectedYear}`)}
+                            onClick={handleGenerateReport}
                             icon={<AiOutlineFileText size={16} className="md:w-5 md:h-5" />}
                         />
                     </div>
