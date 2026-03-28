@@ -21,12 +21,14 @@ import {
     AiOutlineClockCircle,
     AiOutlineGlobal,
     AiOutlineDollar,
-    AiOutlineHistory} from 'react-icons/ai';
+    AiOutlineHistory
+} from 'react-icons/ai';
 import { PersonResponse, MemberStatus, Gender } from '../../../lib/types';
 import { formatDate, calculateAge, getInitials, formatCurrency } from '../../../lib/helper';
 import { getImageUrl } from '../../../lib/constant/constant';
 import Button from '../../ui/Button';
 import { useFinance } from '../../../hooks/useFinance';
+import { useMembers } from '../../../hooks/useMembers';
 
 interface MemberDetailModalProps {
     isOpen: boolean;
@@ -36,6 +38,7 @@ interface MemberDetailModalProps {
     onDelete?: () => void;
     onAddChild?: () => void;
     onViewChild?: (child: PersonResponse) => void;
+    onViewParent?: (parentId: string) => void;
 }
 
 const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
@@ -45,7 +48,8 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     onEdit,
     onDelete,
     onAddChild,
-    onViewChild
+    onViewChild,
+    onViewParent
 }) => {
     const [showPaymentHistory, setShowPaymentHistory] = useState(false);
     const [isHistorySticky, setIsHistorySticky] = useState(false);
@@ -53,17 +57,16 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     
     const { contributions } = useFinance(member?.id);
+    const { members } = useMembers();
     
-    // Filtrer les contributions du membre
     const memberContributions = contributions.filter(c => c.memberId === member?.id);
+    const parentMember = member?.parentId ? members.find(m => m.id === member.parentId) : null;
 
-    // Gérer le sticky de la section historique
     useEffect(() => {
         const handleScroll = () => {
             if (historySectionRef.current && scrollContainerRef.current) {
                 const rect = historySectionRef.current.getBoundingClientRect();
                 const containerRect = scrollContainerRef.current.getBoundingClientRect();
-                // Si la section atteint le haut du conteneur
                 setIsHistorySticky(rect.top <= containerRect.top + 60);
             }
         };
@@ -74,6 +77,12 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
             return () => scrollElement.removeEventListener('scroll', handleScroll);
         }
     }, [showPaymentHistory]);
+
+    const handleParentClick = () => {
+        if (member?.parentId && onViewParent) {
+            onViewParent(member.parentId);
+        }
+    };
 
     if (!isOpen || !member) return null;
 
@@ -118,6 +127,8 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     const avatarUrl = hasImage ? getImageUrl(member.imageUrl, 'member') : null;
     const hasChildren = member.children && member.children.length > 0;
     const hasPaymentHistory = memberContributions.length > 0;
+
+    const parentImageUrl = parentMember?.imageUrl ? getImageUrl(parentMember.imageUrl, 'member') : null;
 
     const getContributionStatusColor = (status: string) => {
         switch (status) {
@@ -314,34 +325,107 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         />
                     </div>
 
-                    {/* Section Parent */}
-                    {member.parentName && (
-                        <div className="bg-indigo-50 rounded-xl p-4 mb-6 border border-indigo-100">
-                            <div className="flex items-center gap-2 mb-2">
-                                <AiOutlineUser size={14} className="text-indigo-500" />
-                                <h3 className="text-[9px] font-black uppercase tracking-wider text-indigo-600">
-                                    Parent
-                                </h3>
-                            </div>
-                            <div className="flex items-center justify-between flex-wrap gap-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-indigo-200 rounded-xl flex items-center justify-center text-indigo-600 font-black text-sm">
-                                        {getInitials(member.parentName.split(' ')[0] || '', member.parentName.split(' ')[1] || '')}
+                    {/* Section Parent avec photo et navigation */}
+                    {member.parentName && member.parentId && (
+                        <div 
+                            onClick={handleParentClick}
+                            className={`bg-linear-to-r from-indigo-50 to-purple-50 rounded-xl p-4 mb-6 border border-indigo-100 cursor-pointer hover:shadow-md transition-all group ${onViewParent ? 'hover:scale-[1.01]' : ''}`}
+                        >
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-1.5 bg-indigo-100 rounded-lg">
+                                        <AiOutlineUser size={14} className="text-indigo-600" />
                                     </div>
+                                    <h3 className="text-[10px] font-black uppercase tracking-wider text-indigo-700">
+                                        Parent Information
+                                    </h3>
+                                </div>
+                                {onViewParent && (
+                                    <div className="flex items-center gap-1 text-indigo-500 text-[9px] font-black opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span>View profile</span>
+                                        <AiOutlineArrowRight size={10} />
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="flex items-center justify-between flex-wrap gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-md">
+                                            {parentImageUrl ? (
+                                                <img
+                                                    src={parentImageUrl}
+                                                    alt={member.parentName || 'Parent'}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                        if (target.parentElement) {
+                                                            const firstName = member.parentName?.split(' ')[0] || '';
+                                                            const lastName = member.parentName?.split(' ')[1] || '';
+                                                            target.parentElement.innerHTML = getInitials(firstName, lastName);
+                                                            target.parentElement.classList.add('text-xl', 'font-black', 'text-white', 'flex', 'items-center', 'justify-center');
+                                                        }
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span className="text-xl font-black text-white">
+                                                    {getInitials(
+                                                        member.parentName?.split(' ')[0] || '',
+                                                        member.parentName?.split(' ')[1] || ''
+                                                    )}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {parentMember?.isActiveMember && (
+                                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+                                        )}
+                                    </div>
+                                    
                                     <div>
-                                        <p className="font-black text-sm uppercase">{member.parentName}</p>
-                                        <p className="text-[9px] text-indigo-500">Parent / Guardian</p>
+                                        <p className="font-black text-base uppercase tracking-tight group-hover:text-indigo-700 transition-colors">
+                                            {member.parentName}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
+                                                parentMember?.status === MemberStatus.WORKER 
+                                                    ? 'bg-purple-100 text-purple-600' 
+                                                    : 'bg-amber-100 text-amber-600'
+                                            }`}>
+                                                {parentMember?.status === MemberStatus.WORKER ? 'Worker' : 'Student'}
+                                            </span>
+                                            {parentMember?.isActiveMember && (
+                                                <span className="text-[8px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
+                                                    Active
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="bg-white px-3 py-1 rounded-lg shadow-sm">
-                                    <p className="text-[7px] text-gray-400 uppercase">Relationship</p>
-                                    <p className="font-black text-xs text-indigo-600">Child</p>
+                                
+                                <div className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border border-indigo-100">
+                                    <p className="text-[7px] text-gray-400 uppercase tracking-wider text-center">Relationship</p>
+                                    <p className="font-black text-xs text-indigo-600 text-center">Child</p>
                                 </div>
                             </div>
+                            
+                            {parentMember && (
+                                <div className="mt-3 pt-2 border-t border-indigo-100 flex items-center gap-3 text-[9px] text-indigo-600">
+                                    <span className="flex items-center gap-1">
+                                        <AiOutlineIdcard size={10} />
+                                        {parentMember.id}
+                                    </span>
+                                    <span>•</span>
+                                    <span className="flex items-center gap-1">
+                                        <AiOutlinePhone size={10} />
+                                        {parentMember.phoneNumber || 'No phone'}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    {/* Section Historique des paiements avec sticky */}
+                    {/* Section Historique des paiements */}
                     {showPaymentHistory && (
                         <div 
                             ref={historySectionRef}
@@ -369,7 +453,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 <div className="space-y-3 max-h-100 overflow-y-auto pr-1">
                                     {memberContributions.map((contribution) => (
                                         <div key={contribution.id} className="border border-gray-200 rounded-xl overflow-hidden">
-                                            {/* En-tête de l'année */}
                                             <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
                                                 <div className="flex items-center gap-2">
                                                     <AiOutlineCalendar size={14} className="text-gray-500" />
@@ -380,7 +463,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                 </span>
                                             </div>
                                             
-                                            {/* Détails de la cotisation */}
                                             <div className="p-3 bg-white">
                                                 <div className="flex justify-between items-center mb-2">
                                                     <span className="text-[9px] font-black text-gray-500 uppercase">Total Amount</span>
@@ -391,7 +473,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                     <span className="font-black text-sm text-green-600">{formatCurrency(contribution.totalPaid)}</span>
                                                 </div>
                                                 
-                                                {/* Liste des paiements */}
                                                 {contribution.payments && contribution.payments.length > 0 ? (
                                                     <div className="mt-3 pt-3 border-t border-gray-100">
                                                         <p className="text-[8px] font-black text-gray-400 uppercase mb-2">Payments</p>
@@ -461,6 +542,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 {member.children?.map((child) => {
                                     const childIsMale = child.gender === Gender.MALE;
                                     const childAge = calculateAge(child.birthDate);
+                                    const childAvatarUrl = child.imageUrl ? getImageUrl(child.imageUrl, 'member') : null;
                                     
                                     return (
                                         <div
@@ -469,8 +551,30 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                             className="group bg-white border-2 border-gray-100 rounded-xl p-3 hover:shadow-lg hover:border-brand-primary/30 transition-all cursor-pointer"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-black ${childIsMale ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>
-                                                    {getInitials(child.firstName, child.lastName)}
+                                                <div className={`w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center text-sm font-black ${
+                                                    childAvatarUrl 
+                                                        ? 'bg-gray-100' 
+                                                        : childIsMale 
+                                                            ? 'bg-blue-100 text-blue-600' 
+                                                            : 'bg-pink-100 text-pink-600'
+                                                }`}>
+                                                    {childAvatarUrl ? (
+                                                        <img
+                                                            src={childAvatarUrl}
+                                                            alt={child.firstName}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                const target = e.target as HTMLImageElement;
+                                                                target.style.display = 'none';
+                                                                if (target.parentElement) {
+                                                                    target.parentElement.innerHTML = getInitials(child.firstName, child.lastName);
+                                                                    target.parentElement.classList.add('text-sm', 'font-black', childIsMale ? 'text-blue-600' : 'text-pink-600');
+                                                                }
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        getInitials(child.firstName, child.lastName)
+                                                    )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-black text-xs uppercase truncate">
@@ -517,7 +621,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     );
 };
 
-// Composant InfoRow
 interface InfoRowProps {
     icon: React.ReactNode;
     label: string;
