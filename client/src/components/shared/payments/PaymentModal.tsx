@@ -6,9 +6,7 @@ import {
     AiOutlineCalendar,
     AiOutlineCheckCircle,
     AiOutlineClockCircle,
-    AiOutlineInfoCircle,
-    AiOutlineWarning
-} from 'react-icons/ai';
+    AiOutlineInfoCircle} from 'react-icons/ai';
 import { useForm } from '../../../hooks/useForm';
 import { usePayment } from '../../../hooks/usePayment';
 import { paymentSchema } from '../../../lib/validators/finance.validator';
@@ -236,18 +234,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                     </p>
                                 </div>
                             )}
-
-                            {/* Alerte de dépassement */}
-                            {isOverPayment && (
-                                <div className="mt-3 pt-3 border-t border-red-200">
-                                    <div className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
-                                        <AiOutlineWarning size={14} className="text-red-500" />
-                                        <p className="text-[9px] font-black text-red-600 uppercase">
-                                            Overpayment detected! Maximum allowed: {formatCurrency(remainingAmount || 0)}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         {/* Amount Input */}
@@ -296,13 +282,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                     </button>
                                 </div>
                             )}
-
-                            {/* Message d'information sur le montant maximum */}
-                            {remainingAmount && (
-                                <p className="text-[8px] text-gray-400 mt-2">
-                                    Maximum allowed: {formatCurrency(remainingAmount)}
-                                </p>
-                            )}
                         </div>
 
                         {/* Date Input */}
@@ -335,19 +314,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                         }`}>
                                             {getStatusLabel()}
                                         </p>
-                                        <p className="text-[8px] text-gray-500 mt-0.5">
-                                            {autoStatus === PaymentStatus.COMPLETED 
-                                                ? 'Full payment - No remaining balance'
-                                                : 'Partial payment - Balance remaining'}
-                                        </p>
                                     </div>
                                 </div>
                                 <AiOutlineInfoCircle size={14} className="text-gray-400" />
                             </div>
-                            <p className="text-[8px] text-gray-400 mt-2 flex items-center gap-1">
-                                <AiOutlineInfoCircle size={10} />
-                                Status is automatically determined based on payment amount
-                            </p>
                         </div>
 
                         <div className="flex gap-3 pt-2">
