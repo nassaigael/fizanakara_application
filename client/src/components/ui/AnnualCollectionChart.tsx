@@ -28,14 +28,17 @@ interface CustomTooltipProps {
 
 const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+        const collectedValue = payload.find((p: any) => p.dataKey === 'collected')?.value || 0;
+        const targetValue = payload.find((p: any) => p.dataKey === 'target')?.value || 0;
+        
         return (
             <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-200">
                 <p className="text-xs font-black text-gray-600 mb-1">{label}</p>
                 <p className="text-sm font-bold text-emerald-600">
-                    Collected: {formatCurrency(payload[0]?.value || 0)}
+                    Collected: {formatCurrency(collectedValue)}
                 </p>
                 <p className="text-xs font-medium text-gray-500">
-                    Target: {formatCurrency(payload[1]?.value || 0)}
+                    Target: {formatCurrency(targetValue)}
                 </p>
             </div>
         );
@@ -57,6 +60,9 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
         { name: 'Paid', value: totalPaid, percentage: paidPercentage, color: COLORS.paid },
         { name: 'Remaining', value: remaining, percentage: remainingPercentage, color: COLORS.remaining }
     ].filter(item => item.value > 0);
+
+    // Vérifier si toutes les données sont à zéro
+    const hasNoData = monthlyData.every(item => item.collected === 0 && item.target === 0);
 
     return (
         <div className="bg-white rounded-3xl border-2 border-b-8 border-gray-200 p-4 md:p-6 shadow-sm">
@@ -86,33 +92,44 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                 {/* Donut Chart */}
                 <div className="lg:w-2/5 flex flex-col items-center justify-center">
                     <div className="relative w-48 h-48 md:w-56 md:h-56">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={donutData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={2}
-                                    dataKey="value"
-                                    stroke="none"
-                                >
-                                    {donutData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Pie>
-                            </PieChart>
-                        </ResponsiveContainer>
+                        {totalDue > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={donutData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={2}
+                                        dataKey="value"
+                                        stroke="none"
+                                    >
+                                        {donutData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <div className="text-center">
+                                    <p className="text-3xl font-black text-gray-300">0</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase">No data</p>
+                                </div>
+                            </div>
+                        )}
                         {/* Centre du donut avec pourcentage */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-2xl md:text-3xl font-black text-gray-800">
-                                {Math.round(paidPercentage)}%
-                            </span>
-                            <span className="text-[8px] md:text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                                Collected
-                            </span>
-                        </div>
+                        {totalDue > 0 && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-2xl md:text-3xl font-black text-gray-800">
+                                    {Math.round(paidPercentage)}%
+                                </span>
+                                <span className="text-[8px] md:text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                                    Collected
+                                </span>
+                            </div>
+                        )}
                     </div>
                     
                     {/* Légende du donut */}
@@ -139,49 +156,58 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
 
                 {/* Bar Chart */}
                 <div className="lg:w-3/5">
-                    <ResponsiveContainer width="100%" height={250}>
-                        <BarChart 
-                            data={monthlyData} 
-                            margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
-                            barCategoryGap="20%"
-                        >
-                            <XAxis 
-                                dataKey="month" 
-                                tick={{ fontSize: 10, fill: '#6B7280' }}
-                                axisLine={{ stroke: '#E5E7EB' }}
-                                tickLine={false}
-                                interval={0}
-                            />
-                            <YAxis 
-                                tick={{ fontSize: 10, fill: '#6B7280' }}
-                                axisLine={{ stroke: '#E5E7EB' }}
-                                tickLine={false}
-                                tickFormatter={(value: number) => `${value / 1000}k`}
-                            />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend 
-                                verticalAlign="top" 
-                                align="right"
-                                iconType="circle"
-                                iconSize={8}
-                                wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', marginBottom: '10px' }}
-                            />
-                            <Bar 
-                                dataKey="collected" 
-                                fill={COLORS.paid} 
-                                radius={[4, 4, 0, 0]}
-                                name="Collected"
-                                barSize={24}
-                            />
-                            <Bar 
-                                dataKey="target" 
-                                fill={COLORS.target} 
-                                radius={[4, 4, 0, 0]}
-                                name="Target"
-                                barSize={24}
-                            />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {hasNoData ? (
+                        <div className="h-62.5 flex items-center justify-center bg-gray-50 rounded-xl">
+                            <div className="text-center">
+                                <p className="text-sm font-bold text-gray-400 uppercase">No payment data available</p>
+                                <p className="text-[10px] text-gray-400 mt-1">Generate contributions to see monthly collection</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height={250}>
+                            <BarChart 
+                                data={monthlyData} 
+                                margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
+                                barCategoryGap="20%"
+                            >
+                                <XAxis 
+                                    dataKey="month" 
+                                    tick={{ fontSize: 10, fill: '#6B7280' }}
+                                    axisLine={{ stroke: '#E5E7EB' }}
+                                    tickLine={false}
+                                    interval={0}
+                                />
+                                <YAxis 
+                                    tick={{ fontSize: 10, fill: '#6B7280' }}
+                                    axisLine={{ stroke: '#E5E7EB' }}
+                                    tickLine={false}
+                                    tickFormatter={(value: number) => `${value / 1000}k`}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Legend 
+                                    verticalAlign="top" 
+                                    align="right"
+                                    iconType="circle"
+                                    iconSize={8}
+                                    wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', marginBottom: '10px' }}
+                                />
+                                <Bar 
+                                    dataKey="collected" 
+                                    fill={COLORS.paid} 
+                                    radius={[4, 4, 0, 0]}
+                                    name="Collected"
+                                    barSize={24}
+                                />
+                                <Bar 
+                                    dataKey="target" 
+                                    fill={COLORS.target} 
+                                    radius={[4, 4, 0, 0]}
+                                    name="Target"
+                                    barSize={24}
+                                />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    )}
                     <div className="text-center mt-2">
                         <p className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">
                             Monthly Collection vs Target
