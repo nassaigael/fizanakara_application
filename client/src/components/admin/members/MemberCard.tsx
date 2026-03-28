@@ -1,6 +1,5 @@
 import React from 'react';
 import { 
-    AiOutlineUser, 
     AiOutlinePhone, 
     AiOutlineGlobal, 
     AiOutlineFlag, 
@@ -36,7 +35,6 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onEdit, onDelete, onVie
     const genderIcon = isMale ? <AiOutlineMan size={20} /> : <AiOutlineWoman size={20} />;
     const genderText = isMale ? 'Male' : 'Female';
     const genderColor = isMale ? 'text-blue-600' : 'text-pink-600';
-    const genderBg = isMale ? 'bg-blue-100' : 'bg-pink-100';
 
     const getStatusBadge = () => {
         if (member.status === MemberStatus.WORKER) {
@@ -87,7 +85,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onEdit, onDelete, onVie
     return (
         <div className="group relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
             {/* Cover Photo avec gradient selon le sexe */}
-            <div className={`relative h-32 bg-gradient-to-r ${coverColors[isMale ? 'male' : 'female']} overflow-hidden`}>
+            <div className={`relative h-32 bg-linear-to-r ${coverColors[isMale ? 'male' : 'female']} overflow-hidden`}>
                 <div className="absolute inset-0 opacity-20">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                     <div className="absolute bottom-0 left-0 w-40 h-40 bg-black rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
@@ -131,7 +129,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onEdit, onDelete, onVie
                                 </span>
                             )}
                         </div>
-                        <div className={`absolute -inset-1 rounded-2xl bg-gradient-to-r ${coverColors[isMale ? 'male' : 'female']} opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10`} />
+                        <div className={`absolute -inset-1 rounded-2xl bg-linear-to-r ${coverColors[isMale ? 'male' : 'female']} opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10`} />
                     </div>
                 </div>
             </div>
@@ -141,7 +139,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onEdit, onDelete, onVie
                 <div className="mb-3 text-center">
                     <h3 className="font-black text-base uppercase tracking-tight">
                         {member.lastName}{' '}
-                        <span className={`bg-gradient-to-r ${coverColors[isMale ? 'male' : 'female']} bg-clip-text text-transparent`}>
+                        <span className={`bg-linear-to-r ${coverColors[isMale ? 'male' : 'female']} bg-clip-text text-transparent`}>
                             {member.firstName}
                         </span>
                     </h3>
@@ -197,7 +195,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onEdit, onDelete, onVie
                     </div>
 
                     {member.childrenCount > 0 && (
-                        <div className="flex items-center justify-between p-2 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50">
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-linear-to-r from-orange-50 to-amber-50">
                             <div className="flex items-center gap-2">
                                 <AiOutlineStar size={14} className="text-amber-500" />
                                 <span className="text-[10px] font-medium text-gray-600">Children</span>
@@ -246,7 +244,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onEdit, onDelete, onVie
                 </div>
             </div>
 
-            <div className={`absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r ${coverColors[isMale ? 'male' : 'female']} scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
+            <div className={`absolute inset-x-0 bottom-0 h-1 bg-linear-to-r ${coverColors[isMale ? 'male' : 'female']} scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
         </div>
     );
 };
