@@ -57,10 +57,7 @@ export const generateContributionReport = async (options: ReportOptions) => {
     doc.setFontSize(9);
     doc.text('Organisation officielle - Rapport financier', 20, 18);
 
-    const reference = `nassaigael.github.io`;
-
     doc.setFontSize(8);
-    doc.text(`Réf: ${reference}`, pageWidth - 20, 12, { align: 'right' });
     doc.text(formatDate(new Date().toISOString(), 'long'), pageWidth - 20, 18, { align: 'right' });
 
     // ================= TITRE =================
@@ -162,7 +159,6 @@ Membres: ${data.length}
 Responsable: ${generatedBy}
 
 Développeur: ${developerName}
-Référence: ${reference}
 Date: ${formatDate(new Date().toISOString(), 'short')}
 `.trim();
 
