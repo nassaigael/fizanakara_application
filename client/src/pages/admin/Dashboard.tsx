@@ -14,7 +14,7 @@ import {
 import { useMembers } from '../../hooks/useMembers';
 import { useFinance } from '../../hooks/useFinance';
 import { Card } from '../../components/ui/Card';
-import { ProgressCard } from '../../components/ui/ProgressCard';
+import { AnnualCollectionChart } from '../../components/ui/AnnualCollectionChart';
 import { RiskMemberCard } from '../../components/ui/RiskMemberCard';
 import Button from '../../components/ui/Button';
 import { THEME } from '../../styles/theme';
@@ -27,6 +27,22 @@ const AdminDashboard: React.FC = () => {
 
     const { members, isLoading: loadingMembers } = useMembers();
     const { contributions, isLoading: loadingContribs } = useFinance(undefined, selectedYear);
+
+    // Générer les données mensuelles simulées
+    // Dans un vrai projet, ces données viendraient du backend
+    const monthlyData = useMemo(() => {
+        const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        const targetPerMonth = 15000; // Objectif mensuel de 15 000 Ar
+        
+        // Simuler des données de collecte (à remplacer par des vraies données)
+        const collectedData = [0, 0, 0, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 38000, 40000];
+        
+        return months.map((month, index) => ({
+            month,
+            collected: collectedData[index] || 0,
+            target: targetPerMonth
+        }));
+    }, []);
 
     // Récupérer les années disponibles depuis les cotisations
     useEffect(() => {
@@ -99,9 +115,8 @@ const AdminDashboard: React.FC = () => {
 
     return (
         <div className="space-y-6 md:space-y-8">
-            {/* Header - Version responsive avec sélecteur d'année */}
+            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                {/* Titre et date */}
                 <div className="flex items-center gap-3 md:gap-4">
                     <div className="p-3 md:p-4 bg-brand-primary text-white rounded-2xl md:rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <AiOutlineRise size={24} className="md:w-8 md:h-8" />
@@ -117,9 +132,7 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Conteneur pour le sélecteur d'année et bouton NEW MEMBER */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    {/* Sélecteur d'année */}
                     {availableYears.length > 0 && (
                         <div className="relative">
                             <AiOutlineCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -138,7 +151,6 @@ const AdminDashboard: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Bouton NEW MEMBER */}
                     <Button
                         variant="primary"
                         onClick={() => navigate('/admin/members')}
@@ -182,13 +194,13 @@ const AdminDashboard: React.FC = () => {
                 />
             </div>
 
-            {/* Progress Card */}
-            <ProgressCard
-                title="Annual Collection"
-                subtitle={`Recovery rate ${selectedYear}`}
-                progress={stats.progressPercent}
-                current={stats.totalPaid}
-                total={stats.totalDue}
+            {/* Annual Collection Chart */}
+            <AnnualCollectionChart
+                selectedYear={selectedYear}
+                totalPaid={stats.totalPaid}
+                totalDue={stats.totalDue}
+                remaining={stats.totalRemaining}
+                monthlyData={monthlyData}
             />
 
             {/* Two columns layout */}
