@@ -28,40 +28,38 @@ const AdminDashboard: React.FC = () => {
     const { members, isLoading: loadingMembers } = useMembers();
     const { contributions, isLoading: loadingContribs } = useFinance(undefined, selectedYear);
 
-    // Générer les données mensuelles simulées
-    // Dans un vrai projet, ces données viendraient du backend
+    // Générer les données mensuelles à partir des vraies contributions
     const monthlyData = useMemo(() => {
         const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
         const targetPerMonth = 15000; // Objectif mensuel de 15 000 Ar
         
-        // Simuler des données de collecte (à remplacer par des vraies données)
-        const collectedData = [0, 0, 0, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 38000, 40000];
+        // Initialiser les données mensuelles
+        const monthlyCollected = new Array(12).fill(0);
         
+        // Parcourir toutes les contributions de l'année sélectionnée
+        contributions.forEach(contribution => {
+            // Récupérer la date de paiement de chaque paiement
+            if (contribution.payments && contribution.payments.length > 0) {
+                contribution.payments.forEach(payment => {
+                    const paymentDate = new Date(payment.paymentDate);
+                    const paymentYear = paymentDate.getFullYear();
+                    const paymentMonth = paymentDate.getMonth();
+                    
+                    // Ajouter seulement les paiements de l'année sélectionnée
+                    if (paymentYear === selectedYear) {
+                        monthlyCollected[paymentMonth] += payment.amountPaid;
+                    }
+                });
+            }
+        });
+        
+        // Créer les données pour le graphique
         return months.map((month, index) => ({
             month,
-            collected: collectedData[index] || 0,
+            collected: monthlyCollected[index],
             target: targetPerMonth
         }));
-    }, []);
-
-    // Récupérer les années disponibles depuis les cotisations
-    useEffect(() => {
-        const fetchYears = async () => {
-            try {
-                const allContributions = await import('../../services/contribution.services').then(
-                    module => module.ContributionService.getAll()
-                );
-                const years = [...new Set(allContributions.map(c => c.year))];
-                setAvailableYears(years.sort((a, b) => a - b));
-                if (years.length > 0 && !years.includes(selectedYear)) {
-                    setSelectedYear(years[years.length - 1]);
-                }
-            } catch (error) {
-                console.error('Failed to fetch years:', error);
-            }
-        };
-        fetchYears();
-    }, []);
+    }, [contributions, selectedYear]);
 
     const stats = useMemo(() => {
         const totalMembers = members?.length || 0;
@@ -97,6 +95,25 @@ const AdminDashboard: React.FC = () => {
             atRisk
         };
     }, [members, contributions]);
+
+    // Récupérer les années disponibles depuis les cotisations
+    useEffect(() => {
+        const fetchYears = async () => {
+            try {
+                const allContributions = await import('../../services/contribution.services').then(
+                    module => module.ContributionService.getAll()
+                );
+                const years = [...new Set(allContributions.map(c => c.year))];
+                setAvailableYears(years.sort((a, b) => a - b));
+                if (years.length > 0 && !years.includes(selectedYear)) {
+                    setSelectedYear(years[years.length - 1]);
+                }
+            } catch (error) {
+                console.error('Failed to fetch years:', error);
+            }
+        };
+        fetchYears();
+    }, []);
 
     const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedYear(parseInt(e.target.value, 10));
@@ -194,7 +211,7 @@ const AdminDashboard: React.FC = () => {
                 />
             </div>
 
-            {/* Annual Collection Chart */}
+            {/* Annual Collection Chart - avec données dynamiques */}
             <AnnualCollectionChart
                 selectedYear={selectedYear}
                 totalPaid={stats.totalPaid}
