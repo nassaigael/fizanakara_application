@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     AiOutlineTeam,
@@ -8,7 +8,9 @@ import {
     AiOutlineUserAdd,
     AiOutlineCalendar,
     AiOutlineFileText,
-    AiOutlineCheckCircle} from 'react-icons/ai';
+    AiOutlineCheckCircle,
+    AiOutlineDown
+} from 'react-icons/ai';
 import { useMembers } from '../../hooks/useMembers';
 import { useFinance } from '../../hooks/useFinance';
 import { Card } from '../../components/ui/Card';
@@ -20,10 +22,30 @@ import { formatCurrency, formatDate } from '../../lib/helper';
 
 const AdminDashboard: React.FC = () => {
     const navigate = useNavigate();
-    const [selectedYear] = useState(new Date().getFullYear());
+    const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+    const [availableYears, setAvailableYears] = useState<number[]>([]);
 
     const { members, isLoading: loadingMembers } = useMembers();
     const { contributions, isLoading: loadingContribs } = useFinance(undefined, selectedYear);
+
+    // Récupérer les années disponibles depuis les cotisations
+    useEffect(() => {
+        const fetchYears = async () => {
+            try {
+                const allContributions = await import('../../services/contribution.services').then(
+                    module => module.ContributionService.getAll()
+                );
+                const years = [...new Set(allContributions.map(c => c.year))];
+                setAvailableYears(years.sort((a, b) => a - b));
+                if (years.length > 0 && !years.includes(selectedYear)) {
+                    setSelectedYear(years[years.length - 1]);
+                }
+            } catch (error) {
+                console.error('Failed to fetch years:', error);
+            }
+        };
+        fetchYears();
+    }, []);
 
     const stats = useMemo(() => {
         const totalMembers = members?.length || 0;
@@ -60,6 +82,10 @@ const AdminDashboard: React.FC = () => {
         };
     }, [members, contributions]);
 
+    const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedYear(parseInt(e.target.value, 10));
+    };
+
     if (loadingMembers || loadingContribs) {
         return (
             <div className="flex items-center justify-center h-96">
@@ -73,7 +99,7 @@ const AdminDashboard: React.FC = () => {
 
     return (
         <div className="space-y-6 md:space-y-8">
-            {/* Header - Version responsive */}
+            {/* Header - Version responsive avec sélecteur d'année */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 {/* Titre et date */}
                 <div className="flex items-center gap-3 md:gap-4">
@@ -91,15 +117,37 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Bouton NEW MEMBER - Responsive */}
-                <Button
-                    variant="primary"
-                    onClick={() => navigate('/admin/members')}
-                    className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm w-full sm:w-auto"
-                >
-                    <AiOutlineUserAdd size={16} className="sm:w-5 sm:h-5" />
-                    <span className="font-black">NEW MEMBER</span>
-                </Button>
+                {/* Conteneur pour le sélecteur d'année et bouton NEW MEMBER */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    {/* Sélecteur d'année */}
+                    {availableYears.length > 0 && (
+                        <div className="relative">
+                            <AiOutlineCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <select
+                                value={selectedYear}
+                                onChange={handleYearChange}
+                                className="appearance-none bg-white border-2 border-gray-200 rounded-xl py-2.5 pl-10 pr-8 text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:border-brand-primary w-full sm:w-auto"
+                            >
+                                {availableYears.map(year => (
+                                    <option key={year} value={year}>
+                                        Year {year}
+                                    </option>
+                                ))}
+                            </select>
+                            <AiOutlineDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                        </div>
+                    )}
+
+                    {/* Bouton NEW MEMBER */}
+                    <Button
+                        variant="primary"
+                        onClick={() => navigate('/admin/members')}
+                        className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm w-full sm:w-auto"
+                    >
+                        <AiOutlineUserAdd size={16} className="sm:w-5 sm:h-5" />
+                        <span className="font-black">NEW MEMBER</span>
+                    </Button>
+                </div>
             </div>
 
             {/* Stats Cards */}
@@ -114,14 +162,14 @@ const AdminDashboard: React.FC = () => {
                 <Card
                     title="Students"
                     value={stats.students}
-                    subtitle={`${((stats.students / stats.totalMembers) * 100 || 0).toFixed(1)}%`}
+                    subtitle={`${stats.totalMembers > 0 ? ((stats.students / stats.totalMembers) * 100).toFixed(1) : 0}%`}
                     icon={<AiOutlineFileText size={20} className="sm:w-6 sm:h-6" />}
                     gradient="from-purple-500 to-pink-500"
                 />
                 <Card
                     title="Workers"
                     value={stats.workers}
-                    subtitle={`${((stats.workers / stats.totalMembers) * 100 || 0).toFixed(1)}%`}
+                    subtitle={`${stats.totalMembers > 0 ? ((stats.workers / stats.totalMembers) * 100).toFixed(1) : 0}%`}
                     icon={<AiOutlineTeam size={20} className="sm:w-6 sm:h-6" />}
                     gradient="from-orange-500 to-red-500"
                 />
@@ -170,7 +218,7 @@ const AdminDashboard: React.FC = () => {
                                     name={item.memberName}
                                     amount={item.amount}
                                     remaining={item.remaining}
-                                    onClick={() => navigate(`/admin/finance?member=${item.memberId}`)}
+                                    onClick={() => navigate(`/admin/finance?member=${item.memberId}&year=${selectedYear}`)}
                                 />
                             ))}
                         </div>
@@ -192,12 +240,12 @@ const AdminDashboard: React.FC = () => {
                         />
                         <QuickActionButton
                             title="Manage Contributions"
-                            onClick={() => navigate('/admin/finance')}
+                            onClick={() => navigate(`/admin/finance?year=${selectedYear}`)}
                             icon={<AiOutlineDollar size={16} className="md:w-5 md:h-5" />}
                         />
                         <QuickActionButton
                             title="Generate Report"
-                            onClick={() => navigate('/admin/finance?report=true')}
+                            onClick={() => navigate(`/admin/finance?report=true&year=${selectedYear}`)}
                             icon={<AiOutlineFileText size={16} className="md:w-5 md:h-5" />}
                         />
                     </div>
