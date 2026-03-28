@@ -161,6 +161,14 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         return 'Recently';
     };
 
+    // Fonction pour formater l'ID avec préfixe MBR
+    const formatMemberId = (id: string) => {
+        if (id && !id.startsWith('MBR')) {
+            return `MBR${id}`;
+        }
+        return id;
+    };
+
     return createPortal(
         <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
             <div 
@@ -237,7 +245,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                             </div>
                             <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-[9px] font-mono bg-gray-100 px-2 py-1 rounded-full">
-                                    {member.id}
+                                    {formatMemberId(member.id)}
                                 </span>
                                 <span className="text-[9px] text-gray-400">•</span>
                                 <span className="text-[9px] text-gray-500 flex items-center gap-1">
@@ -296,7 +304,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         <InfoRow
                             icon={<AiOutlineIdcard size={14} />}
                             label="Member ID"
-                            value={member.id}
+                            value={formatMemberId(member.id)}
                         />
                         <InfoRow
                             icon={<AiOutlineCalendar size={14} />}
@@ -413,7 +421,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 <div className="mt-3 pt-2 border-t border-indigo-100 flex items-center gap-3 text-[9px] text-indigo-600">
                                     <span className="flex items-center gap-1">
                                         <AiOutlineIdcard size={10} />
-                                        {parentMember.id}
+                                        {formatMemberId(parentMember.id)}
                                     </span>
                                     <span>•</span>
                                     <span className="flex items-center gap-1">
@@ -581,7 +589,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                         {child.firstName} {child.lastName}
                                                     </p>
                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                        <span className="text-[8px] text-gray-400">{child.id.slice(-6)}</span>
+                                                        <span className="text-[8px] text-gray-400">{formatMemberId(child.id)}</span>
                                                         <span className="text-[8px] text-gray-400">•</span>
                                                         <span className="text-[8px] text-amber-600">{childAge} ans</span>
                                                     </div>
