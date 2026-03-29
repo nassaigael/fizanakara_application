@@ -144,8 +144,8 @@ const AdminMembers: React.FC = () => {
 
     return (
         <div className="relative">
-            {/* Header avec titre et bouton NEW MEMBER - En haut */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            {/* Header avec titre et bouton NEW MEMBER */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
                     <h1 className={`${THEME.font.h1} flex items-center gap-3 uppercase`}>
                         <AiOutlineTeam className="text-brand-primary" />
@@ -160,58 +160,12 @@ const AdminMembers: React.FC = () => {
                 </Button>
             </div>
 
-            {/* Results Count */}
-            <div className="mb-4 flex justify-between items-center">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    {filteredMembers.length} member(s) found
-                </p>
-                {hasActiveFilters && (
-                    <button
-                        onClick={clearAllFilters}
-                        className="text-[10px] font-black uppercase text-brand-primary hover:underline"
-                    >
-                        Reset all filters
-                    </button>
-                )}
-            </div>
-
-            {/* Members Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {filteredMembers.length === 0 ? (
-                    <div className="col-span-full bg-white rounded-2xl border-2 border-gray-100 p-12 text-center">
-                        <AiOutlineTeam size={48} className="mx-auto text-gray-300 mb-4" />
-                        <p className="font-black text-gray-400 uppercase">No members found</p>
-                        <p className="text-sm text-gray-400 mt-1">
-                            Try adjusting your search or filters
-                        </p>
-                        {hasActiveFilters && (
-                            <button
-                                onClick={clearAllFilters}
-                                className="mt-4 text-sm font-black text-brand-primary hover:underline"
-                            >
-                                Clear all filters
-                            </button>
-                        )}
-                    </div>
-                ) : (
-                    filteredMembers.map((member) => (
-                        <MemberCard
-                            key={member.id}
-                            member={member}
-                            onEdit={handleEdit}
-                            onDelete={(id) => setDeleteId(id)}
-                            onView={handleView}
-                        />
-                    ))
-                )}
-            </div>
-
-            {/* Barre de recherche et filtres - En bas avec sticky */}
+            {/* Barre de recherche et filtres - Juste en dessous du header avec sticky */}
             <div 
                 ref={filtersRef}
-                className={`sticky bottom-0 z-30 transition-all duration-300 ${
+                className={`sticky top-0 z-30 transition-all duration-300 mb-6 ${
                     isFiltersSticky 
-                        ? 'bg-brand-bg/95 backdrop-blur-md shadow-lg py-4 -mb-4' 
+                        ? 'bg-brand-bg/95 backdrop-blur-md shadow-lg py-3 -mt-2' 
                         : 'bg-transparent py-0'
                 }`}
             >
@@ -334,6 +288,52 @@ const AdminMembers: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* Results Count */}
+            <div className="mb-4 flex justify-between items-center">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    {filteredMembers.length} member(s) found
+                </p>
+                {hasActiveFilters && (
+                    <button
+                        onClick={clearAllFilters}
+                        className="text-[10px] font-black uppercase text-brand-primary hover:underline"
+                    >
+                        Reset all filters
+                    </button>
+                )}
+            </div>
+
+            {/* Members Grid */}
+            {filteredMembers.length === 0 ? (
+                <div className="bg-white rounded-2xl border-2 border-gray-100 p-12 text-center">
+                    <AiOutlineTeam size={48} className="mx-auto text-gray-300 mb-4" />
+                    <p className="font-black text-gray-400 uppercase">No members found</p>
+                    <p className="text-sm text-gray-400 mt-1">
+                        Try adjusting your search or filters
+                    </p>
+                    {hasActiveFilters && (
+                        <button
+                            onClick={clearAllFilters}
+                            className="mt-4 text-sm font-black text-brand-primary hover:underline"
+                        >
+                            Clear all filters
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredMembers.map((member) => (
+                        <MemberCard
+                            key={member.id}
+                            member={member}
+                            onEdit={handleEdit}
+                            onDelete={(id) => setDeleteId(id)}
+                            onView={handleView}
+                        />
+                    ))}
+                </div>
+            )}
 
             {/* Member Form Modal */}
             <MemberForm
