@@ -34,13 +34,11 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         </svg>
     );
 
-    // Get user initials for fallback
     const getInitials = () => {
         if (!user) return '?';
         return `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
     };
 
-    // Check if user has image
     const hasImage = user?.imageUrl && user.imageUrl.trim() !== '';
 
     return (
@@ -78,19 +76,17 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
                 <div className="relative">
                     <button
                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                        className="flex items-center gap-2 p-1.5 hover:bg-brand-bg rounded-xl transition-all"
+                        className="flex items-center gap-2 p-1.5 hover:bg-brand-bg rounded-xl transition-all group"
                         aria-expanded={isProfileMenuOpen}
                     >
                         <div className="relative">
-                            {/* Avatar with image or initials */}
-                            <div className="w-9 h-9 rounded-xl bg-brand-primary text-white flex items-center justify-center font-bold text-sm overflow-hidden">
+                            <div className="w-9 h-9 rounded-xl bg-linear-to-br from-brand-primary to-orange-500 text-white flex items-center justify-center font-bold text-sm overflow-hidden shadow-md">
                                 {hasImage ? (
                                     <img
                                         src={getImageUrl(user?.imageUrl, 'admin')}
                                         alt={user?.firstName}
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
-                                            // Fallback to initials if image fails to load
                                             (e.target as HTMLImageElement).style.display = 'none';
                                             (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
                                         }}
@@ -108,10 +104,11 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
 
                         <div className="hidden lg:flex items-center gap-1">
                             <span className="font-bold text-sm">{user?.firstName}</span>
-                            <AiOutlineDown size={12} className={`text-brand-muted transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+                            <AiOutlineDown size={12} className={`text-brand-muted transition-transform duration-300 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                         </div>
                     </button>
 
+                    {/* Dropdown Glassmorphism */}
                     {isProfileMenuOpen && (
                         <>
                             <div 
@@ -119,59 +116,75 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
                                 onClick={() => setIsProfileMenuOpen(false)}
                             />
                             
-                            <div className="absolute right-0 top-12 w-56 bg-brand-card border-4 border-brand-border rounded-2xl shadow-xl z-50 overflow-hidden">
-                                <div className="p-3 border-b-4 border-brand-border bg-brand-bg flex items-center gap-3">
-                                    {/* Small avatar in dropdown */}
-                                    <div className="w-10 h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center font-bold text-sm overflow-hidden">
-                                        {hasImage ? (
-                                            <img
-                                                src={getImageUrl(user?.imageUrl, 'admin')}
-                                                alt={user?.firstName}
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).style.display = 'none';
-                                                    (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
-                                                }}
-                                            />
-                                        ) : (
-                                            getInitials()
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-sm truncate">{user?.firstName} {user?.lastName}</p>
-                                        <p className="text-[10px] text-brand-muted truncate">{user?.email}</p>
+                            <div className="absolute right-0 top-12 w-64 bg-white/90 backdrop-blur-xl border border-white/30 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                <div className="absolute inset-0 bg-linear-to-br from-white/40 to-white/10 pointer-events-none" />
+                                
+                                {/* Header avec effet glass */}
+                                <div className="relative p-4 border-b border-white/30 bg-linear-to-r from-brand-primary/10 to-orange-500/10">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-primary to-orange-500 text-white flex items-center justify-center font-bold text-sm overflow-hidden shadow-lg">
+                                            {hasImage ? (
+                                                <img
+                                                    src={getImageUrl(user?.imageUrl, 'admin')}
+                                                    alt={user?.firstName}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                        (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
+                                                    }}
+                                                />
+                                            ) : (
+                                                getInitials()
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-sm text-gray-800 truncate">{user?.firstName} {user?.lastName}</p>
+                                            <p className="text-[9px] text-gray-500 truncate">{user?.email}</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="p-2">
+                                {/* Menu items avec effet glass */}
+                                <div className="relative p-2 space-y-1">
                                     <NavLink
                                         to={isSuperAdmin ? '/superadmin/profile' : '/admin/profile'}
-                                        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-brand-bg text-brand-muted hover:text-brand-primary transition-all font-medium text-sm"
+                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/50 backdrop-blur-sm text-gray-600 hover:text-brand-primary transition-all duration-200 group"
                                         onClick={() => setIsProfileMenuOpen(false)}
                                     >
-                                        <AiOutlineUser size={18} />
-                                        <span>Mon Profil</span>
+                                        <div className="p-1 rounded-lg bg-gray-100 group-hover:bg-brand-primary/10 transition-colors">
+                                            <AiOutlineUser size={16} />
+                                        </div>
+                                        <span className="font-medium text-sm">Mon Profil</span>
                                     </NavLink>
 
                                     {isSuperAdmin && (
                                         <NavLink
                                             to="/superadmin/management"
-                                            className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-brand-bg text-brand-muted hover:text-brand-primary transition-all font-medium text-sm"
+                                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/50 backdrop-blur-sm text-gray-600 hover:text-brand-primary transition-all duration-200 group"
                                             onClick={() => setIsProfileMenuOpen(false)}
                                         >
-                                            <AiOutlineSetting size={18} />
-                                            <span>Administration</span>
+                                            <div className="p-1 rounded-lg bg-gray-100 group-hover:bg-brand-primary/10 transition-colors">
+                                                <AiOutlineSetting size={16} />
+                                            </div>
+                                            <span className="font-medium text-sm">Administration</span>
                                         </NavLink>
                                     )}
 
+                                    <div className="h-px bg-linear-to-r from-transparent via-gray-200 to-transparent my-2" />
+
                                     <button
                                         onClick={() => { logout(); setIsProfileMenuOpen(false); }}
-                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-50 text-red-600 transition-all font-medium text-sm"
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50/80 backdrop-blur-sm text-red-500 transition-all duration-200 group"
                                     >
-                                        <AiOutlineLogout size={18} />
-                                        <span>Déconnexion</span>
+                                        <div className="p-1 rounded-lg bg-red-50 group-hover:bg-red-100 transition-colors">
+                                            <AiOutlineLogout size={16} />
+                                        </div>
+                                        <span className="font-medium text-sm">Déconnexion</span>
                                     </button>
                                 </div>
+
+                                {/* Effet de bordure brillante */}
+                                <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-white/50 to-transparent" />
                             </div>
                         </>
                     )}
