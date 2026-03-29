@@ -29,17 +29,18 @@ const AdminMembers: React.FC = () => {
     const [selectedParentForChild, setSelectedParentForChild] = useState<PersonResponse | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
     
-    const searchBarRef = useRef<HTMLDivElement>(null);
-    const [isSearchSticky, setIsSearchSticky] = useState(false);
+    const filtersRef = useRef<HTMLDivElement>(null);
+    const [isFiltersSticky, setIsFiltersSticky] = useState(false);
 
     const { members, isLoading, deleteMember } = useMembers();
     const { districts, tributes } = useLocations();
 
+    // Gérer le sticky des filtres
     useEffect(() => {
         const handleScroll = () => {
-            if (searchBarRef.current) {
-                const rect = searchBarRef.current.getBoundingClientRect();
-                setIsSearchSticky(rect.top <= 80);
+            if (filtersRef.current) {
+                const rect = filtersRef.current.getBoundingClientRect();
+                setIsFiltersSticky(rect.top <= 80);
             }
         };
 
@@ -143,16 +144,78 @@ const AdminMembers: React.FC = () => {
 
     return (
         <div className="relative">
-            {/* Barre de recherche et filtres - Maintenant en premier */}
+            {/* Header avec titre et bouton NEW MEMBER - En haut */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h1 className={`${THEME.font.h1} flex items-center gap-3 uppercase`}>
+                        <AiOutlineTeam className="text-brand-primary" />
+                        Member Management
+                    </h1>
+                    <p className="text-gray-500 mt-1 uppercase">
+                        {filteredMembers.length} / {members.length} members displayed
+                    </p>
+                </div>
+                <Button onClick={handleAddMember} className="flex items-center gap-2">
+                    <AiOutlinePlus /> NEW MEMBER
+                </Button>
+            </div>
+
+            {/* Results Count */}
+            <div className="mb-4 flex justify-between items-center">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    {filteredMembers.length} member(s) found
+                </p>
+                {hasActiveFilters && (
+                    <button
+                        onClick={clearAllFilters}
+                        className="text-[10px] font-black uppercase text-brand-primary hover:underline"
+                    >
+                        Reset all filters
+                    </button>
+                )}
+            </div>
+
+            {/* Members Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {filteredMembers.length === 0 ? (
+                    <div className="col-span-full bg-white rounded-2xl border-2 border-gray-100 p-12 text-center">
+                        <AiOutlineTeam size={48} className="mx-auto text-gray-300 mb-4" />
+                        <p className="font-black text-gray-400 uppercase">No members found</p>
+                        <p className="text-sm text-gray-400 mt-1">
+                            Try adjusting your search or filters
+                        </p>
+                        {hasActiveFilters && (
+                            <button
+                                onClick={clearAllFilters}
+                                className="mt-4 text-sm font-black text-brand-primary hover:underline"
+                            >
+                                Clear all filters
+                            </button>
+                        )}
+                    </div>
+                ) : (
+                    filteredMembers.map((member) => (
+                        <MemberCard
+                            key={member.id}
+                            member={member}
+                            onEdit={handleEdit}
+                            onDelete={(id) => setDeleteId(id)}
+                            onView={handleView}
+                        />
+                    ))
+                )}
+            </div>
+
+            {/* Barre de recherche et filtres - En bas avec sticky */}
             <div 
-                ref={searchBarRef}
-                className={`sticky top-0 z-30 transition-all duration-300 ${
-                    isSearchSticky 
-                        ? 'bg-brand-bg/95 backdrop-blur-md shadow-lg py-4 -mt-6' 
+                ref={filtersRef}
+                className={`sticky bottom-0 z-30 transition-all duration-300 ${
+                    isFiltersSticky 
+                        ? 'bg-brand-bg/95 backdrop-blur-md shadow-lg py-4 -mb-4' 
                         : 'bg-transparent py-0'
                 }`}
             >
-                <div className="bg-white rounded-2xl border-2 border-gray-100 p-4 mb-6 shadow-sm">
+                <div className="bg-white rounded-2xl border-2 border-gray-100 p-4 shadow-sm">
                     <div className="flex flex-col md:flex-row gap-4">
                         {/* Search Input */}
                         <div className="flex-1 relative">
@@ -271,68 +334,6 @@ const AdminMembers: React.FC = () => {
                     )}
                 </div>
             </div>
-
-            {/* Header avec titre et bouton NEW MEMBER - Maintenant après les filtres */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div>
-                    <h1 className={`${THEME.font.h1} flex items-center gap-3 uppercase`}>
-                        <AiOutlineTeam className="text-brand-primary" />
-                        Member Management
-                    </h1>
-                    <p className="text-gray-500 mt-1 uppercase">
-                        {filteredMembers.length} / {members.length} members displayed
-                    </p>
-                </div>
-                <Button onClick={handleAddMember} className="flex items-center gap-2">
-                    <AiOutlinePlus /> NEW MEMBER
-                </Button>
-            </div>
-
-            {/* Results Count */}
-            <div className="mb-4 flex justify-between items-center">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    {filteredMembers.length} member(s) found
-                </p>
-                {hasActiveFilters && (
-                    <button
-                        onClick={clearAllFilters}
-                        className="text-[10px] font-black uppercase text-brand-primary hover:underline"
-                    >
-                        Reset all filters
-                    </button>
-                )}
-            </div>
-
-            {/* Members Grid */}
-            {filteredMembers.length === 0 ? (
-                <div className="bg-white rounded-2xl border-2 border-gray-100 p-12 text-center">
-                    <AiOutlineTeam size={48} className="mx-auto text-gray-300 mb-4" />
-                    <p className="font-black text-gray-400 uppercase">No members found</p>
-                    <p className="text-sm text-gray-400 mt-1">
-                        Try adjusting your search or filters
-                    </p>
-                    {hasActiveFilters && (
-                        <button
-                            onClick={clearAllFilters}
-                            className="mt-4 text-sm font-black text-brand-primary hover:underline"
-                        >
-                            Clear all filters
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredMembers.map((member) => (
-                        <MemberCard
-                            key={member.id}
-                            member={member}
-                            onEdit={handleEdit}
-                            onDelete={(id) => setDeleteId(id)}
-                            onView={handleView}
-                        />
-                    ))}
-                </div>
-            )}
 
             {/* Member Form Modal */}
             <MemberForm
