@@ -21,8 +21,7 @@ import {
     AiOutlineClockCircle,
     AiOutlineGlobal,
     AiOutlineDollar,
-    AiOutlineHistory,
-    AiOutlineReddit
+    AiOutlineHistory
 } from 'react-icons/ai';
 import { PersonResponse, MemberStatus, Gender } from '../../../lib/types';
 import { formatDate, calculateAge, getInitials, formatCurrency } from '../../../lib/helper';
@@ -30,7 +29,6 @@ import { getImageUrl } from '../../../lib/constant/constant';
 import Button from '../../ui/Button';
 import { useFinance } from '../../../hooks/useFinance';
 import { useMembers } from '../../../hooks/useMembers';
-import { generateContributionReceipt } from '../../../services/receipt.service';
 
 interface MemberDetailModalProps {
     isOpen: boolean;
@@ -63,24 +61,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     
     const memberContributions = contributions.filter(c => c.memberId === member?.id);
     const parentMember = member?.parentId ? members.find(m => m.id === member.parentId) : null;
-
-    const handleGenerateReceipt = async (contribution: any) => {
-        if (!member) return;
-        
-        const receiptData = {
-            memberName: `${member.firstName} ${member.lastName}`,
-            memberId: member.id,
-            year: contribution.year,
-            amount: contribution.amount,
-            totalPaid: contribution.totalPaid,
-            remaining: contribution.remaining,
-            status: contribution.status,
-            paymentDate: contribution.payments?.[0]?.paymentDate || new Date().toISOString(),
-            generatedBy: 'Fizanakara Admin'
-        };
-        
-        await generateContributionReceipt(receiptData);
-    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -445,7 +425,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                     )}
 
-                    {/* Section Historique des paiements avec reste à payer et reçu */}
+                    {/* Section Historique des paiements - Sans bouton reçu */}
                     {showPaymentHistory && (
                         <div 
                             ref={historySectionRef}
@@ -470,7 +450,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                     <p className="text-[9px] text-gray-400 mt-1">No contributions recorded yet</p>
                                 </div>
                             ) : (
-                                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                                <div className="space-y-3 max-h-100 overflow-y-auto pr-1">
                                     {memberContributions.map((contribution) => {
                                         const isPaid = contribution.remaining <= 0;
                                         const isPartial = contribution.remaining > 0 && contribution.remaining < contribution.amount;
@@ -483,19 +463,9 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                         <AiOutlineCalendar size={14} className="text-gray-500" />
                                                         <span className="font-black text-sm">Year {contribution.year}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${getContributionStatusColor(contribution.status)}`}>
-                                                            {getContributionStatusLabel(contribution.status)}
-                                                        </span>
-                                                        {/* Bouton Reçu */}
-                                                        <button
-                                                            onClick={() => handleGenerateReceipt(contribution)}
-                                                            className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
-                                                            title="Download Receipt"
-                                                        >
-                                                            <AiOutlineReddit size={14} className="text-gray-500 hover:text-brand-primary" />
-                                                        </button>
-                                                    </div>
+                                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${getContributionStatusColor(contribution.status)}`}>
+                                                        {getContributionStatusLabel(contribution.status)}
+                                                    </span>
                                                 </div>
                                                 
                                                 {/* Détails de la cotisation */}
