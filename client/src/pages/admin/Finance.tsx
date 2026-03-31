@@ -131,28 +131,6 @@ const AdminFinance: React.FC = () => {
         };
     }, [filteredContributions]);
 
-    // Fonction pour générer les cotisations annuelles
-    const handleGenerateAnnual = async () => {
-        if (!selectedYear) {
-            toast.error('Please select a year first');
-            return;
-        }
-        try {
-            const result = await generateAnnualContributions.mutateAsync({ year: selectedYear });
-            if (result && result.length > 0) {
-                toast.success(`${result.length} contributions generated for ${selectedYear}`);
-                if (!availableYears.includes(selectedYear)) {
-                    setAvailableYears(prev => [...prev, selectedYear].sort((a, b) => a - b));
-                }
-            } else {
-                toast.success(`All contributions for ${selectedYear} already exist`);
-            }
-        } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || 'Error during generation';
-            toast.error(errorMessage);
-        }
-        setIsActionMenuOpen(false);
-    };
 
     const handleUpdateContributions = async () => {
         if (!selectedYear) {
@@ -334,18 +312,6 @@ const AdminFinance: React.FC = () => {
                                     )}
 
                                     <button
-                                        onClick={handleGenerateAnnual}
-                                        disabled={!selectedYear || generateAnnualContributions.isPending}
-                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100"
-                                    >
-                                        <AiOutlinePlusCircle size={18} className="text-green-600" />
-                                        <div className="text-left">
-                                            <p className="font-black text-xs uppercase">Generate</p>
-                                            <p className="text-[9px] text-gray-400">Generate contributions for {selectedYear}</p>
-                                        </div>
-                                    </button>
-
-                                    <button
                                         onClick={handleUpdateContributions}
                                         disabled={!selectedYear || regenerateForYear.isPending}
                                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -459,7 +425,6 @@ const AdminFinance: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-<<<<<<< Updated upstream
                                     {filteredContributions.map((contribution) => {
                                         const member = members.find(m => m.id === contribution.memberId);
                                         const isStudent = member?.status === 'STUDENT';
@@ -468,40 +433,6 @@ const AdminFinance: React.FC = () => {
                                         const remaining = amount - totalPaid;
                                         const isPaid = totalPaid >= amount;
                                         const isUnpaid = totalPaid === 0;
-=======
-                                    {filteredContributions.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={7} className="px-4 py-12 text-center">
-                                                <div className="flex flex-col items-center justify-center gap-2">
-                                                    <AiOutlineSearch size={32} className="text-gray-300" />
-                                                    <p className="text-sm font-bold text-gray-400 uppercase">
-                                                        No matching contributions found
-                                                    </p>
-                                                    {(statusFilter !== 'all' || typeFilter !== 'all' || searchTerm) && (
-                                                        <button
-                                                            onClick={() => {
-                                                                setSearchTerm('');
-                                                                setStatusFilter('all');
-                                                                setTypeFilter('all');
-                                                            }}
-                                                            className="mt-2 text-xs text-brand-primary hover:underline"
-                                                        >
-                                                            Clear all filters
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        filteredContributions.map((contribution) => {
-                                            const member = members.find(m => m.id === contribution.memberId);
-                                            const isStudent = member?.status === 'STUDENT';
-                                            const totalPaid = contribution.totalPaid ?? 0;
-                                            const amount = contribution.amount ?? 0;
-                                            const remaining = amount - totalPaid;
-                                            const isPaid = totalPaid >= amount;
-                                            const isUnpaid = totalPaid === 0;
->>>>>>> Stashed changes
 
                                         return (
                                             <tr key={contribution.id} className="hover:bg-gray-50 transition-colors">
@@ -528,7 +459,6 @@ const AdminFinance: React.FC = () => {
                                                                 </span>
                                                             )}
                                                         </div>
-<<<<<<< Updated upstream
                                                         <div>
                                                             <p className="font-black text-sm">{contribution.memberName}</p>
                                                             <p className="text-[10px] text-gray-500 uppercase">
@@ -542,19 +472,10 @@ const AdminFinance: React.FC = () => {
                                                 </td>
                                                 <td className="px-4 py-4">
                                                     <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${isPaid
-=======
-                                                    </td>
-                                                    <td className="px-4 py-4 font-black">
-                                                        {contribution.year}
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${isPaid
->>>>>>> Stashed changes
                                                             ? 'bg-green-100 text-green-600'
                                                             : isUnpaid
                                                                 ? 'bg-red-100 text-red-600'
                                                                 : 'bg-orange-100 text-orange-600'
-<<<<<<< Updated upstream
                                                         }`}>
                                                         {isPaid ? 'Paid' : isUnpaid ? 'Unpaid' : 'Partial'}
                                                     </span>
@@ -573,10 +494,6 @@ const AdminFinance: React.FC = () => {
                                                         <span className="inline-flex items-center gap-1 text-green-600 font-black text-[10px] uppercase">
                                                             <AiOutlineCheckCircle size={16} />
                                                             Settled
-=======
-                                                            }`}>
-                                                            {isPaid ? 'Paid' : isUnpaid ? 'Unpaid' : 'Partial'}
->>>>>>> Stashed changes
                                                         </span>
                                                     ) : (
                                                         <Button
@@ -629,6 +546,7 @@ const AdminFinance: React.FC = () => {
                     </div>
                 )}
             </div>
+
             {isPaymentModalOpen && selectedContribution && (
                 <PaymentModal
                     isOpen={isPaymentModalOpen}
@@ -638,14 +556,8 @@ const AdminFinance: React.FC = () => {
                     }}
                     contributionId={selectedContribution.id}
                     memberName={selectedContribution.memberName}
-<<<<<<< Updated upstream
-=======
-                    memberId={selectedContribution.memberId}  // ← Utiliser l'ID de la contribution
-                    memberPhone={members.find(m => m.id === selectedContribution.memberId)?.phoneNumber}
->>>>>>> Stashed changes
                     contributionAmount={selectedContribution.amount}
                     remainingAmount={selectedContribution.remaining}
-                    year={selectedContribution.year}
                     onSuccess={() => {
                         setIsPaymentModalOpen(false);
                         setSelectedContribution(null);
