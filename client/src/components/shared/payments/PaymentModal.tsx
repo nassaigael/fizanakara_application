@@ -113,7 +113,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     await generatePaymentInvoice({
                         invoiceNumber: `INV-${Date.now()}`,
                         memberName: memberName || 'Membre',
-                        memberId: memberId || 'N/A',
+                        memberId: memberId || 'MBR00000000',
                         memberPhone: memberPhone,
                         memberEmail: memberEmail,
                         contributionId: contributionId,
@@ -141,7 +141,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             }
         }
     });
-
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const amount = parseFloat(e.target.value) || 0;
@@ -181,7 +180,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     const getStatusLabel = () => {
         return autoStatus === PaymentStatus.COMPLETED ? 'Complété' : 'En attente';
     };
-
 
     if (!isOpen) return null;
 

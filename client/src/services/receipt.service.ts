@@ -28,6 +28,11 @@ export const generateContributionReceipt = async (data: ReceiptData) => {
     const white: [number, number, number] = [255, 255, 255];
     const black: [number, number, number] = [31, 41, 55];
 
+    // Formater l'ID du membre (s'assurer qu'il a le préfixe MBR)
+    const formattedMemberId = data.memberId && data.memberId !== 'N/A' 
+        ? (data.memberId.startsWith('MBR') ? data.memberId : `MBR${data.memberId}`)
+        : 'MBR00000000';
+
     // Header
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.rect(0, 0, pageWidth, 20, 'F');
@@ -55,43 +60,44 @@ export const generateContributionReceipt = async (data: ReceiptData) => {
     doc.setFont('helvetica', 'bold');
     doc.text('Membre:', 20, 55);
     doc.setFont('helvetica', 'normal');
-    doc.text(data.memberName, 50, 55);
+    doc.text(data.memberName || 'Membre non spécifié', 50, 55);
     
     doc.setFont('helvetica', 'bold');
-    doc.text('ID:', 20, 62);
+    doc.text('ID Membre:', 20, 62);
     doc.setFont('helvetica', 'normal');
-    doc.text(data.memberId, 50, 62);
+    doc.text(formattedMemberId, 50, 62);
 
     // Détails de la cotisation
     doc.setFont('helvetica', 'bold');
     doc.text('Année:', 20, 75);
     doc.setFont('helvetica', 'normal');
-    doc.text(data.year.toString(), 50, 75);
+    doc.text(data.year?.toString() || 'N/A', 50, 75);
     
     doc.setFont('helvetica', 'bold');
     doc.text('Montant total:', 20, 82);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text(formatCurrency(data.amount), 50, 82);
+    doc.text(formatCurrency(data.amount || 0), 50, 82);
 
     doc.setTextColor(black[0], black[1], black[2]);
     doc.setFont('helvetica', 'bold');
     doc.text('Montant payé:', 20, 89);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(34, 197, 94);
-    doc.text(formatCurrency(data.totalPaid), 50, 89);
+    doc.text(formatCurrency(data.totalPaid || 0), 50, 89);
 
     doc.setTextColor(black[0], black[1], black[2]);
     doc.setFont('helvetica', 'bold');
     doc.text('Reste à payer:', 20, 96);
     doc.setFont('helvetica', 'normal');
     // Correction: utiliser if/else pour les couleurs
-    if (data.remaining > 0) {
+    const remaining = data.remaining || 0;
+    if (remaining > 0) {
         doc.setTextColor(245, 158, 11);
     } else {
         doc.setTextColor(34, 197, 94);
     }
-    doc.text(formatCurrency(data.remaining), 50, 96);
+    doc.text(formatCurrency(remaining), 50, 96);
     
     doc.setTextColor(black[0], black[1], black[2]);
     doc.setFont('helvetica', 'bold');
@@ -103,7 +109,7 @@ export const generateContributionReceipt = async (data: ReceiptData) => {
     doc.setFont('helvetica', 'bold');
     doc.text('Date du paiement:', 20, 110);
     doc.setFont('helvetica', 'normal');
-    doc.text(formatDate(data.paymentDate, 'long'), 50, 110);
+    doc.text(formatDate(data.paymentDate || new Date().toISOString(), 'long'), 50, 110);
     
     // Ligne de séparation
     doc.setDrawColor(200, 200, 200);
@@ -130,5 +136,6 @@ export const generateContributionReceipt = async (data: ReceiptData) => {
     doc.text('Fizanakara - Reçu officiel', pageWidth / 2, pageHeight - 10, { align: 'center' });
     
     // Sauvegarder le PDF
-    doc.save(`recu_${data.memberId}_${data.year}.pdf`);
+    const safeMemberId = data.memberId ? data.memberId.replace(/[^a-zA-Z0-9]/g, '_') : 'inconnu';
+    doc.save(`recu_${safeMemberId}_${data.year || 'annee'}.pdf`);
 };

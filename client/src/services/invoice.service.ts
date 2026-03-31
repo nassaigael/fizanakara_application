@@ -1,7 +1,15 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { formatCurrency, formatDate } from '../lib/helper';
+import { formatDate } from '../lib/helper';
 
+// ================= FORMAT ARIARY (espace comme séparateur) =================
+const formatAr = (amount: number): string => {
+    return amount
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' Ar';
+};
+
+// ================= TYPES =================
 interface InvoiceData {
     invoiceNumber: string;
     memberName: string;
@@ -19,208 +27,189 @@ interface InvoiceData {
     generatedBy: string;
 }
 
-// Fonction pour générer le numéro de facture
-const generateInvoiceNumber = (): string => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    return `INV-${year}${month}${day}-${random}`;
-};
-
-// Dessiner le logo
-const drawLogo = (doc: jsPDF, x: number, y: number, size: number) => {
-    doc.setFillColor(229, 26, 26);
-    doc.circle(x + size / 2, y + size / 2, size / 2, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(size * 0.55);
-    doc.setFont('helvetica', 'bold');
-    doc.text('F', x + size / 2, y + size / 2 + size * 0.18, { align: 'center' });
-};
-
+// ================= MAIN =================
 export const generatePaymentInvoice = async (data: InvoiceData) => {
+    // Format A3 : 297mm x 420mm
     const doc = new jsPDF({
-        orientation: 'portrait',
         unit: 'mm',
-        format: 'a4'
+        format: 'a3',
+        orientation: 'portrait'
     });
-
+    
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Formater l'ID du membre
+    const formattedMemberId = data.memberId && data.memberId !== 'N/A' && data.memberId !== 'INCONNU'
+        ? (data.memberId.startsWith('MBR') ? data.memberId : `MBR${data.memberId}`)
+        : 'MBR00000000';
 
     // Couleurs
-    const primary: [number, number, number] = [229, 26, 26];
-    const secondary: [number, number, number] = [100, 116, 139];
-    const success: [number, number, number] = [34, 197, 94];
-    const lightGray: [number, number, number] = [249, 250, 251];
-    const border: [number, number, number] = [229, 231, 235];
-    const white: [number, number, number] = [255, 255, 255];
-    const black: [number, number, number] = [31, 41, 55];
+    const primary: [number, number, number] = [220, 38, 38];
+    const border: [number, number, number] = [220, 220, 220];
+    const lightBg: [number, number, number] = [248, 250, 252];
+    const textDark: [number, number, number] = [30, 30, 30];
+    const muted: [number, number, number] = [100, 100, 100];
 
-    // ==================== HEADER ====================
-    // Bandeau rouge
+    // ================= HEADER ROUGE =================
     doc.setFillColor(primary[0], primary[1], primary[2]);
-    doc.rect(0, 0, pageWidth, 35, 'F');
+    doc.rect(0, 0, pageWidth, 40, 'F');
 
-    // Logo
-    drawLogo(doc, 15, 8, 12);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.text('FIZANAKARA', 25, 22);
 
-    // Titre
+    doc.setFontSize(10);
+    doc.text('Système de gestion des cotisations', 25, 30);
+
+    // Facture N° et Date
+    doc.setFontSize(11);
+    doc.text(`Facture N°: ${data.invoiceNumber}`, pageWidth - 25, 15, { align: 'right' });
+    doc.text(`Date: ${formatDate(data.paymentDate, 'long')}`, pageWidth - 25, 23, { align: 'right' });
+
+    // ================= TITRE REÇU =================
+    doc.setTextColor(primary[0], primary[1], primary[2]);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(white[0], white[1], white[2]);
-    doc.text('FIZANAKARA', 32, 18);
+    doc.text('REÇU DE PAIEMENT', pageWidth / 2, 58, { align: 'center' });
 
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Système de gestion des cotisations', 32, 25);
-
-    // Numéro de facture
-    const invoiceNumber = data.invoiceNumber || generateInvoiceNumber();
-    doc.setFontSize(9);
-    doc.setTextColor(white[0], white[1], white[2]);
-    doc.text(`Facture N°: ${invoiceNumber}`, pageWidth - 20, 15, { align: 'right' });
-    doc.text(`Date: ${formatDate(data.paymentDate, 'long')}`, pageWidth - 20, 22, { align: 'right' });
-
-    // ==================== TITRE FACTURE ====================
-    doc.setTextColor(primary[0], primary[1], primary[2]);
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('REÇU DE PAIEMENT', pageWidth / 2, 50, { align: 'center' });
-
-    doc.setDrawColor(border[0], border[1], border[2]);
-    doc.line(40, 55, pageWidth - 40, 55);
-
-    // ==================== INFORMATIONS MEMBRE ====================
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(black[0], black[1], black[2]);
-    doc.text('Informations du membre', 20, 68);
-
-    doc.setDrawColor(border[0], border[1], border[2]);
-    doc.line(20, 70, 70, 70);
-
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(secondary[0], secondary[1], secondary[2]);
-    doc.text('Nom complet:', 20, 80);
-    doc.setTextColor(black[0], black[1], black[2]);
-    doc.text(data.memberName, 60, 80);
-
-    doc.setTextColor(secondary[0], secondary[1], secondary[2]);
-    doc.text('ID Membre:', 20, 87);
-    doc.setTextColor(black[0], black[1], black[2]);
-    doc.text(data.memberId, 60, 87);
-
+    // ================= TABLEAU 1 - INFORMATIONS DU MEMBRE =================
+    const memberInfoBody: Array<[string, string]> = [
+        ['Nom complet:', data.memberName || 'Membre non spécifié'],
+        ['ID Membre:', formattedMemberId]
+    ];
+    
     if (data.memberPhone) {
-        doc.setTextColor(secondary[0], secondary[1], secondary[2]);
-        doc.text('Téléphone:', 20, 94);
-        doc.setTextColor(black[0], black[1], black[2]);
-        doc.text(data.memberPhone, 60, 94);
+        memberInfoBody.push(['Téléphone:', data.memberPhone]);
     }
-
+    
     if (data.memberEmail) {
-        doc.setTextColor(secondary[0], secondary[1], secondary[2]);
-        doc.text('Email:', 20, 101);
-        doc.setTextColor(black[0], black[1], black[2]);
-        doc.text(data.memberEmail, 60, 101);
+        memberInfoBody.push(['Email:', data.memberEmail]);
     }
 
-    // ==================== DÉTAILS COTISATION ====================
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(black[0], black[1], black[2]);
-    doc.text('Détails de la cotisation', 20, 115);
-
-    doc.setDrawColor(border[0], border[1], border[2]);
-    doc.line(20, 117, 70, 117);
-
-    const tableData = [
-        ['Période', `Année ${data.year}`],
-        ['Montant total', formatCurrency(data.amount)],
-        ['Montant payé', formatCurrency(data.paidAmount)],
-        ['Reste à payer', formatCurrency(data.remaining)],
-        ['Statut', data.paymentStatus === 'PAID' ? 'Payé' : data.paymentStatus === 'PARTIAL' ? 'Partiel' : 'En attente']
-    ];
-
     autoTable(doc, {
-        startY: 122,
-        body: tableData,
+        startY: 70,
+        head: [['Informations du membre']],
+        body: memberInfoBody,
         theme: 'plain',
-        styles: {
-            fontSize: 9,
+        headStyles: {
+            fillColor: lightBg,
+            textColor: textDark,
+            fontStyle: 'bold',
+            fontSize: 11,
+            halign: 'left',
+            cellPadding: 6
+        },
+        bodyStyles: {
+            fontSize: 10,
             cellPadding: 5,
-            valign: 'middle'
+            textColor: textDark,
+            lineColor: border,
+            lineWidth: 0.3
         },
         columnStyles: {
-            0: { cellWidth: 45, fontStyle: 'bold', textColor: secondary },
-            1: { cellWidth: 80, textColor: black }
+            0: { cellWidth: 65, fontStyle: 'bold' },
+            1: { cellWidth: 0 }
         },
-        margin: { left: 20 }
+        margin: { left: 25, right: 25 }
     });
 
-    // ==================== DÉTAILS PAIEMENT ====================
-    const tableStartY = (doc as any).lastAutoTable?.finalY || 140;
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(black[0], black[1], black[2]);
-    doc.text('Détails du paiement', 20, tableStartY + 8);
-
-    doc.setDrawColor(border[0], border[1], border[2]);
-    doc.line(20, tableStartY + 10, 70, tableStartY + 10);
-
-    const paymentTableData = [
-        ['Date du paiement', formatDate(data.paymentDate, 'long')],
-        ['Mode de paiement', data.paymentMethod],
-        ['Référence cotisation', data.contributionId],
-        ['Reçu par', data.generatedBy]
-    ];
+    // ================= TABLEAU 2 - DÉTAILS DE LA COTISATION =================
+    const cotisationY = (doc as any).lastAutoTable.finalY + 12;
 
     autoTable(doc, {
-        startY: tableStartY + 15,
-        body: paymentTableData,
+        startY: cotisationY,
+        head: [['Détails de la cotisation']],
+        body: [
+            ['Période', `Année ${data.year}`],
+            ['Montant total', formatAr(data.amount)],
+            ['Montant payé', formatAr(data.paidAmount)],
+            ['Reste à payer', formatAr(data.remaining)],
+            ['Statut', data.paymentStatus === 'PAID' ? 'Payé' : data.paymentStatus === 'PARTIAL' ? 'Partiel' : 'En attente']
+        ],
         theme: 'plain',
-        styles: {
-            fontSize: 9,
+        headStyles: {
+            fillColor: lightBg,
+            textColor: textDark,
+            fontStyle: 'bold',
+            fontSize: 11,
+            halign: 'left',
+            cellPadding: 6
+        },
+        bodyStyles: {
+            fontSize: 10,
             cellPadding: 5,
-            valign: 'middle'
+            textColor: textDark,
+            lineColor: border,
+            lineWidth: 0.3
         },
         columnStyles: {
-            0: { cellWidth: 45, fontStyle: 'bold', textColor: secondary },
-            1: { cellWidth: 80, textColor: black }
+            0: { cellWidth: 65, fontStyle: 'bold' },
+            1: { halign: 'right' }
         },
-        margin: { left: 20 }
+        margin: { left: 25, right: 25 }
     });
 
-    // ==================== MESSAGE DE REMERCIEMENT ====================
-    const finalY = (doc as any).lastAutoTable?.finalY || 200;
+    // ================= TABLEAU 3 - DÉTAILS DU PAIEMENT =================
+    const paiementY = (doc as any).lastAutoTable.finalY + 12;
 
-    doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
-    doc.rect(20, finalY + 12, pageWidth - 40, 25, 'F');
+    autoTable(doc, {
+        startY: paiementY,
+        head: [['Détails du paiement']],
+        body: [
+            ['Date du paiement', formatDate(data.paymentDate, 'long')],
+            ['Mode de paiement', data.paymentMethod],
+            ['Référence cotisation', data.contributionId || 'COT2026-001'],
+            ['Reçu par', data.generatedBy]
+        ],
+        theme: 'plain',
+        headStyles: {
+            fillColor: lightBg,
+            textColor: textDark,
+            fontStyle: 'bold',
+            fontSize: 11,
+            halign: 'left',
+            cellPadding: 6
+        },
+        bodyStyles: {
+            fontSize: 10,
+            cellPadding: 5,
+            textColor: textDark,
+            lineColor: border,
+            lineWidth: 0.3
+        },
+        columnStyles: {
+            0: { cellWidth: 65, fontStyle: 'bold' },
+            1: { halign: 'right' }
+        },
+        margin: { left: 25, right: 25 }
+    });
 
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(success[0], success[1], success[2]);
-    doc.text('✓ Paiement enregistré avec succès', pageWidth / 2, finalY + 24, { align: 'center' });
+    // ================= MESSAGE SUCCÈS (vert) =================
+    const successY = (doc as any).lastAutoTable.finalY + 18;
+
+    doc.setFontSize(12);
+    doc.setTextColor(0, 150, 80);
+    doc.text('✓ Paiement enregistré avec succès', pageWidth / 2, successY, { align: 'center' });
+
+    doc.setFontSize(9);
+    doc.setTextColor(...muted);
+    doc.text('Ce document fait foi pour la gestion des cotisations', pageWidth / 2, successY + 8, { align: 'center' });
+    doc.text('Merci pour votre contribution !', pageWidth / 2, successY + 14, { align: 'center' });
+
+    // ================= FOOTER =================
+    const footerY = successY + 28;
+
+    doc.setDrawColor(border[0], border[1], border[2]);
+    doc.setLineWidth(0.5);
+    doc.line(25, footerY, pageWidth - 25, footerY);
 
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(secondary[0], secondary[1], secondary[2]);
-    doc.text('Merci pour votre contribution !', pageWidth / 2, finalY + 33, { align: 'center' });
+    doc.setTextColor(...muted);
+    doc.text('Fizanakara - Reçu officiel', 25, footerY + 8);
+    doc.text('Document officiel • Système de gestion des cotisations', pageWidth - 25, footerY + 8, { align: 'right' });
 
-    // ==================== PIED DE PAGE ====================
-    doc.setDrawColor(border[0], border[1], border[2]);
-    doc.line(20, pageHeight - 20, pageWidth - 20, pageHeight - 20);
-
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(secondary[0], secondary[1], secondary[2]);
-    doc.text('Fizanakara - Reçu officiel', pageWidth / 2, pageHeight - 12, { align: 'center' });
-    doc.text('Ce document fait foi pour la gestion des cotisations', pageWidth / 2, pageHeight - 7, { align: 'center' });
-
-    // Télécharger le PDF
-    const fileName = `facture_${data.memberId}_${data.year}_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(fileName);
+    // Sauvegarde
+    const safeMemberId = formattedMemberId.replace(/[^a-zA-Z0-9]/g, '_');
+    doc.save(`fizanakara_recu_${safeMemberId}_${data.year}.pdf`);
 };
