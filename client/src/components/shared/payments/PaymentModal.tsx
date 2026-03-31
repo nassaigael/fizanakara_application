@@ -5,9 +5,13 @@ import {
     AiOutlineDollar,
     AiOutlineCalendar,
     AiOutlineCheckCircle,
+<<<<<<< Updated upstream
     AiOutlineClockCircle,
     AiOutlineInfoCircle,
     AiOutlineWarning
+=======
+    AiOutlineInfoCircle
+>>>>>>> Stashed changes
 } from 'react-icons/ai';
 import { useForm } from '../../../hooks/useForm';
 import { usePayment } from '../../../hooks/usePayment';
@@ -16,14 +20,26 @@ import { PaymentStatus } from '../../../lib/types';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
 import { formatCurrency } from '../../../lib/helper';
+<<<<<<< Updated upstream
+=======
+import { generatePaymentInvoice } from '../../../services/invoice.service';
+import { useAuth } from '../../../context/AuthContext';
+>>>>>>> Stashed changes
 
 interface PaymentModalProps {
     isOpen: boolean;
     onClose: () => void;
     contributionId: string;
     memberName?: string;
+<<<<<<< Updated upstream
+=======
+    memberId?: string;
+    memberPhone?: string;
+    memberEmail?: string;
+>>>>>>> Stashed changes
     contributionAmount?: number;
     remainingAmount?: number;
+    year?: number;
     onSuccess?: () => void;
 }
 
@@ -32,38 +48,43 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     onClose,
     contributionId,
     memberName,
+<<<<<<< Updated upstream
+=======
+    memberId,
+    memberPhone,
+    memberEmail,
+>>>>>>> Stashed changes
     contributionAmount,
     remainingAmount,
+    year,
     onSuccess
 }) => {
     const { addPayment } = usePayment();
+    const { user } = useAuth();
     const [showSuccess, setShowSuccess] = useState(false);
     const [selectedAmount, setSelectedAmount] = useState<number>(remainingAmount || 0);
     const [amountError, setAmountError] = useState<string | null>(null);
+    const [generatedInvoice, setGeneratedInvoice] = useState(false);
 
     // Déterminer automatiquement le statut en fonction du montant
     const getAutoStatus = (amount: number): PaymentStatus => {
         if (!contributionAmount || !remainingAmount) return PaymentStatus.PENDING;
-
         const totalPaidAfter = (contributionAmount - remainingAmount) + amount;
-
         if (totalPaidAfter >= contributionAmount) {
             return PaymentStatus.COMPLETED;
         }
         return PaymentStatus.PENDING;
     };
 
-    // Vérifier si le montant dépasse le reste à payer
     const validateAmount = (amount: number): boolean => {
         if (amount > (remainingAmount || 0)) {
-            setAmountError(`Amount cannot exceed remaining balance of ${formatCurrency(remainingAmount || 0)}`);
+            setAmountError(`Le montant ne peut pas dépasser le solde restant de ${formatCurrency(remainingAmount || 0)}`);
             return false;
         }
         setAmountError(null);
         return true;
     };
 
-    // Calculer le statut automatique basé sur le montant saisi
     const autoStatus = getAutoStatus(selectedAmount);
 
     const {
@@ -83,9 +104,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         },
         validationSchema: paymentSchema,
         onSubmit: async (formData) => {
-            // Vérification finale avant soumission
             if (formData.amountPaid > (remainingAmount || 0)) {
-                setAmountError(`Amount cannot exceed remaining balance of ${formatCurrency(remainingAmount || 0)}`);
+                setAmountError(`Le montant ne peut pas dépasser le solde restant de ${formatCurrency(remainingAmount || 0)}`);
                 return;
             }
 
@@ -94,47 +114,69 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     ? formData.paymentDate.toISOString()
                     : new Date(formData.paymentDate).toISOString();
 
-                // Utiliser le statut automatique, pas celui du formulaire
-                await addPayment.mutateAsync({
+                const result = await addPayment.mutateAsync({
                     amountPaid: formData.amountPaid,
                     paymentDate: paymentDate,
                     status: autoStatus, // ← Statut automatique
                     contributionId: formData.contributionId
                 });
+
                 setShowSuccess(true);
+
+                // Générer la facture après le paiement réussi
+                if (!generatedInvoice && result) {
+                    await generatePaymentInvoice({
+                        invoiceNumber: `INV-${Date.now()}`,
+                        memberName: memberName || 'Membre',
+                        memberId: memberId || 'N/A',
+                        memberPhone: memberPhone,
+                        memberEmail: memberEmail,
+                        contributionId: contributionId,
+                        year: year || new Date().getFullYear(),
+                        amount: contributionAmount || 0,
+                        paidAmount: formData.amountPaid,
+                        remaining: (remainingAmount || 0) - formData.amountPaid,
+                        paymentDate: paymentDate,
+                        paymentMethod: 'Espèces / Virement',
+                        paymentStatus: autoStatus === PaymentStatus.COMPLETED ? 'PAID' : 'PARTIAL',
+                        generatedBy: `${user?.firstName} ${user?.lastName}`
+                    });
+                    setGeneratedInvoice(true);
+                }
 
                 setTimeout(() => {
                     setShowSuccess(false);
+                    setGeneratedInvoice(false);
                     resetForm();
                     onSuccess?.();
                     onClose();
-                }, 1500);
+                }, 2000);
             } catch (error) {
                 console.error('Payment error:', error);
             }
         }
     });
 
-    // Gérer le changement de montant avec validation
+
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const amount = parseFloat(e.target.value) || 0;
-
-        // Validation
         if (!validateAmount(amount)) {
             setSelectedAmount(amount);
             setFieldValue('amountPaid', amount);
             return;
         }
-
         setSelectedAmount(amount);
         setFieldValue('amountPaid', amount);
+<<<<<<< Updated upstream
         
         // Le statut est automatiquement mis à jour via autoStatus
         // On synchronise aussi la valeur dans le formulaire
         setFieldValue('status', autoStatus);
+=======
+        setFieldValue('status', getAutoStatus(amount));
+>>>>>>> Stashed changes
     };
 
-    // Gérer le changement de date
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const dateValue = e.target.value;
         if (dateValue) {
@@ -145,7 +187,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         }
     };
 
-    // Formater la date pour l'affichage dans l'input
     const getDisplayDate = () => {
         if (!values.paymentDate) return '';
         try {
@@ -155,23 +196,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         }
     };
 
-    // Vérifier si le montant est complet
     const isFullPayment = selectedAmount >= (remainingAmount || 0);
     const isOverPayment = selectedAmount > (remainingAmount || 0);
     const remainingAfterPayment = Math.max(0, (remainingAmount || 0) - selectedAmount);
 
-    // Obtenir le label du statut
     const getStatusLabel = () => {
-        return autoStatus === PaymentStatus.COMPLETED ? 'Completed' : 'Pending';
+        return autoStatus === PaymentStatus.COMPLETED ? 'Complété' : 'En attente';
     };
 
-    const getStatusIcon = () => {
-        return autoStatus === PaymentStatus.COMPLETED ? (
-            <AiOutlineCheckCircle className="text-green-500" size={14} />
-        ) : (
-            <AiOutlineClockCircle className="text-orange-500" size={14} />
-        );
-    };
 
     if (!isOpen) return null;
 
@@ -192,7 +224,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             <AiOutlineDollar size={28} className="text-white" />
                         </div>
                         <h2 className="text-xl font-black uppercase">
-                            Register a Payment
+                            Enregistrement Paiement
                         </h2>
                         {memberName && (
                             <p className="text-xs font-bold text-brand-primary mt-1">
@@ -206,31 +238,26 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         <div className="bg-gray-50 border-2 border-black rounded-2xl p-4">
                             <div className="flex justify-between mb-2">
                                 <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase">Total Due</p>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase">Total dû</p>
                                     <p className="font-black text-lg">{formatCurrency(contributionAmount || 0)}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] font-black text-red-400 uppercase">Remaining</p>
+                                    <p className="text-[10px] font-black text-red-400 uppercase">Reste à payer</p>
                                     <p className="font-black text-lg text-red-600">{formatCurrency(remainingAmount || 0)}</p>
                                 </div>
                             </div>
 
-                            {/* Indicateur de paiement */}
                             {selectedAmount > 0 && !isOverPayment && (
-                                <div className={`mt-3 pt-3 border-t border-gray-200 flex justify-between items-center ${
-                                    isFullPayment ? 'text-green-600' : 'text-orange-500'
-                                }`}>
-                                    <p className="text-[9px] font-black uppercase">After this payment</p>
+                                <div className={`mt-3 pt-3 border-t border-gray-200 flex justify-between items-center ${isFullPayment ? 'text-green-600' : 'text-orange-500'}`}>
+                                    <p className="text-[9px] font-black uppercase">Après ce paiement</p>
                                     <p className="text-sm font-black">
                                         {isFullPayment ? (
                                             <span className="flex items-center gap-1">
-                                                <AiOutlineCheckCircle size={14} />
-                                                Fully settled
+                                                Totalement réglé
                                             </span>
                                         ) : (
                                             <span className="flex items-center gap-1">
-                                                <AiOutlineClockCircle size={14} />
-                                                Remaining: {formatCurrency(remainingAfterPayment)}
+                                                Reste: {formatCurrency(remainingAfterPayment)}
                                             </span>
                                         )}
                                     </p>
@@ -253,7 +280,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         {/* Amount Input */}
                         <div>
                             <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-2 block">
-                                Amount Paid
+                                Montant payé
                             </label>
                             <Input
                                 name="amountPaid"
@@ -263,12 +290,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                 onBlur={handleBlur}
                                 error={touched.amountPaid ? errors.amountPaid : (amountError || undefined)}
                                 icon={<AiOutlineDollar />}
-                                placeholder="Enter amount"
+                                placeholder="Saisir le montant"
                                 max={remainingAmount}
                                 step="1000"
                             />
 
-                            {/* Quick amount buttons */}
                             {remainingAmount && remainingAmount > 0 && !isOverPayment && (
                                 <div className="flex gap-2 mt-2">
                                     <button
@@ -292,7 +318,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                         }}
                                         className="flex-1 text-[9px] font-black py-1.5 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 rounded-lg transition-colors"
                                     >
-                                        Full ({formatCurrency(remainingAmount || 0)})
+                                        Total ({formatCurrency(remainingAmount || 0)})
                                     </button>
                                 </div>
                             )}
@@ -317,22 +343,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             icon={<AiOutlineCalendar />}
                         />
 
-                        {/* Status Display - Automatique, non modifiable */}
+                        {/* Status Display */}
                         <div>
-                            <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-2 block">
-                                Payment Status (Auto)
+                            <label className="text-[10px] font-black uppercase text-center tracking-wider text-gray-500 mb-2 block">
+                                Statut du paiement
                             </label>
-                            <div className={`flex items-center justify-between p-4 rounded-2xl border-2 ${
-                                autoStatus === PaymentStatus.COMPLETED
-                                    ? 'bg-green-50 border-green-200'
-                                    : 'bg-orange-50 border-orange-200'
-                            }`}>
+                            <div className={`flex items-center justify-between p-4 rounded-2xl border-2 ${autoStatus === PaymentStatus.COMPLETED ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
                                 <div className="flex items-center gap-3">
-                                    {getStatusIcon()}
                                     <div>
-                                        <p className={`font-black text-sm ${
-                                            autoStatus === PaymentStatus.COMPLETED ? 'text-green-700' : 'text-orange-700'
-                                        }`}>
+                                        <p className={`font-black text-sm ${autoStatus === PaymentStatus.COMPLETED ? 'text-green-700' : 'text-orange-700'}`}>
                                             {getStatusLabel()}
                                         </p>
                                         <p className="text-[8px] text-gray-500 mt-0.5">
@@ -357,7 +376,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                 onClick={onClose}
                                 className="flex-1"
                             >
-                                Cancel
+                                Annuler
                             </Button>
                             <Button
                                 type="submit"
@@ -366,7 +385,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                 disabled={isOverPayment || selectedAmount <= 0}
                                 className="flex-1"
                             >
-                                Validate
+                                Valider
                             </Button>
                         </div>
                     </form>
@@ -375,7 +394,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 {showSuccess && (
                     <div className="absolute inset-0 bg-green-500 rounded-[2.5rem] border-4 border-black flex flex-col items-center justify-center text-white z-10 animate-in zoom-in duration-300">
                         <AiOutlineCheckCircle size={80} className="mb-4" />
-                        <p className="font-black text-2xl uppercase">Success!</p>
+                        <p className="font-black text-2xl uppercase">Paiement effectué!</p>
+                        <p className="text-xs mt-2">La facture a été téléchargée</p>
                     </div>
                 )}
             </div>
