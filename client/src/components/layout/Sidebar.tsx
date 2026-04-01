@@ -52,7 +52,6 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
 
     return (
         <>
-            {/* Bouton menu mobile flottant - Glassmorphism */}
             <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="md:hidden fixed bottom-20 right-4 z-50 p-3 rounded-full bg-white/80 backdrop-blur-xl border border-white/30 shadow-lg text-brand-primary transition-all duration-300 hover:scale-110"
@@ -60,13 +59,11 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                 <AiOutlineMenu size={24} />
             </button>
 
-            {/* Sidebar Desktop - Glassmorphism */}
             <aside className={`
                 hidden md:flex flex-col fixed left-0 h-full transition-all duration-300 z-40
                 ${sidebarStyle}
                 ${isOpen ? 'w-64' : 'w-20'}
             `}>
-                {/* Effet de brillance */}
                 <div className="absolute inset-0 bg-linear-to-b from-white/40 to-white/10 pointer-events-none" />
                 
                 <nav className="relative flex-1 mt-20 p-4 space-y-2 overflow-y-auto">
@@ -77,7 +74,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                             className={({ isActive }) => `
                                 flex items-center gap-4 p-3 rounded-xl transition-all duration-200 font-black text-xs uppercase tracking-wider
                                 ${isActive 
-                                    ? 'bg-linear-to-r from-brand-primary to-orange-500 text-white shadow-lg' 
+                                    ? 'bg-linear-to-r from-brand-primary to-brand-primary text-white shadow-lg' 
                                     : 'text-brand-muted hover:bg-white/50 backdrop-blur-sm hover:text-brand-primary border border-transparent hover:border-white/30'
                                 }
                                 ${isOpen ? 'justify-start' : 'justify-center'}
@@ -103,7 +100,6 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                     </button>
                 </div>
                 
-                {/* Effet de bordure brillante en haut */}
                 <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-white/50 to-transparent" />
             </aside>
 

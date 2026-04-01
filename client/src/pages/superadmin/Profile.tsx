@@ -1,270 +1,196 @@
-import React, { useState } from 'react';
-
+import React, { useState, useEffect } from 'react';
 import {
     AiOutlineUser,
     AiOutlineMail,
     AiOutlinePhone,
     AiOutlineCalendar,
-    AiOutlineEdit,
-    AiOutlineLock,
-    AiOutlineCheckCircle,
-    AiOutlineCloseCircle,
-    AiOutlineKey,
-    AiOutlineSave,
-    AiOutlineClose,
     AiOutlineCrown,
-    AiOutlineAlert,
-    AiOutlineLogout
+    AiOutlineCheckCircle,
+    AiOutlineBgColors,
+    AiOutlineLogout,
+    AiOutlineCheck
 } from 'react-icons/ai';
 import { useAuth } from '../../context/AuthContext';
-import { useForm } from '../../hooks/useForm';
-import { updateAdminSchema } from '../../lib/validators/admin.validator';
-import { UpdateAdminRequest } from '../../lib/types';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import { THEME } from '../../styles/theme';
+import StatCard from '../../components/ui/StatCard';
 import { formatDate, getInitials } from '../../lib/helper';
 import { getImageUrl } from '../../lib/constant/constant';
-import InfoItem from '../../components/ui/InfoItem';
-import StatCard from '../../components/ui/StatCard';
-import PasswordModal from '../../components/profile/PasswordModal';
+import { THEME } from '../../styles/theme';
+import { applyThemeToDOM } from '../../lib/helper';
+
+const themeColors = [
+    { name: 'Rouge', primary: '#E51A1A', dark: '#B91C1C', light: '#FEE2E2' },
+    { name: 'Bleu', primary: '#1E3A8A', dark: '#1E3A8A', light: '#DBEAFE' },
+    { name: 'Vert', primary: '#10B981', dark: '#059669', light: '#D1FAE5' },
+    { name: 'Violet', primary: '#8B5CF6', dark: '#6D28D9', light: '#EDE9FE' },
+    { name: 'Orange', primary: '#F97316', dark: '#C2410C', light: '#FFEDD5' },
+];
 
 const SuperAdminProfile: React.FC = () => {
-    const { user, updateProfile, logout } = useAuth();
-    const [isEditing, setIsEditing] = useState(false);
-    const [showPasswordModal, setShowPasswordModal] = useState(false);
-
-    const form = useForm<UpdateAdminRequest>({
-        initialValues: {
-            firstName: user?.firstName || '',
-            lastName: user?.lastName || '',
-            birthDate: user?.birthDate || '',
-            phoneNumber: user?.phoneNumber || '',
-            imageUrl: user?.imageUrl || ''
-        },
-        validationSchema: updateAdminSchema,
-        onSubmit: async (data) => {
-            await updateProfile(data);
-            setIsEditing(false);
-        }
+    const { user, logout } = useAuth();
+    const [currentColor, setCurrentColor] = useState<string>(() => {
+        return localStorage.getItem('app-theme-color') || themeColors[0].primary;
     });
+
+    useEffect(() => {
+        applyThemeToDOM(currentColor);
+        localStorage.setItem('app-theme-color', currentColor);
+    }, [currentColor]);
 
     if (!user) return null;
 
     return (
         <div className={THEME.section}>
-            <div className="relative overflow-hidden rounded-3xl border-2 border-b-4 border-brand-border shadow-lg mb-8">
-                <div className="absolute inset-0 bg-linear-to-r from-brand-primary/10 to-orange-500/10"></div>
-                <div className="relative flex items-center justify-between p-8">
+            <div className="relative overflow-hidden bg-white border-2 border-brand-border rounded-2xl shadow-[0_8px_0_0_#E5E5E5] hover:shadow-[0_12px_0_0_#E5E5E5] hover:translate-y-[-4px] transition-all duration-300 p-6 md:p-8">
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/5 via-transparent to-brand-primary/5" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-brand-primary/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+                <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-linear-to-br from-brand-primary to-orange-500 text-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform hover:scale-110 transition-transform">
-                            <AiOutlineCrown size={36} />
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-brand-primary to-brand-primary rounded-2xl blur-md opacity-50" />
+                            <div className="relative p-4 bg-gradient-to-br from-brand-primary to-brand-primary-dark text-white rounded-2xl shadow-lg transform hover:scale-105 transition-transform">
+                                <AiOutlineCrown size={36} />
+                            </div>
                         </div>
-                        <div className="flex-1">
-                            <h1 className={`${THEME.font.h1} text-3xl md:text-4xl`}>MY SUPER ADMIN PROFILE</h1>
-                            <p className={`${THEME.font.muted} mt-2 text-xs uppercase tracking-widest flex items-center gap-2`}>
-                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                                {user.role} - Active Account
+                        <div>
+                            <h1 className="text-3xl md:text-4xl font-black text-brand-text tracking-tight">
+                                MON PROFIL SUPER ADMIN
+                            </h1>
+                            <p className="flex items-center gap-2 text-sm text-brand-muted mt-1">
+                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                {user.role} - Compte actif
                             </p>
                         </div>
-                        <Button variant="ghost" onClick={logout} className="hidden md:flex items-center gap-2">
-                            <AiOutlineLogout size={18} />
-                            Logout
-                        </Button>
                     </div>
-                    {!isEditing ? (
-                        <Button
-                            variant="primary"
-                            onClick={() => setIsEditing(true)}
-                            className="flex items-center gap-2"
-                        >
-                            <AiOutlineEdit size={18} />
-                            <span className="hidden md:inline">EDIT</span>
-                        </Button>
-                    ) : (
-                        <div className="flex gap-2">
-                            <Button
-                                variant="secondary"
-                                onClick={() => setIsEditing(false)}
-                                className="flex items-center gap-1"
-                            >
-                                <AiOutlineClose size={16} />
-                                <span className="hidden md:inline">Cancel</span>
-                            </Button>
-                            <Button
-                                variant="primary"
-                                onClick={form.handleSubmit}
-                                isLoading={form.isSubmitting}
-                                className="flex items-center gap-1"
-                            >
-                                <AiOutlineSave size={16} />
-                                <span className="hidden md:inline">Save</span>
-                            </Button>
-                        </div>
-                    )}
+                    <Button
+                        variant="primary"
+                        onClick={logout}
+                        className="flex items-center gap-2 px-6 py-3 text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all"
+                    >
+                        <AiOutlineLogout size={18} />
+                        Déconnexion
+                    </Button>
                 </div>
             </div>
 
-            <div className="bg-white rounded-3xl border-2 border-b-4 border-brand-border p-8 shadow-md mb-8">
-                <div className="flex flex-col md:flex-row items-center gap-8">
-                    <div className="relative shrink-0">
-                        <div className="w-40 h-40 bg-linear-to-br from-brand-primary to-orange-500 rounded-3xl border-4 border-white shadow-xl flex items-center justify-center text-white text-6xl font-black">
+            <div className={`${THEME.card} relative overflow-hidden border-b-[6px] border-brand-border hover:translate-y-[-2px] transition-all duration-300`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 via-transparent to-transparent" />
+
+                <div className="relative flex flex-col md:flex-row items-center gap-10">
+                    <div className="relative shrink-0 group">
+                        <div className="relative w-36 h-36 md:w-44 md:h-44 bg-white rounded-[2rem] border-2 border-brand-border shadow-[0_6px_0_0_#E5E5E5] flex items-center justify-center overflow-hidden transition-all group-hover:shadow-[0_10px_0_0_#E5E5E5] group-hover:translate-y-[-4px]">
                             {user.imageUrl ? (
                                 <img
                                     src={getImageUrl(user.imageUrl, 'admin')}
                                     alt="Profile"
-                                    className="w-full h-full object-cover rounded-3xl"
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                 />
                             ) : (
-                                getInitials(user.firstName, user.lastName)
+                                <div className="w-full h-full bg-gradient-to-br from-brand-primary to-brand-primary-dark flex items-center justify-center text-white text-4xl md:text-5xl font-black italic">
+                                    {getInitials(user.firstName, user.lastName)}
+                                </div>
                             )}
                         </div>
-                        <div className={`absolute -bottom-2 -right-2 p-3 rounded-2xl border-4 border-white shadow-lg ${user.verified
-                            ? 'bg-green-500'
-                            : 'bg-red-500'
-                            }`}>
-                            {user.verified ? (
-                                <AiOutlineCheckCircle className="text-white" size={24} />
-                            ) : (
-                                <AiOutlineCloseCircle className="text-white" size={24} />
-                            )}
+
+                        <div className={`absolute -bottom-1 -right-1 p-2.5 rounded-full border-4 border-white shadow-lg ${user.verified ? 'bg-green-500' : 'bg-red-500'} z-10 transition-transform group-hover:scale-110`}>
+                            <AiOutlineCheckCircle className="text-white" size={22} />
                         </div>
-                        <div className="absolute -top-2 -left-2 px-3 py-2 bg-yellow-400 text-yellow-900 rounded-xl border-3 border-yellow-600 font-black text-xs flex items-center gap-1">
-                            <AiOutlineCrown size={14} />
+
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-white border-2 border-yellow-500 text-yellow-600 rounded-2xl font-black text-[10px] tracking-widest flex items-center gap-2 shadow-[0_4px_0_0_#EAB308] whitespace-nowrap">
+                            <AiOutlineCrown size={14} className="animate-pulse" />
                             SUPER ADMIN
                         </div>
                     </div>
 
                     <div className="flex-1 w-full">
-                        {isEditing ? (
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Input
-                                        name="firstName"
-                                        value={form.values.firstName}
-                                        onChange={form.handleChange}
-                                        error={form.errors.firstName}
-                                        placeholder="First Name"
-                                        label="First Name"
-                                    />
-                                    <Input
-                                        name="lastName"
-                                        value={form.values.lastName}
-                                        onChange={form.handleChange}
-                                        error={form.errors.lastName}
-                                        placeholder="Last Name"
-                                        label="Last Name"
-                                    />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {[
+                                { icon: AiOutlineUser, label: "Nom complet", value: `${user.firstName} ${user.lastName}` },
+                                { icon: AiOutlineMail, label: "Email", value: user.email },
+                                { icon: AiOutlinePhone, label: "Téléphone", value: user.phoneNumber || '-' },
+                                { icon: AiOutlineCalendar, label: "Date de naissance", value: formatDate(user.birthDate) }
+                            ].map((item, index) => (
+                                <div
+                                    key={index}
+                                    className="group flex items-center gap-4 bg-white border-2 border-brand-border rounded-xl p-3 shadow-[0_4px_0_0_#F0F0F0] hover:border-brand-primary/30 hover:shadow-[0_4px_0_0_var(--color-primary-light)] transition-all cursor-default"
+                                >
+                                    <div className="shrink-0 w-10 h-10 rounded-full border-2 border-brand-border bg-brand-bg flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary-dark transition-all duration-300 shadow-sm">
+                                        <item.icon size={20} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-[9px] font-black uppercase tracking-wider text-brand-muted mb-0.5">
+                                            {item.label}
+                                        </p>
+                                        <p className="font-semibold text-brand-text text-sm truncate">
+                                            {item.value}
+                                        </p>
+                                    </div>
                                 </div>
-                                <Input
-                                    name="birthDate"
-                                    type="date"
-                                    value={form.values.birthDate}
-                                    onChange={form.handleChange}
-                                    error={form.errors.birthDate}
-                                    label="Date of Birth"
-                                />
-                                <Input
-                                    name="phoneNumber"
-                                    value={form.values.phoneNumber}
-                                    onChange={form.handleChange}
-                                    error={form.errors.phoneNumber}
-                                    placeholder="Phone"
-                                    label="Phone Number"
-                                />
-                                <Input
-                                    name="imageUrl"
-                                    value={form.values.imageUrl || ''}
-                                    onChange={form.handleChange}
-                                    error={form.errors.imageUrl}
-                                    placeholder="Image Name or URL (GitHub)"
-                                    label="Profile Picture"
-                                />
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <InfoItem icon={<AiOutlineUser />} label="Name" value={`${user.firstName} ${user.lastName}`} />
-                                <InfoItem icon={<AiOutlineMail />} label="Email" value={user.email} />
-                                <InfoItem icon={<AiOutlinePhone />} label="Phone" value={user.phoneNumber || '-'} />
-                                <InfoItem icon={<AiOutlineCalendar />} label="Born on" value={formatDate(user.birthDate)} />
-                            </div>
-                        )}
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <StatCard
-                    title="Account"
-                    status={user.verified ? "Verified" : "Unverified"}
-                    icon={<AiOutlineCheckCircle size={24} />}
-                    color={user.verified ? "green" : "orange"}
-                />
-                <StatCard
-                    title="Role"
-                    status={user.role}
-                    icon={<AiOutlineCrown size={24} />}
-                    color="blue"
-                />
-                <StatCard
-                    title="Status"
-                    status="Active"
-                    icon={<AiOutlineAlert size={24} />}
-                    color="green"
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-white border-2 border-brand-border rounded-2xl p-4 shadow-[0_6px_0_0_#E5E5E5] hover:shadow-[0_8px_0_0_#E5E5E5] hover:translate-y-[-2px] transition-all duration-300">
+                    <StatCard
+                        title="Compte"
+                        status={user.verified ? "Vérifié" : "Non vérifié"}
+                        icon={<AiOutlineCheckCircle size={24} />}
+                        color={user.verified ? "green" : "orange"}
+                    />
+                </div>
+                <div className="bg-white border-2 border-brand-border rounded-2xl p-4 shadow-[0_6px_0_0_#E5E5E5] hover:shadow-[0_8px_0_0_#E5E5E5] hover:translate-y-[-2px] transition-all duration-300">
+                    <StatCard
+                        title="Rôle"
+                        status={user.role}
+                        icon={<AiOutlineCrown size={24} />}
+                        color="blue"
+                    />
+                </div>
+                <div className="bg-white border-2 border-brand-border rounded-2xl p-4 shadow-[0_6px_0_0_#E5E5E5] hover:shadow-[0_8px_0_0_#E5E5E5] hover:translate-y-[-2px] transition-all duration-300">
+                    <StatCard
+                        title="Statut"
+                        status="Actif"
+                        icon={<AiOutlineCheckCircle size={24} />}
+                        color="green"
+                    />
+                </div>
             </div>
 
-            <div className="bg-white rounded-3xl border-2 border-b-4 border-brand-border p-8 shadow-md">
-                <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-brand-border">
-                    <div className="p-3 bg-red-100 rounded-2xl">
-                        <AiOutlineLock className="text-red-600" size={24} />
+            <div className="bg-white border-2 border-brand-border rounded-2xl p-6 md:p-8 shadow-[0_6px_0_0_#E5E5E5] hover:shadow-[0_8px_0_0_#E5E5E5] hover:translate-y-[-2px] transition-all duration-300">
+                <div className="flex items-center gap-4 mb-6 pb-6 border-b border-brand-border">
+                    <div className="p-3 bg-brand-primary/10 rounded-xl">
+                        <AiOutlineBgColors className="text-brand-primary" size={24} />
                     </div>
                     <div>
-                        <h2 className={`${THEME.font.h2} text-xl`}>SECURITY & PRIVACY</h2>
-                        <p className="text-xs text-brand-muted mt-1">Manage your security and passwords</p>
+                        <h2 className="text-2xl font-bold tracking-tight">PERSONNALISATION</h2>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-brand-muted mt-1">Choisissez la couleur principale de l'application</p>
                     </div>
                 </div>
 
-                <div className="space-y-4">
-                    <div className="p-4 bg-red-50 border-2 border-red-200 rounded-2xl flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <AiOutlineKey className="text-red-600" size={20} />
-                            <div>
-                                <p className="font-black text-sm text-red-900">Change Password</p>
-                                <p className="text-xs text-red-700">For better security</p>
-                            </div>
-                        </div>
-                        <Button
-                            variant="primary"
-                            onClick={() => setShowPasswordModal(true)}
+                <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+                    {themeColors.map((color) => (
+                        <button
+                            key={color.primary}
+                            onClick={() => setCurrentColor(color.primary)}
+                            className={`relative w-12 h-12 rounded-full border-2 transition-all duration-200 hover:scale-110 focus:outline-none ${
+                                currentColor === color.primary
+                                    ? 'border-black ring-2 ring-offset-2 ring-brand-primary'
+                                    : 'border-transparent'
+                            }`}
+                            style={{ backgroundColor: color.primary }}
+                            aria-label={`Thème ${color.name}`}
                         >
-                            Change
-                        </Button>
-                    </div>
-
-                    <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <AiOutlineMail className="text-blue-600" size={20} />
-                            <div>
-                                <p className="font-black text-sm text-blue-900">Email Address</p>
-                                <p className="text-xs text-blue-700">{user.email}</p>
-                            </div>
-                        </div>
-                        <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-black border border-green-300">
-                            Verified
-                        </div>
-                    </div>
+                            {currentColor === color.primary && (
+                                <AiOutlineCheck className="absolute inset-0 m-auto text-white drop-shadow-md" size={20} />
+                            )}
+                        </button>
+                    ))}
                 </div>
             </div>
-
-            <PasswordModal
-                isOpen={showPasswordModal}
-                onClose={() => setShowPasswordModal(false)}
-                onSave={async (newPass) => {
-                    await updateProfile({ password: newPass });
-                    setShowPasswordModal(false);
-                }}
-            />
         </div>
     );
 };
