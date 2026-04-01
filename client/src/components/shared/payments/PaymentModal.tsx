@@ -14,6 +14,7 @@ import { PaymentStatus } from '../../../lib/types';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
 import { formatCurrency } from '../../../lib/helper';
+import { getImageUrl } from '../../../lib/constant/constant';
 import { generatePaymentInvoice } from '../../../services/invoice.service';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -25,6 +26,7 @@ interface PaymentModalProps {
     memberId?: string;
     memberPhone?: string;
     memberEmail?: string;
+    memberImageUrl?: string;
     contributionAmount?: number;
     remainingAmount?: number;
     year?: number;
@@ -39,6 +41,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     memberId,
     memberPhone,
     memberEmail,
+    memberImageUrl,
     contributionAmount,
     remainingAmount,
     year,
@@ -181,13 +184,26 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         return autoStatus === PaymentStatus.COMPLETED ? 'Complété' : 'En attente';
     };
 
+    // Fonction pour obtenir les initiales du membre
+    const getMemberInitials = () => {
+        if (!memberName) return '?';
+        const parts = memberName.split(' ');
+        if (parts.length >= 2) {
+            return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+        }
+        return memberName.substring(0, 2).toUpperCase();
+    };
+
+    // Vérifier si l'image du membre existe
+    const hasMemberImage = memberImageUrl && memberImageUrl.trim() !== '';
+
     if (!isOpen) return null;
 
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="relative w-full max-w-md">
                 <div className="bg-white rounded-[2.5rem] border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-                    {/* Header */}
+                    {/* Header avec photo du membre */}
                     <div className="bg-black p-6 text-white relative">
                         <button
                             onClick={onClose}
@@ -196,8 +212,29 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             <AiOutlineClose size={20} />
                         </button>
 
-                        <div className="w-14 h-14 bg-brand-primary rounded-2xl flex items-center justify-center mb-4 border-2 border-white">
-                            <AiOutlineDollar size={28} className="text-white" />
+                        {/* Avatar du membre - remplace l'icône dollar */}
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden bg-brand-primary flex items-center justify-center mb-4 border-2 border-white shadow-lg">
+                            {hasMemberImage ? (
+                                <img
+                                    src={getImageUrl(memberImageUrl, 'member')}
+                                    alt={memberName || 'Membre'}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        if (target.parentElement) {
+                                            target.parentElement.innerHTML = getMemberInitials();
+                                            target.parentElement.classList.add('text-2xl', 'font-black', 'text-white', 'bg-brand-primary', 'flex', 'items-center', 'justify-center');
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-brand-primary flex items-center justify-center">
+                                    <span className="text-2xl font-black text-white">
+                                        {getMemberInitials()}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                         <h2 className="text-xl font-black uppercase">
                             Enregistrement Paiement

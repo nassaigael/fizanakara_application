@@ -648,6 +648,7 @@ const AdminFinance: React.FC = () => {
                     memberName={selectedContribution.memberName}
                     memberId={selectedContribution.memberId}
                     memberPhone={members.find(m => m.id === selectedContribution.memberId)?.phoneNumber}
+                    memberImageUrl={members.find(m => m.id === selectedContribution.memberId)?.imageUrl}
                     contributionAmount={selectedContribution.amount}
                     remainingAmount={selectedContribution.remaining}
                     year={selectedContribution.year}
