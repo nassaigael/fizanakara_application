@@ -7,7 +7,8 @@ import {
   AiOutlineCamera,
   AiOutlineCalendar,
   AiOutlineUserAdd,
-  AiOutlineLink
+  AiOutlineLink,
+  AiOutlinePhone
 } from 'react-icons/ai';
 import { useMembers } from '../../../hooks/useMembers';
 import { useLocations } from '../../../hooks/useLocations';
@@ -31,6 +32,64 @@ interface MemberFormProps {
 
 type FormType = 'independent' | 'child';
 
+const VALID_OPERATORS = ['32', '33', '34', '38', '37', '39'];
+
+const formatPhoneNumber = (value: string, isDeleting: boolean = false): string => {
+  if (isDeleting) {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length <= 3) {
+      return cleaned;
+    }
+    if (cleaned.length <= 5) {
+      return `+${cleaned}`;
+    }
+  }
+
+  let cleaned = value.replace(/\D/g, '');
+
+  if (!cleaned) return '';
+
+  if (cleaned.startsWith('0')) {
+    cleaned = cleaned.substring(1);
+  }
+
+  if (!cleaned.startsWith('261')) {
+    cleaned = '261' + cleaned;
+  }
+
+  cleaned = cleaned.substring(0, 12);
+
+  if (cleaned.length >= 5) {
+    const operator = cleaned.substring(3, 5);
+    if (!VALID_OPERATORS.includes(operator)) {
+      const rawWithoutPrefix = cleaned.replace(/^261/, '');
+      return rawWithoutPrefix;
+    }
+  }
+
+  if (cleaned.length >= 5) {
+    const countryCode = cleaned.substring(0, 3);
+    const part1 = cleaned.substring(3, 5);
+    const part2 = cleaned.substring(5, 7);
+    const part3 = cleaned.substring(7, 10);
+    const part4 = cleaned.substring(10, 12);
+
+    let formatted = `+${countryCode}`;
+    if (part1) formatted += ` ${part1}`;
+    if (part2) formatted += ` ${part2}`;
+    if (part3) formatted += ` ${part3}`;
+    if (part4) formatted += ` ${part4}`;
+
+    return formatted.trim();
+  }
+
+  return cleaned.length > 3 ? `+${cleaned}` : `+${cleaned}`;
+};
+
+const getRawPhoneNumber = (formatted: string): string => {
+  return formatted.replace(/\D/g, '');
+};
+
 export const MemberForm: React.FC<MemberFormProps> = ({
   isOpen,
   onClose,
@@ -48,7 +107,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
   const [selectedParentId, setSelectedParentId] = useState<string>(parentId || '');
   const [, setSelectedParentName] = useState<string>('');
 
-  // Independent Member Form Data
   const [independentData, setIndependentData] = useState<Partial<PersonDto>>({
     firstName: '',
     lastName: '',
@@ -61,7 +119,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
     tributeId: tributes[0]?.id || 0,
   });
 
-  // Child Member Form Data
   const [childData, setChildData] = useState<Partial<PersonDto>>({
     firstName: '',
     lastName: '',
@@ -74,6 +131,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
     tributeId: tributes[0]?.id || 0,
   });
 
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -85,7 +143,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
         birthDate: memberToEdit.birthDate,
         gender: memberToEdit.gender,
         imageUrl: memberToEdit.imageUrl,
-        phoneNumber: memberToEdit.phoneNumber,
+        phoneNumber: memberToEdit.phoneNumber ? formatPhoneNumber(memberToEdit.phoneNumber, false) : '',
         status: memberToEdit.status,
         districtId: memberToEdit.districtId,
         tributeId: memberToEdit.tributeId,
@@ -134,12 +192,35 @@ export const MemberForm: React.FC<MemberFormProps> = ({
     const { name, value } = e.target;
     const numericFields = ['districtId', 'tributeId'];
 
-    setIndependentData(prev => ({
-      ...prev,
-      [name]: numericFields.includes(name) ? (value ? parseInt(value, 10) : 0) : value
-    }));
+    if (name === 'phoneNumber') {
+      const currentPhone = independentData.phoneNumber || '';
+      const isDeleting = value.length < currentPhone.length;
 
-    if (errors[name]) {
+      // Appliquer le formatage automatique pour le numéro de téléphone
+      const formatted = formatPhoneNumber(value, isDeleting);
+
+      // Vérifier si l'opérateur est valide
+      const rawAfterFormat = getRawPhoneNumber(formatted);
+      if (rawAfterFormat.length >= 5 && !isDeleting) {
+        const operator = rawAfterFormat.substring(3, 5);
+        if (!VALID_OPERATORS.includes(operator)) {
+          // Si l'opérateur n'est pas valide et qu'on n'est pas en train de supprimer, on ne met pas à jour
+          return;
+        }
+      }
+
+      setIndependentData(prev => ({
+        ...prev,
+        [name]: formatted
+      }));
+    } else {
+      setIndependentData(prev => ({
+        ...prev,
+        [name]: numericFields.includes(name) ? (value ? parseInt(value, 10) : 0) : value
+      }));
+    }
+
+    if (errors[name] && name !== 'phoneNumber') {
       setErrors(prev => {
         const copy = { ...prev };
         delete copy[name];
@@ -152,12 +233,35 @@ export const MemberForm: React.FC<MemberFormProps> = ({
     const { name, value } = e.target;
     const numericFields = ['districtId', 'tributeId'];
 
-    setChildData(prev => ({
-      ...prev,
-      [name]: numericFields.includes(name) ? (value ? parseInt(value, 10) : 0) : value
-    }));
+    if (name === 'phoneNumber') {
+      const currentPhone = childData.phoneNumber || '';
+      const isDeleting = value.length < currentPhone.length;
 
-    if (errors[name]) {
+      // Appliquer le formatage automatique pour le numéro de téléphone
+      const formatted = formatPhoneNumber(value, isDeleting);
+
+      // Vérifier si l'opérateur est valide
+      const rawAfterFormat = getRawPhoneNumber(formatted);
+      if (rawAfterFormat.length >= 5 && !isDeleting) {
+        const operator = rawAfterFormat.substring(3, 5);
+        if (!VALID_OPERATORS.includes(operator)) {
+          // Si l'opérateur n'est pas valide et qu'on n'est pas en train de supprimer, on ne met pas à jour
+          return;
+        }
+      }
+
+      setChildData(prev => ({
+        ...prev,
+        [name]: formatted
+      }));
+    } else {
+      setChildData(prev => ({
+        ...prev,
+        [name]: numericFields.includes(name) ? (value ? parseInt(value, 10) : 0) : value
+      }));
+    }
+
+    if (errors[name] && name !== 'phoneNumber') {
       setErrors(prev => {
         const copy = { ...prev };
         delete copy[name];
@@ -184,17 +288,46 @@ export const MemberForm: React.FC<MemberFormProps> = ({
 
   const validateIndependent = (): boolean => {
     try {
-      personSchema.parse(independentData);
+      // Nettoyer le numéro de téléphone pour la validation (enlever les espaces)
+      const rawPhone = getRawPhoneNumber(independentData.phoneNumber || '');
+
+      // Vérifier si l'opérateur est valide
+      if (rawPhone && rawPhone.length >= 5) {
+        const operator = rawPhone.substring(3, 5);
+        if (!VALID_OPERATORS.includes(operator)) {
+          // Ne pas afficher d'erreur, juste empêcher la soumission
+          return false;
+        }
+      }
+
+      const dataToValidate = {
+        ...independentData,
+        phoneNumber: rawPhone
+      };
+      personSchema.parse(dataToValidate);
       return true;
     } catch (error: any) {
       const newErrors: Record<string, string> = {};
-      error.errors?.forEach((err: any) => {
-        if (err.path[0]) {
-          newErrors[err.path[0].toString()] = err.message;
+      if (error.errors) {
+        for (const err of error.errors) {
+          if (err.path && err.path[0]) {
+            // Ne pas ajouter d'erreur pour phoneNumber si c'est un problème d'opérateur
+            if (err.path[0] === 'phoneNumber' && independentData.phoneNumber) {
+              const raw = getRawPhoneNumber(independentData.phoneNumber);
+              if (raw.length >= 5) {
+                const operator = raw.substring(3, 5);
+                if (!VALID_OPERATORS.includes(operator)) {
+                  // Ignorer cette erreur, ne pas l'afficher
+                  continue;
+                }
+              }
+            }
+            newErrors[err.path[0].toString()] = err.message;
+          }
         }
-      });
+      }
       setErrors(newErrors);
-      return false;
+      return Object.keys(newErrors).length === 0;
     }
   };
 
@@ -204,17 +337,47 @@ export const MemberForm: React.FC<MemberFormProps> = ({
         setErrors(prev => ({ ...prev, parentId: 'Veuillez sélectionner un parent' }));
         return false;
       }
-      personSchema.parse(childData);
+
+      // Nettoyer le numéro de téléphone pour la validation (enlever les espaces)
+      const rawPhone = getRawPhoneNumber(childData.phoneNumber || '');
+
+      // Vérifier si l'opérateur est valide
+      if (rawPhone && rawPhone.length >= 5) {
+        const operator = rawPhone.substring(3, 5);
+        if (!VALID_OPERATORS.includes(operator)) {
+          // Ne pas afficher d'erreur, juste empêcher la soumission
+          return false;
+        }
+      }
+
+      const dataToValidate = {
+        ...childData,
+        phoneNumber: rawPhone
+      };
+      personSchema.parse(dataToValidate);
       return true;
     } catch (error: any) {
       const newErrors: Record<string, string> = {};
-      error.errors?.forEach((err: any) => {
-        if (err.path[0]) {
-          newErrors[err.path[0].toString()] = err.message;
+      if (error.errors) {
+        for (const err of error.errors) {
+          if (err.path && err.path[0]) {
+            // Ne pas ajouter d'erreur pour phoneNumber si c'est un problème d'opérateur
+            if (err.path[0] === 'phoneNumber' && childData.phoneNumber) {
+              const raw = getRawPhoneNumber(childData.phoneNumber);
+              if (raw.length >= 5) {
+                const operator = raw.substring(3, 5);
+                if (!VALID_OPERATORS.includes(operator)) {
+                  // Ignorer cette erreur, ne pas l'afficher
+                  continue;
+                }
+              }
+            }
+            newErrors[err.path[0].toString()] = err.message;
+          }
         }
-      });
+      }
       setErrors(newErrors);
-      return false;
+      return Object.keys(newErrors).length === 0;
     }
   };
 
@@ -234,14 +397,29 @@ export const MemberForm: React.FC<MemberFormProps> = ({
     try {
       if (memberToEdit) {
         const dataToUpdate = formType === 'independent' ? independentData : childData;
-        await updateMember.mutateAsync({ id: memberToEdit.id, data: dataToUpdate as PersonDto });
+        // Nettoyer le numéro de téléphone avant l'envoi
+        const cleanedData = {
+          ...dataToUpdate,
+          phoneNumber: getRawPhoneNumber(dataToUpdate.phoneNumber || '')
+        };
+        await updateMember.mutateAsync({ id: memberToEdit.id, data: cleanedData as PersonDto });
         toast.success('Membre modifié');
       } else {
         if (formType === 'child') {
-          await addChild.mutateAsync({ parentId: selectedParentId, childData: childData as PersonDto });
+          // Nettoyer le numéro de téléphone avant l'envoi
+          const cleanedData = {
+            ...childData,
+            phoneNumber: getRawPhoneNumber(childData.phoneNumber || '')
+          };
+          await addChild.mutateAsync({ parentId: selectedParentId, childData: cleanedData as PersonDto });
           toast.success('Enfant ajouté avec succès');
         } else {
-          await createMember.mutateAsync(independentData as PersonDto);
+          // Nettoyer le numéro de téléphone avant l'envoi
+          const cleanedData = {
+            ...independentData,
+            phoneNumber: getRawPhoneNumber(independentData.phoneNumber || '')
+          };
+          await createMember.mutateAsync(cleanedData as PersonDto);
           toast.success('Membre créé avec succès');
         }
       }
@@ -517,8 +695,8 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                 value={currentData.phoneNumber || ''}
                 onChange={handleChange}
                 error={errors.phoneNumber}
-                placeholder="034 00 000 00"
-                icon={<span className="text-[10px] font-black text-gray-400">+261</span>}
+                placeholder="+261 34 00 000 00"
+                icon={<AiOutlinePhone size={14} className="text-gray-400" />}
                 disabled={loading}
               />
             </div>
