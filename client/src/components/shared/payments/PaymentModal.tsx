@@ -114,7 +114,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     contributionId: formData.contributionId
                 });
 
-                // Générer le numéro de reçu: COT2028-001 + date + heure
                 const receiptNumber = `${contributionId}_${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}`;
                 
                 const receipt = {
@@ -149,7 +148,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         }
     });
 
-    // Téléchargement automatique quand le reçu est affiché
     useEffect(() => {
         if (paymentCompleted && receiptData && !autoDownloadDone && receiptRef.current) {
             const timer = setTimeout(() => {
@@ -205,18 +203,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
     const hasMemberImage = memberImageUrl && memberImageUrl.trim() !== '';
 
-    // Fonction pour capturer et télécharger le reçu en PDF
     const downloadReceiptAsPDF = async () => {
         if (!receiptRef.current) return;
         
         try {
             const dataUrl = await domtoimage.toPng(receiptRef.current, {
                 quality: 0.95,
-                bgcolor: '#ffffff',
-                style: {
-                    transform: 'scale(1)',
-                    transformOrigin: 'top left'
-                }
+                bgcolor: '#ffffff'
             });
             
             const pdf = new jsPDF({
@@ -225,10 +218,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 format: 'a4'
             });
             
-            const imgWidth = 190;
+            const imgWidth = 150;
             const imgHeight = (receiptRef.current.clientHeight * imgWidth) / receiptRef.current.clientWidth;
+            const xPosition = (210 - imgWidth) / 2;
             
-            pdf.addImage(dataUrl, 'PNG', 10, 10, imgWidth, imgHeight);
+            pdf.addImage(dataUrl, 'PNG', xPosition, 20, imgWidth, imgHeight);
             
             const fileName = `recu_${receiptData?.memberId}_${receiptData?.year}.pdf`;
             pdf.save(fileName);
@@ -239,7 +233,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         }
     };
 
-    // Si le paiement est complété, afficher le reçu
     if (paymentCompleted && receiptData) {
         const memberImageFullUrl = receiptData.memberImageUrl ? getImageUrl(receiptData.memberImageUrl, 'member') : null;
         const hasImage = !!memberImageFullUrl;
@@ -248,18 +241,16 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                 <div className="relative w-full max-w-md">
                     <div ref={receiptRef} className="bg-white rounded-[2.5rem] border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-                        {/* Header vert succès */}
-                        <div className="bg-green-500 p-6 text-white text-center">
-                            <AiOutlineCheckCircle size={48} className="mx-auto mb-3" />
-                            <h2 className="text-2xl font-black uppercase">Paiement effectué!</h2>
-                            <p className="text-sm opacity-90 mt-1">Transaction enregistrée avec succès</p>
+                        <div className="bg-green-500 p-5 text-white text-center">
+                            <AiOutlineCheckCircle size={40} className="mx-auto mb-2" />
+                            <h2 className="text-xl font-black uppercase">Paiement effectué!</h2>
+                            <p className="text-xs opacity-90 mt-1">Transaction enregistrée avec succès</p>
                         </div>
 
-                        {/* Détails du reçu */}
-                        <div className="p-6 space-y-4">
-                            {/* Photo du membre et infos */}
-                            <div className="flex items-center gap-4 pb-3 border-b border-gray-100">
-                                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-brand-primary flex items-center justify-center shadow-md shrink-0">
+                        <div className="p-4 space-y-3">
+                            {/* Photo et infos membre */}
+                            <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
+                                <div className="w-12 h-12 rounded-2xl overflow-hidden bg-brand-primary flex items-center justify-center shadow-md shrink-0">
                                     {hasImage ? (
                                         <img
                                             src={memberImageFullUrl!}
@@ -270,86 +261,86 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                                 target.style.display = 'none';
                                                 if (target.parentElement) {
                                                     target.parentElement.innerHTML = getMemberInitials();
-                                                    target.parentElement.classList.add('text-2xl', 'font-black', 'text-white', 'bg-brand-primary', 'flex', 'items-center', 'justify-center');
+                                                    target.parentElement.classList.add('text-xl', 'font-black', 'text-white', 'bg-brand-primary', 'flex', 'items-center', 'justify-center');
                                                 }
                                             }}
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-brand-primary flex items-center justify-center">
-                                            <span className="text-2xl font-black text-white">{getMemberInitials()}</span>
+                                            <span className="text-xl font-black text-white">{getMemberInitials()}</span>
                                         </div>
                                     )}
                                 </div>
                                 <div className="flex-1">
                                     <p className="font-bold text-sm">{receiptData.memberName}</p>
-                                    <p className="text-[10px] text-gray-500">{receiptData.memberId}</p>
+                                    <p className="text-[9px] text-gray-500">{receiptData.memberId}</p>
                                     {receiptData.memberPhone && (
-                                        <p className="text-[9px] text-gray-400 mt-0.5">{receiptData.memberPhone}</p>
+                                        <p className="text-[8px] text-gray-400 mt-0.5">{receiptData.memberPhone}</p>
                                     )}
                                 </div>
                             </div>
 
                             {/* Numéro de reçu */}
-                            <div className="text-center border-b border-gray-100 pb-3">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Reçu N°</p>
-                                <p className="font-mono text-xs font-bold break-all">{receiptData.receiptNumber}</p>
+                            <div className="text-center border-b border-gray-100 pb-2">
+                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Reçu N°</p>
+                                <p className="font-mono text-[9px] font-bold break-all">{receiptData.receiptNumber}</p>
                             </div>
 
-                            {/* Détails du paiement */}
-                            <div className="grid grid-cols-2 gap-3">
+                            {/* Détails paiement */}
+                            <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <p className="text-[8px] font-black text-gray-400 uppercase">Année</p>
+                                    <p className="text-[7px] font-black text-gray-400 uppercase">Année</p>
                                     <p className="font-bold text-sm">{receiptData.year}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[8px] font-black text-gray-400 uppercase">Date</p>
+                                    <p className="text-[7px] font-black text-gray-400 uppercase">Date</p>
                                     <p className="font-bold text-sm">{formatDate(receiptData.paymentDate, 'short')}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[8px] font-black text-gray-400 uppercase">Heure</p>
+                                    <p className="text-[7px] font-black text-gray-400 uppercase">Heure</p>
                                     <p className="font-bold text-sm">{receiptData.paymentTime}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[8px] font-black text-gray-400 uppercase">Réf. cotisation</p>
-                                    <p className="font-mono text-[10px] font-bold">{receiptData.contributionId}</p>
+                                    <p className="text-[7px] font-black text-gray-400 uppercase">Réf. cotisation</p>
+                                    <p className="font-mono text-[8px] font-bold">{receiptData.contributionId}</p>
                                 </div>
                             </div>
 
                             {/* Montants */}
-                            <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+                            <div className="bg-gray-50 rounded-xl p-2 space-y-1.5">
                                 <div className="flex justify-between">
-                                    <span className="text-[9px] font-black text-gray-500">Montant total</span>
-                                    <span className="font-bold">{formatCurrency(receiptData.amount)}</span>
+                                    <span className="text-[8px] font-black text-gray-500">Montant total</span>
+                                    <span className="font-bold text-sm">{formatCurrency(receiptData.amount)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-[9px] font-black text-gray-500">Montant payé</span>
-                                    <span className="font-bold text-green-600">{formatCurrency(receiptData.paidAmount)}</span>
+                                    <span className="text-[8px] font-black text-gray-500">Montant payé</span>
+                                    <span className="font-bold text-sm text-green-600">{formatCurrency(receiptData.paidAmount)}</span>
                                 </div>
                                 <div className="flex justify-between pt-1 border-t border-gray-200">
-                                    <span className="text-[9px] font-black text-gray-500">Reste à payer</span>
-                                    <span className={`font-bold ${receiptData.remaining > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                                    <span className="text-[8px] font-black text-gray-500">Reste à payer</span>
+                                    <span className={`font-bold text-sm ${receiptData.remaining > 0 ? 'text-orange-600' : 'text-green-600'}`}>
                                         {formatCurrency(receiptData.remaining)}
                                     </span>
                                 </div>
                             </div>
 
-                            {/* Information administrateur */}
-                            <div className="bg-blue-50 rounded-xl p-3 text-center">
-                                <p className="text-[8px] font-black text-blue-600 uppercase">Reçu par</p>
+                            {/* Admin info */}
+                            <div className="bg-blue-50 rounded-xl p-2 text-center">
+                                <p className="text-[7px] font-black text-blue-600 uppercase">Reçu par</p>
                                 <p className="font-bold text-sm">{receiptData.generatedBy}</p>
                                 {receiptData.generatedByEmail && (
-                                    <p className="text-[8px] text-blue-500 mt-0.5">{receiptData.generatedByEmail}</p>
+                                    <p className="text-[7px] text-blue-500 mt-0.5">{receiptData.generatedByEmail}</p>
                                 )}
                             </div>
 
-                            <div className="bg-green-50 rounded-xl p-3 text-center">
-                                <p className="text-[9px] font-black text-green-700">✓ Paiement enregistré</p>
-                                <p className="text-[7px] text-gray-500 mt-1">
+                            <div className="bg-green-50 rounded-xl p-2 text-center">
+                                <p className="text-[8px] font-black text-green-700">✓ Paiement enregistré</p>
+                                <p className="text-[6px] text-gray-500 mt-0.5">
                                     {autoDownloadDone ? 'Reçu téléchargé' : 'Téléchargement en cours...'}
                                 </p>
                             </div>
 
-                            <div className="flex gap-3 pt-2">
+                            <div className="flex gap-2 pt-1">
                                 <Button
                                     type="button"
                                     variant="secondary"
@@ -359,7 +350,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                         onSuccess?.();
                                         onClose();
                                     }}
-                                    className="flex-1"
+                                    className="flex-1 py-2 text-xs"
                                 >
                                     Fermer
                                 </Button>
@@ -367,9 +358,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                     type="button"
                                     variant="primary"
                                     onClick={downloadReceiptAsPDF}
-                                    className="flex-1 flex items-center justify-center gap-2"
+                                    className="flex-1 py-2 text-xs flex items-center justify-center gap-1"
                                 >
-                                    <AiOutlineDownload size={16} />
+                                    <AiOutlineDownload size={14} />
                                     Télécharger
                                 </Button>
                             </div>
@@ -387,7 +378,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="relative w-full max-w-md">
                 <div className="bg-white rounded-[2.5rem] border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-                    {/* Header avec photo du membre */}
                     <div className="bg-black p-6 text-white relative">
                         <button
                             onClick={onClose}
@@ -422,7 +412,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     </div>
 
                     <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                        {/* Summary */}
                         <div className="bg-gray-50 border-2 border-black rounded-2xl p-4">
                             <div className="flex justify-between mb-2">
                                 <div>
@@ -444,7 +433,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             )}
                         </div>
 
-                        {/* Amount Input */}
                         <div>
                             <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-2 block">Montant payé</label>
                             <Input
@@ -471,10 +459,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             )}
                         </div>
 
-                        {/* Date Input */}
                         <Input label="Date" name="paymentDate" type="date" value={getDisplayDate()} onChange={handleDateChange} onBlur={handleBlur} error={touched.paymentDate ? errors.paymentDate : undefined} icon={<AiOutlineCalendar />} />
 
-                        {/* Status Display */}
                         <div>
                             <label className="text-[10px] font-black uppercase text-center tracking-wider text-gray-500 mb-2 block">Statut du paiement</label>
                             <div className={`flex items-center justify-between p-4 rounded-2xl border-2 ${autoStatus === PaymentStatus.COMPLETED ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
