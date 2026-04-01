@@ -30,15 +30,15 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
     if (active && payload && payload.length) {
         const collectedValue = payload.find((p: any) => p.dataKey === 'collected')?.value || 0;
         const targetValue = payload.find((p: any) => p.dataKey === 'target')?.value || 0;
-        
+
         return (
             <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-200">
                 <p className="text-xs font-black text-gray-600 mb-1">{label}</p>
                 <p className="text-sm font-bold text-emerald-600">
-                    Collected: {formatCurrency(collectedValue)}
+                    Collecté: {formatCurrency(collectedValue)}
                 </p>
                 <p className="text-xs font-medium text-gray-500">
-                    Target: {formatCurrency(targetValue)}
+                    Objectif: {formatCurrency(targetValue)}
                 </p>
             </div>
         );
@@ -57,8 +57,8 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
     const remainingPercentage = 100 - paidPercentage;
 
     const donutData = [
-        { name: 'Paid', value: totalPaid, percentage: paidPercentage, color: COLORS.paid },
-        { name: 'Remaining', value: remaining, percentage: remainingPercentage, color: COLORS.remaining }
+        { name: 'Payé', value: totalPaid, percentage: paidPercentage, color: COLORS.paid },
+        { name: 'Restant', value: remaining, percentage: remainingPercentage, color: COLORS.remaining }
     ].filter(item => item.value > 0);
 
     // Vérifier si toutes les données sont à zéro
@@ -69,27 +69,27 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
             {/* Titre */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <h3 className="text-base md:text-lg font-black uppercase tracking-wider text-gray-800">
-                    Annual Collection {selectedYear}
+                    Collecte Annuelle {selectedYear}
                 </h3>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                        <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase">Paid</span>
+                        <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase">Payé</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 rounded-full bg-amber-500" />
-                        <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase">Remaining</span>
+                        <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase">Restant</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 rounded-full bg-gray-300" />
-                        <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase">Target</span>
+                        <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase">Objectif</span>
                     </div>
                 </div>
             </div>
 
             {/* Donut + Bar Chart - Layout responsive */}
             <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-                {/* Donut Chart */}
+                {/* Graphique en donut */}
                 <div className="lg:w-2/5 flex flex-col items-center justify-center">
                     <div className="relative w-48 h-48 md:w-56 md:h-56">
                         {totalDue > 0 ? (
@@ -115,7 +115,7 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                             <div className="w-full h-full flex items-center justify-center">
                                 <div className="text-center">
                                     <p className="text-3xl font-black text-gray-300">0</p>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase">No data</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase">Aucune donnée</p>
                                 </div>
                             </div>
                         )}
@@ -126,12 +126,12 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                                     {Math.round(paidPercentage)}%
                                 </span>
                                 <span className="text-[8px] md:text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                                    Collected
+                                    Collecté
                                 </span>
                             </div>
                         )}
                     </div>
-                    
+
                     {/* Légende du donut */}
                     <div className="flex gap-4 mt-4">
                         <div className="text-center">
@@ -139,7 +139,7 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                                 {formatCurrency(totalPaid)}
                             </p>
                             <p className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">
-                                Paid
+                                Payé
                             </p>
                         </div>
                         <div className="w-px h-8 bg-gray-200" />
@@ -148,61 +148,61 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                                 {formatCurrency(remaining)}
                             </p>
                             <p className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">
-                                Remaining
+                                Restant
                             </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Bar Chart */}
+                {/* Graphique en barres */}
                 <div className="lg:w-3/5">
                     {hasNoData ? (
                         <div className="h-62.5 flex items-center justify-center bg-gray-50 rounded-xl">
                             <div className="text-center">
-                                <p className="text-sm font-bold text-gray-400 uppercase">No payment data available</p>
-                                <p className="text-[10px] text-gray-400 mt-1">Generate contributions to see monthly collection</p>
+                                <p className="text-sm font-bold text-gray-400 uppercase">Aucune donnée de paiement disponible</p>
+                                <p className="text-[10px] text-gray-400 mt-1">Générez des cotisations pour voir la collecte mensuelle</p>
                             </div>
                         </div>
                     ) : (
                         <ResponsiveContainer width="100%" height={250}>
-                            <BarChart 
-                                data={monthlyData} 
+                            <BarChart
+                                data={monthlyData}
                                 margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
                                 barCategoryGap="20%"
                             >
-                                <XAxis 
-                                    dataKey="month" 
+                                <XAxis
+                                    dataKey="month"
                                     tick={{ fontSize: 10, fill: '#6B7280' }}
                                     axisLine={{ stroke: '#E5E7EB' }}
                                     tickLine={false}
                                     interval={0}
                                 />
-                                <YAxis 
+                                <YAxis
                                     tick={{ fontSize: 10, fill: '#6B7280' }}
                                     axisLine={{ stroke: '#E5E7EB' }}
                                     tickLine={false}
                                     tickFormatter={(value: number) => `${value / 1000}k`}
                                 />
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend 
-                                    verticalAlign="top" 
+                                <Legend
+                                    verticalAlign="top"
                                     align="right"
                                     iconType="circle"
                                     iconSize={8}
                                     wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', marginBottom: '10px' }}
                                 />
-                                <Bar 
-                                    dataKey="collected" 
-                                    fill={COLORS.paid} 
+                                <Bar
+                                    dataKey="collected"
+                                    fill={COLORS.paid}
                                     radius={[4, 4, 0, 0]}
-                                    name="Collected"
+                                    name="Collecté"
                                     barSize={24}
                                 />
-                                <Bar 
-                                    dataKey="target" 
-                                    fill={COLORS.target} 
+                                <Bar
+                                    dataKey="target"
+                                    fill={COLORS.target}
                                     radius={[4, 4, 0, 0]}
-                                    name="Target"
+                                    name="Objectif"
                                     barSize={24}
                                 />
                             </BarChart>
@@ -210,7 +210,7 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                     )}
                     <div className="text-center mt-2">
                         <p className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">
-                            Monthly Collection vs Target
+                            Collecte mensuelle vs Objectif
                         </p>
                     </div>
                 </div>
@@ -219,15 +219,15 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
             {/* Résumé des totaux */}
             <div className="grid grid-cols-3 gap-3 mt-6 pt-4 border-t-2 border-gray-100">
                 <div className="text-center">
-                    <p className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-wider">Total Due</p>
+                    <p className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-wider">Total dû</p>
                     <p className="text-sm md:text-base font-black text-gray-800">{formatCurrency(totalDue)}</p>
                 </div>
                 <div className="text-center border-x-2 border-gray-100">
-                    <p className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-wider">Total Paid</p>
+                    <p className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-wider">Total payé</p>
                     <p className="text-sm md:text-base font-black text-emerald-600">{formatCurrency(totalPaid)}</p>
                 </div>
                 <div className="text-center">
-                    <p className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-wider">Remaining</p>
+                    <p className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-wider">Restant</p>
                     <p className="text-sm md:text-base font-black text-amber-600">{formatCurrency(remaining)}</p>
                 </div>
             </div>
