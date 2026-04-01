@@ -200,18 +200,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
     const hasMemberImage = memberImageUrl && memberImageUrl.trim() !== '';
 
-    // Fonction pour capturer et télécharger le reçu en PDF avec dom-to-image
-    const downloadReceiptAsPDF = async () => {
-        console.log('📸 Capture du reçu avec dom-to-image...');
-        
+    const downloadReceiptAsPDF = async () => {        
         if (!receiptRef.current) {
-            console.error('❌ receiptRef est null');
             toast.error('Erreur: impossible de générer le reçu');
             return;
         }
         
         try {
-            // Capturer l'élément en image PNG
             const dataUrl = await domtoimage.toPng(receiptRef.current, {
                 quality: 0.95,
                 bgcolor: '#ffffff',
@@ -221,9 +216,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 }
             });
             
-            console.log('✅ Image capturée avec succès');
             
-            // Créer le PDF
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
@@ -238,11 +231,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             const fileName = `recu_${receiptData?.memberId || 'membre'}_${receiptData?.year || 'annee'}.pdf`;
             pdf.save(fileName);
             
-            console.log('✅ PDF sauvegardé avec succès!');
             toast.success('Reçu téléchargé avec succès');
             
         } catch (error) {
-            console.error('❌ Erreur lors de la génération du PDF:', error);
             toast.error('Erreur lors de la génération du reçu');
         }
     };
