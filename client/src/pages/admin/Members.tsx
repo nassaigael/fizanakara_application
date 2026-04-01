@@ -28,7 +28,7 @@ const AdminMembers: React.FC = () => {
     const [viewingMember, setViewingMember] = useState<PersonResponse | null>(null);
     const [selectedParentForChild, setSelectedParentForChild] = useState<PersonResponse | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
-    
+
     const filtersRef = useRef<HTMLDivElement>(null);
     const [isFiltersSticky, setIsFiltersSticky] = useState(false);
 
@@ -97,7 +97,7 @@ const AdminMembers: React.FC = () => {
     const filteredMembers = useMemo(() => {
         return members.filter(member => {
             const searchLower = searchQuery.toLowerCase();
-            const matchesSearch = 
+            const matchesSearch =
                 member.id.toLowerCase().includes(searchLower) ||
                 member.firstName.toLowerCase().includes(searchLower) ||
                 member.lastName.toLowerCase().includes(searchLower) ||
@@ -112,18 +112,18 @@ const AdminMembers: React.FC = () => {
     }, [members, searchQuery, statusFilter, districtFilter, tributeFilter]);
 
     const statusOptions = [
-        { value: 'ALL', label: 'All Statuses' },
-        { value: MemberStatus.STUDENT, label: 'Students' },
-        { value: MemberStatus.WORKER, label: 'Workers' },
+        { value: 'ALL', label: 'Tous les statuts' },
+        { value: MemberStatus.STUDENT, label: 'Étudiants' },
+        { value: MemberStatus.WORKER, label: 'Travailleurs' },
     ];
 
     const districtOptions = [
-        { value: 'ALL', label: 'All Districts' },
+        { value: 'ALL', label: 'Tous les districts' },
         ...districts.map(d => ({ value: d.id?.toString() || '', label: d.name }))
     ];
 
     const tributeOptions = [
-        { value: 'ALL', label: 'All Tributes' },
+        { value: 'ALL', label: 'Toutes les tribus' },
         ...tributes.map(t => ({ value: t.id?.toString() || '', label: t.name }))
     ];
 
@@ -136,38 +136,37 @@ const AdminMembers: React.FC = () => {
         <div className="flex items-center justify-center h-96">
             <div className="text-center">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="font-black text-gray-500 uppercase text-xs sm:text-sm">Loading members...</p>
+                <p className="font-black text-gray-500 uppercase text-xs sm:text-sm">Chargement des membres...</p>
             </div>
         </div>
     );
 
     return (
         <div className="relative px-3 sm:px-4 md:px-6 py-4 sm:py-6">
-            {/* Header avec titre et bouton NEW MEMBER - Responsive */}
+            {/* Header avec titre et bouton NOUVEAU MEMBRE - Responsive */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 sm:mb-6">
                 <div>
                     <h1 className={`${THEME.font.h1} text-xl sm:text-2xl md:text-3xl flex items-center gap-2 sm:gap-3 uppercase`}>
                         <AiOutlineTeam className="text-brand-primary text-xl sm:text-2xl" />
-                        Member Management
+                        Gestion des membres
                     </h1>
                     <p className="text-gray-500 mt-1 text-[10px] sm:text-xs uppercase">
-                        {filteredMembers.length} / {members.length} members displayed
+                        {filteredMembers.length} / {members.length} membres affichés
                     </p>
                 </div>
                 <Button onClick={handleAddMember} className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm w-full sm:w-auto justify-center">
-                    <AiOutlinePlus size={16} className="sm:w-4 sm:h-4" /> 
-                    <span className="font-black">NEW MEMBER</span>
+                    <AiOutlinePlus size={16} className="sm:w-4 sm:h-4" />
+                    <span className="font-black">NOUVEAU MEMBRE</span>
                 </Button>
             </div>
 
             {/* Barre de recherche et filtres - Responsive avec sticky */}
-            <div 
+            <div
                 ref={filtersRef}
-                className={`sticky top-0 z-30 transition-all duration-300 mb-5 sm:mb-6 ${
-                    isFiltersSticky 
-                        ? 'bg-brand-bg/95 backdrop-blur-md shadow-lg py-2 -mt-2' 
+                className={`sticky top-0 z-30 transition-all duration-300 mb-5 sm:mb-6 ${isFiltersSticky
+                        ? 'bg-brand-bg/95 backdrop-blur-md shadow-lg py-2 -mt-2'
                         : 'bg-transparent py-0'
-                }`}
+                    }`}
             >
                 <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-gray-100 p-3 sm:p-4 shadow-sm">
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -176,7 +175,7 @@ const AdminMembers: React.FC = () => {
                             <AiOutlineSearch className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                             <input
                                 type="text"
-                                placeholder="Search by ID, first name, or last name..."
+                                placeholder="Rechercher par ID, prénom ou nom..."
                                 className="w-full pl-9 sm:pl-12 pr-8 sm:pr-10 py-2.5 sm:py-3 rounded-xl border-2 border-gray-200 focus:border-brand-primary outline-none text-xs sm:text-sm font-medium transition-all"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -196,14 +195,14 @@ const AdminMembers: React.FC = () => {
                             onClick={() => setShowFilters(!showFilters)}
                             className={`
                                 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 transition-all whitespace-nowrap
-                                ${showFilters 
-                                    ? 'bg-brand-primary text-white border-brand-primary' 
+                                ${showFilters
+                                    ? 'bg-brand-primary text-white border-brand-primary'
                                     : 'bg-white text-gray-600 border-gray-200 hover:border-brand-primary'
                                 }
                             `}
                         >
                             <AiOutlineFilter size={16} />
-                            <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider">Filters</span>
+                            <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider">Filtres</span>
                             {hasActiveFilters && !showFilters && (
                                 <span className="ml-1 w-1.5 h-1.5 bg-brand-primary rounded-full animate-pulse" />
                             )}
@@ -215,7 +214,7 @@ const AdminMembers: React.FC = () => {
                         <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t-2 border-gray-100">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                                 <Select
-                                    label="Status"
+                                    label="Statut"
                                     options={statusOptions}
                                     value={statusFilter}
                                     onChange={(val) => {
@@ -235,7 +234,7 @@ const AdminMembers: React.FC = () => {
                                     containerClassName="w-full"
                                 />
                                 <Select
-                                    label="Tribute"
+                                    label="Tribu"
                                     options={tributeOptions}
                                     value={tributeFilter}
                                     onChange={(val) => {
@@ -252,26 +251,26 @@ const AdminMembers: React.FC = () => {
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <span className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                                                Active filters:
+                                                Filtres actifs :
                                             </span>
                                             {searchQuery && (
                                                 <span className="px-2 py-1 bg-gray-100 rounded-lg text-[8px] sm:text-[9px] font-black uppercase">
-                                                    Search: {searchQuery}
+                                                    Recherche : {searchQuery}
                                                 </span>
                                             )}
                                             {statusFilter !== 'ALL' && (
                                                 <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[8px] sm:text-[9px] font-black uppercase">
-                                                    {statusFilter === MemberStatus.STUDENT ? 'Student' : 'Worker'}
+                                                    {statusFilter === MemberStatus.STUDENT ? 'Étudiant' : 'Travailleur'}
                                                 </span>
                                             )}
                                             {districtFilter !== 'ALL' && (
                                                 <span className="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-[8px] sm:text-[9px] font-black uppercase">
-                                                    District: {districts.find(d => d.id?.toString() === districtFilter)?.name}
+                                                    District : {districts.find(d => d.id?.toString() === districtFilter)?.name}
                                                 </span>
                                             )}
                                             {tributeFilter !== 'ALL' && (
                                                 <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-[8px] sm:text-[9px] font-black uppercase">
-                                                    Tribute: {tributes.find(t => t.id?.toString() === tributeFilter)?.name}
+                                                    Tribu : {tributes.find(t => t.id?.toString() === tributeFilter)?.name}
                                                 </span>
                                             )}
                                         </div>
@@ -279,7 +278,7 @@ const AdminMembers: React.FC = () => {
                                             onClick={clearAllFilters}
                                             className="text-[9px] sm:text-[10px] font-black uppercase text-red-500 hover:text-red-600 transition-colors"
                                         >
-                                            Clear all filters
+                                            Effacer tous les filtres
                                         </button>
                                     </div>
                                 </div>
@@ -292,14 +291,14 @@ const AdminMembers: React.FC = () => {
             {/* Results Count - Responsive */}
             <div className="mb-3 sm:mb-4 flex justify-between items-center">
                 <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    {filteredMembers.length} member(s) found
+                    {filteredMembers.length} membre(s) trouvé(s)
                 </p>
                 {hasActiveFilters && (
                     <button
                         onClick={clearAllFilters}
                         className="text-[9px] sm:text-[10px] font-black uppercase text-brand-primary hover:underline"
                     >
-                        Reset all filters
+                        Réinitialiser tous les filtres
                     </button>
                 )}
             </div>
@@ -308,16 +307,16 @@ const AdminMembers: React.FC = () => {
             {filteredMembers.length === 0 ? (
                 <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-gray-100 p-8 sm:p-12 text-center">
                     <AiOutlineTeam size={40} className="sm:w-12 sm:h-12 mx-auto text-gray-300 mb-3 sm:mb-4" />
-                    <p className="font-black text-gray-400 uppercase text-xs sm:text-sm">No members found</p>
+                    <p className="font-black text-gray-400 uppercase text-xs sm:text-sm">Aucun membre trouvé</p>
                     <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
-                        Try adjusting your search or filters
+                        Essayez d'ajuster votre recherche ou vos filtres
                     </p>
                     {hasActiveFilters && (
                         <button
                             onClick={clearAllFilters}
                             className="mt-3 sm:mt-4 text-[11px] sm:text-xs font-black text-brand-primary hover:underline"
                         >
-                            Clear all filters
+                            Effacer tous les filtres
                         </button>
                     )}
                 </div>
@@ -374,9 +373,9 @@ const AdminMembers: React.FC = () => {
             {/* Delete Confirmation Alert */}
             <Alert
                 isOpen={!!deleteId}
-                title="Delete Member"
-                message="This action is irreversible. All data related to this member will be permanently removed."
-                confirmText="YES, DELETE"
+                title="Supprimer le membre"
+                message="Cette action est irréversible. Toutes les données liées à ce membre seront définitivement supprimées."
+                confirmText="OUI, SUPPRIMER"
                 onClose={() => setDeleteId(null)}
                 onConfirm={async () => {
                     if (deleteId) {
