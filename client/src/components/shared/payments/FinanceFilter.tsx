@@ -17,16 +17,16 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
     setTypeFilter
 }) => {
     const statusOptions = [
-        { value: 'all', label: 'All account states' },
-        { value: 'UNPAID', label: 'Unpaid' },
-        { value: 'PARTIAL', label: 'Partial payments' },
-        { value: 'PAID', label: 'Fully settled' },
+        { value: 'all', label: 'Tous les états' },
+        { value: 'UNPAID', label: 'Impayés' },
+        { value: 'PARTIAL', label: 'Paiements partiels' },
+        { value: 'PAID', label: 'Entièrement réglés' },
     ];
 
     const typeOptions = [
-        { value: 'all', label: 'All members' },
-        { value: 'WORKER', label: 'Workers' },
-        { value: 'STUDENT', label: 'Students' },
+        { value: 'all', label: 'Tous les membres' },
+        { value: 'WORKER', label: 'Travailleurs' },
+        { value: 'STUDENT', label: 'Étudiants' },
     ];
 
     const handleReset = () => {
@@ -34,17 +34,16 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
         setTypeFilter('all');
     };
 
-    // Fonction utilitaire pour extraire la valeur du select
     const getValue = (val: string | React.ChangeEvent<HTMLSelectElement>): string => {
         if (typeof val === 'string') return val;
         return val.target?.value || '';
     };
 
     return (
-        <div className="bg-white border-4 border-black rounded-4xl p-4 mb-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-wrap gap-4 items-end">
-            <div className="flex-1 min-w-50">
-                <label className="text-[10px] font-black uppercase mb-1 block ml-2 text-gray-400">
-                    Account Status
+        <div className="bg-white border-4 border-black rounded-2xl sm:rounded-4xl p-3 sm:p-4 mb-4 sm:mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-end">
+            <div className="flex-1 min-w-0 sm:min-w-37.5">
+                <label className="text-[8px] sm:text-[10px] font-black uppercase mb-1 block ml-2 text-gray-400">
+                    État du compte
                 </label>
                 <Select
                     name="status"
@@ -55,9 +54,9 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
                 />
             </div>
 
-            <div className="flex-1 min-w-50">
-                <label className="text-[10px] font-black uppercase mb-1 block ml-2 text-gray-400">
-                    Category
+            <div className="flex-1 min-w-0 sm:min-w-37.5">
+                <label className="text-[8px] sm:text-[10px] font-black uppercase mb-1 block ml-2 text-gray-400">
+                    Catégorie
                 </label>
                 <Select
                     name="type"
@@ -68,12 +67,12 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
                 />
             </div>
 
-            <Button 
+            <Button
                 variant="secondary"
                 onClick={handleReset}
-                className="px-6 py-3 text-xs"
+                className="px-4 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs w-full sm:w-auto mt-1 sm:mt-0"
             >
-                Reset
+                Réinitialiser
             </Button>
         </div>
     );

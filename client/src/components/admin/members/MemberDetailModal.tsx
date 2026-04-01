@@ -93,13 +93,13 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     const getStatusBadge = () => {
         if (member.status === MemberStatus.WORKER) {
             return {
-                label: 'Worker',
+                label: 'Travailleur',
                 bg: 'bg-purple-100 text-purple-700',
                 icon: <AiOutlineCrown size={12} />
             };
         }
         return {
-            label: 'Student',
+            label: 'Étudiant',
             bg: 'bg-amber-100 text-amber-700',
             icon: <AiOutlineStar size={12} />
         };
@@ -108,13 +108,13 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     const getMembershipBadge = () => {
         if (member.isActiveMember) {
             return {
-                label: 'Active',
+                label: 'Actif',
                 bg: 'bg-green-100 text-green-700',
                 icon: <AiOutlineCheckCircle size={12} />
             };
         }
         return {
-            label: 'Inactive',
+            label: 'Inactif',
             bg: 'bg-gray-100 text-gray-600',
             icon: <AiOutlineCloseCircle size={12} />
         };
@@ -141,9 +141,9 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
 
     const getContributionStatusLabel = (status: string) => {
         switch (status) {
-            case 'PAID': return 'Paid';
-            case 'PARTIAL': return 'Partial';
-            case 'PENDING': return 'Pending';
+            case 'PAID': return 'Payé';
+            case 'PARTIAL': return 'Partiel';
+            case 'PENDING': return 'En attente';
             default: return status;
         }
     };
@@ -158,7 +158,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         if (member.createdAt) {
             return formatDate(member.createdAt);
         }
-        return 'Recently';
+        return 'Récemment';
     };
 
     // Fonction pour formater l'ID avec préfixe MBR
@@ -250,7 +250,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 <span className="text-[9px] text-gray-400">•</span>
                                 <span className="text-[9px] text-gray-500 flex items-center gap-1">
                                     <AiOutlineClockCircle size={10} />
-                                    Since {getMemberSinceDate()}
+                                    Depuis {getMemberSinceDate()}
                                 </span>
                             </div>
                         </div>
@@ -264,7 +264,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                             ? 'bg-brand-primary text-white' 
                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
-                                    title="Payment History"
+                                    title="Historique des paiements"
                                 >
                                     <AiOutlineHistory size={16} />
                                 </button>
@@ -273,7 +273,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 <button
                                     onClick={onAddChild}
                                     className="p-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-xl transition-all"
-                                    title="Add Child"
+                                    title="Ajouter un enfant"
                                 >
                                     <AiOutlineUserAdd size={16} />
                                 </button>
@@ -282,7 +282,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 <button
                                     onClick={onEdit}
                                     className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all"
-                                    title="Edit"
+                                    title="Modifier"
                                 >
                                     <AiOutlineEdit size={16} />
                                 </button>
@@ -291,7 +291,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 <button
                                     onClick={onDelete}
                                     className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all"
-                                    title="Delete"
+                                    title="Supprimer"
                                 >
                                     <AiOutlineDelete size={16} />
                                 </button>
@@ -303,18 +303,18 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                         <InfoRow
                             icon={<AiOutlineIdcard size={14} />}
-                            label="Member ID"
+                            label="ID Membre"
                             value={formatMemberId(member.id)}
                         />
                         <InfoRow
                             icon={<AiOutlineCalendar size={14} />}
-                            label="Age"
-                            value={`${age} years (${formatDate(member.birthDate)})`}
+                            label="Âge"
+                            value={`${age} ans (${formatDate(member.birthDate)})`}
                         />
                         <InfoRow
                             icon={<AiOutlinePhone size={14} />}
-                            label="Phone"
-                            value={member.phoneNumber || 'Not provided'}
+                            label="Téléphone"
+                            value={member.phoneNumber || 'Non fourni'}
                         />
                         <InfoRow
                             icon={<AiOutlineGlobal size={14} />}
@@ -323,13 +323,13 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         />
                         <InfoRow
                             icon={<AiOutlineFlag size={14} />}
-                            label="Tribute"
+                            label="Tribu"
                             value={member.tributeName}
                         />
                         <InfoRow
                             icon={<AiOutlineTeam size={14} />}
-                            label="Status"
-                            value={member.status === MemberStatus.WORKER ? 'Worker' : 'Student'}
+                            label="Statut"
+                            value={member.status === MemberStatus.WORKER ? 'Travailleur' : 'Étudiant'}
                         />
                     </div>
 
@@ -345,12 +345,12 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                         <AiOutlineUser size={14} className="text-indigo-600" />
                                     </div>
                                     <h3 className="text-[10px] font-black uppercase tracking-wider text-indigo-700">
-                                        Parent Information
+                                        Information Parent
                                     </h3>
                                 </div>
                                 {onViewParent && (
                                     <div className="flex items-center gap-1 text-indigo-500 text-[9px] font-black opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span>View profile</span>
+                                        <span>Voir le profil</span>
                                         <AiOutlineArrowRight size={10} />
                                     </div>
                                 )}
@@ -400,11 +400,11 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                     ? 'bg-purple-100 text-purple-600' 
                                                     : 'bg-amber-100 text-amber-600'
                                             }`}>
-                                                {parentMember?.status === MemberStatus.WORKER ? 'Worker' : 'Student'}
+                                                {parentMember?.status === MemberStatus.WORKER ? 'Travailleur' : 'Étudiant'}
                                             </span>
                                             {parentMember?.isActiveMember && (
                                                 <span className="text-[8px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
-                                                    Active
+                                                    Actif
                                                 </span>
                                             )}
                                         </div>
@@ -412,8 +412,8 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 </div>
                                 
                                 <div className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border border-indigo-100">
-                                    <p className="text-[7px] text-gray-400 uppercase tracking-wider text-center">Relationship</p>
-                                    <p className="font-black text-xs text-indigo-600 text-center">Child</p>
+                                    <p className="text-[7px] text-gray-400 uppercase tracking-wider text-center">Relation</p>
+                                    <p className="font-black text-xs text-indigo-600 text-center">Enfant</p>
                                 </div>
                             </div>
                             
@@ -426,7 +426,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                     <span>•</span>
                                     <span className="flex items-center gap-1">
                                         <AiOutlinePhone size={10} />
-                                        {parentMember.phoneNumber || 'No phone'}
+                                        {parentMember.phoneNumber || 'Pas de téléphone'}
                                     </span>
                                 </div>
                             )}
@@ -444,7 +444,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                             <div className="flex items-center gap-2 mb-4">
                                 <AiOutlineHistory size={18} className="text-brand-primary" />
                                 <h3 className="text-sm font-black uppercase tracking-wider">
-                                    Payment History
+                                    Historique des paiements
                                 </h3>
                                 <span className="text-[9px] text-gray-400 ml-auto">
                                     {memberContributions.length} contribution(s)
@@ -454,8 +454,8 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                             {memberContributions.length === 0 ? (
                                 <div className="bg-gray-50 rounded-xl p-6 text-center border border-gray-200">
                                     <AiOutlineDollar size={24} className="mx-auto text-gray-300 mb-2" />
-                                    <p className="text-xs font-bold text-gray-400 uppercase">No payment history</p>
-                                    <p className="text-[9px] text-gray-400 mt-1">No contributions recorded yet</p>
+                                    <p className="text-xs font-bold text-gray-400 uppercase">Aucun historique</p>
+                                    <p className="text-[9px] text-gray-400 mt-1">Aucune contribution enregistrée</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3 max-h-100 overflow-y-auto pr-1">
@@ -464,7 +464,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                             <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
                                                 <div className="flex items-center gap-2">
                                                     <AiOutlineCalendar size={14} className="text-gray-500" />
-                                                    <span className="font-black text-sm">Year {contribution.year}</span>
+                                                    <span className="font-black text-sm">Année {contribution.year}</span>
                                                 </div>
                                                 <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${getContributionStatusColor(contribution.status)}`}>
                                                     {getContributionStatusLabel(contribution.status)}
@@ -473,17 +473,17 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                             
                                             <div className="p-3 bg-white">
                                                 <div className="flex justify-between items-center mb-2">
-                                                    <span className="text-[9px] font-black text-gray-500 uppercase">Total Amount</span>
+                                                    <span className="text-[9px] font-black text-gray-500 uppercase">Montant total</span>
                                                     <span className="font-black text-sm">{formatCurrency(contribution.amount)}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-[9px] font-black text-gray-500 uppercase">Total Paid</span>
+                                                    <span className="text-[9px] font-black text-gray-500 uppercase">Total payé</span>
                                                     <span className="font-black text-sm text-green-600">{formatCurrency(contribution.totalPaid)}</span>
                                                 </div>
                                                 
                                                 {contribution.payments && contribution.payments.length > 0 ? (
                                                     <div className="mt-3 pt-3 border-t border-gray-100">
-                                                        <p className="text-[8px] font-black text-gray-400 uppercase mb-2">Payments</p>
+                                                        <p className="text-[8px] font-black text-gray-400 uppercase mb-2">Paiements</p>
                                                         <div className="space-y-2">
                                                             {contribution.payments.map((payment) => (
                                                                 <div key={payment.id} className="flex justify-between items-center py-1">
@@ -502,7 +502,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                     </div>
                                                 ) : (
                                                     <div className="mt-3 pt-3 border-t border-gray-100 text-center">
-                                                        <p className="text-[8px] text-gray-400 uppercase">No payments recorded</p>
+                                                        <p className="text-[8px] text-gray-400 uppercase">Aucun paiement enregistré</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -519,7 +519,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                             <div className="flex items-center gap-2">
                                 <AiOutlineTeam size={16} className="text-brand-primary" />
                                 <h3 className="text-xs font-black uppercase tracking-wider">
-                                    Children ({member.childrenCount || 0})
+                                    Enfants ({member.childrenCount || 0})
                                 </h3>
                             </div>
                             {onAddChild && (
@@ -527,7 +527,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                     onClick={onAddChild}
                                     className="text-[9px] font-black text-brand-primary hover:underline uppercase"
                                 >
-                                    + Add
+                                    + Ajouter
                                 </button>
                             )}
                         </div>
@@ -535,13 +535,13 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         {!hasChildren ? (
                             <div className="bg-gray-50 rounded-xl p-6 text-center border-2 border-dashed border-gray-200">
                                 <AiOutlineUserAdd size={24} className="mx-auto text-gray-300 mb-2" />
-                                <p className="text-[10px] font-bold text-gray-400 uppercase">No children</p>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase">Aucun enfant</p>
                                 {onAddChild && (
                                     <button
                                         onClick={onAddChild}
                                         className="mt-2 text-[9px] font-black text-brand-primary hover:underline"
                                     >
-                                        + Add a child
+                                        + Ajouter un enfant
                                     </button>
                                 )}
                             </div>
@@ -610,7 +610,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                             onClick={onClose}
                             className="flex-1 py-2.5 text-xs"
                         >
-                            Close
+                            Fermer
                         </Button>
                         {onEdit && (
                             <Button
@@ -618,7 +618,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 onClick={onEdit}
                                 className="flex-1 py-2.5 text-xs"
                             >
-                                Edit Member
+                                Modifier le membre
                             </Button>
                         )}
                     </div>

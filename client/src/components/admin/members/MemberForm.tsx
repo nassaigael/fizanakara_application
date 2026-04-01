@@ -4,7 +4,6 @@ import {
   AiOutlineClose,
   AiOutlineGlobal,
   AiOutlineTeam,
-  AiOutlineInfoCircle,
   AiOutlineCamera,
   AiOutlineCalendar,
   AiOutlineUserAdd,
@@ -202,7 +201,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
   const validateChild = (): boolean => {
     try {
       if (!selectedParentId) {
-        setErrors(prev => ({ ...prev, parentId: 'Please select a parent' }));
+        setErrors(prev => ({ ...prev, parentId: 'Veuillez sélectionner un parent' }));
         return false;
       }
       personSchema.parse(childData);
@@ -236,14 +235,14 @@ export const MemberForm: React.FC<MemberFormProps> = ({
       if (memberToEdit) {
         const dataToUpdate = formType === 'independent' ? independentData : childData;
         await updateMember.mutateAsync({ id: memberToEdit.id, data: dataToUpdate as PersonDto });
-        toast.success('Member updated');
+        toast.success('Membre modifié');
       } else {
         if (formType === 'child') {
           await addChild.mutateAsync({ parentId: selectedParentId, childData: childData as PersonDto });
-          toast.success('Child added successfully');
+          toast.success('Enfant ajouté avec succès');
         } else {
           await createMember.mutateAsync(independentData as PersonDto);
-          toast.success('Member created successfully');
+          toast.success('Membre créé avec succès');
         }
       }
       onSuccess?.();
@@ -304,10 +303,10 @@ export const MemberForm: React.FC<MemberFormProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-black uppercase">
-                {memberToEdit ? 'Edit Member' : formType === 'independent' ? 'Add Independent Member' : 'Add Child Member'}
+                {memberToEdit ? 'Modifier le membre' : formType === 'independent' ? 'Ajouter un membre indépendant' : 'Ajouter un enfant'}
               </h2>
               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                {formType === 'independent' ? 'Parent / Independent Member' : 'Dependent Child Member'}
+                {formType === 'independent' ? 'Parent / Membre indépendant' : 'Enfant à charge'}
               </p>
             </div>
           </div>
@@ -338,7 +337,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                 disabled={loading}
               >
                 <AiOutlineUserAdd size={14} />
-                Independent (Parent)
+                Indépendant (Parent)
               </button>
               <button
                 type="button"
@@ -354,7 +353,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                 disabled={loading}
               >
                 <AiOutlineLink size={14} />
-                Child (Dependent)
+                Enfant (À charge)
               </button>
             </div>
           </div>
@@ -380,7 +379,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                   )}
                 </div>
                 <Input
-                  label="Image URL"
+                  label="URL de l'image"
                   name="imageUrl"
                   value={currentData.imageUrl || ''}
                   onChange={handleChange}
@@ -390,7 +389,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                   error={errors.imageUrl}
                 />
                 <label className="mt-2 text-[8px] text-gray-400 font-bold cursor-pointer hover:text-brand-primary uppercase">
-                  or upload an image
+                  ou télécharger une image
                   <input
                     type="file"
                     accept="image/*"
@@ -421,12 +420,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                     disabled={loading}
                     required
                   />
-                  <div className="flex items-start gap-2 mt-4 text-orange-700">
-                    <AiOutlineInfoCircle size={16} className="shrink-0 mt-0.5" />
-                    <p className="text-[9px] font-bold uppercase leading-tight">
-                      The child will be linked to the parent's contributions and family tree.
-                    </p>
-                  </div>
                 </div>
               )}
             </div>
@@ -435,17 +428,17 @@ export const MemberForm: React.FC<MemberFormProps> = ({
             <div className="lg:col-span-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
-                  label="First Name"
+                  label="Prénom"
                   name="firstName"
                   value={currentData.firstName || ''}
                   onChange={handleChange}
                   error={errors.firstName}
-                  placeholder="John"
+                  placeholder="Jean"
                   disabled={loading}
                   required
                 />
                 <Input
-                  label="Last Name"
+                  label="Nom"
                   name="lastName"
                   value={currentData.lastName || ''}
                   onChange={handleChange}
@@ -458,7 +451,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
-                  label="Birth Date"
+                  label="Date de naissance"
                   type="date"
                   name="birthDate"
                   value={currentData.birthDate || ''}
@@ -469,13 +462,13 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                   required
                 />
                 <Select
-                  label="Gender"
+                  label="Genre"
                   name="gender"
                   value={currentData.gender || Gender.MALE}
                   onChange={handleChange}
                   options={[
-                    { value: Gender.MALE, label: 'Male' },
-                    { value: Gender.FEMALE, label: 'Female' }
+                    { value: Gender.MALE, label: 'Homme' },
+                    { value: Gender.FEMALE, label: 'Femme' }
                   ]}
                   disabled={loading}
                   required
@@ -495,7 +488,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                   required
                 />
                 <Select
-                  label="Tribute"
+                  label="Tribu"
                   name="tributeId"
                   value={currentData.tributeId?.toString() || ''}
                   onChange={handleChange}
@@ -506,20 +499,20 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                   required
                 />
                 <Select
-                  label="Status"
+                  label="Statut"
                   name="status"
                   value={currentData.status || MemberStatus.STUDENT}
                   onChange={handleChange}
                   options={[
-                    { value: MemberStatus.WORKER, label: 'Worker' },
-                    { value: MemberStatus.STUDENT, label: 'Student' }
+                    { value: MemberStatus.WORKER, label: 'Travailleur' },
+                    { value: MemberStatus.STUDENT, label: 'Étudiant' }
                   ]}
                   disabled={loading}
                 />
               </div>
 
               <Input
-                label="Phone Number"
+                label="Numéro de téléphone"
                 name="phoneNumber"
                 value={currentData.phoneNumber || ''}
                 onChange={handleChange}
@@ -541,7 +534,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
             className="w-full md:w-auto px-10"
             disabled={loading}
           >
-            CANCEL
+            ANNULER
           </Button>
           <Button
             type="submit"
@@ -550,7 +543,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
             className="w-full md:flex-1"
             isLoading={loading}
           >
-            {memberToEdit ? 'SAVE CHANGES' : formType === 'child' ? 'ADD CHILD' : 'CREATE MEMBER'}
+            {memberToEdit ? 'ENREGISTRER LES MODIFICATIONS' : formType === 'child' ? 'AJOUTER L\'ENFANT' : 'CRÉER LE MEMBRE'}
           </Button>
         </div>
       </div>

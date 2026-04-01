@@ -12,10 +12,10 @@ interface PasswordModalProps {
 }
 
 const passwordSchema = z.object({
-    password: z.string().min(6, 'Minimum 6 characters'),
+    password: z.string().min(6, 'Minimum 6 caractères'),
     confirmPassword: z.string()
 }).refine(data => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
+    message: 'Les mots de passe ne correspondent pas',
     path: ['confirmPassword']
 });
 
@@ -58,7 +58,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSave }
         setIsLoading(true);
         try {
             await onSave(password);
-            toast.success('Password changed successfully');
+            toast.success('Mot de passe modifié avec succès');
             resetForm();
             setShowConfirmModal(false);
             onClose();
@@ -80,21 +80,21 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSave }
     };
 
     if (!isOpen) return null;
-    
+
     return (
         <>
-            {/* Main Modal */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                <div className="bg-white rounded-3xl w-full max-w-md border-2 border-black shadow-lg overflow-hidden">
-                    <div className="bg-linear-to-r from-brand-primary to-orange-500 p-6 text-white">
-                        <h2 className="text-xl font-black uppercase">Change Password</h2>
-                        <p className="text-white/80 text-sm mt-1">Enter your new password</p>
+            {/* Main Modal - Responsive */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+                <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-[90%] sm:max-w-md border-2 border-black shadow-lg overflow-hidden animate-in zoom-in duration-200">
+                    <div className="bg-linear-to-r from-brand-primary to-orange-500 p-4 sm:p-6 text-white">
+                        <h2 className="text-lg sm:text-xl font-black uppercase">Changer le mot de passe</h2>
+                        <p className="text-white/80 text-xs sm:text-sm mt-1">Entrez votre nouveau mot de passe</p>
                     </div>
-                    
-                    <form onSubmit={handleNext} className="p-6 space-y-5">
+
+                    <form onSubmit={handleNext} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                         <Input
                             name="password"
-                            label="New password"
+                            label="Nouveau mot de passe"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -104,7 +104,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSave }
                         />
                         <Input
                             name="confirmPassword"
-                            label="Confirm password"
+                            label="Confirmer le mot de passe"
                             type="password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -112,68 +112,68 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSave }
                             placeholder="••••••••"
                             required
                         />
-                        
-                        <div className="flex gap-3 pt-4">
-                            <Button 
-                                type="button" 
-                                variant="secondary" 
-                                onClick={handleClose} 
-                                className="flex-1"
+
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={handleClose}
+                                className="flex-1 w-full sm:w-auto order-2 sm:order-1"
                             >
-                                Cancel
+                                Annuler
                             </Button>
-                            <Button 
-                                type="submit" 
-                                variant="primary" 
-                                className="flex-1"
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                className="flex-1 w-full sm:w-auto order-1 sm:order-2"
                             >
-                                Next
+                                Suivant
                             </Button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            {/* Confirmation Modal */}
+            {/* Confirmation Modal - Responsive */}
             {showConfirmModal && (
-                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-md border-2 border-black shadow-lg overflow-hidden animate-in zoom-in duration-200">
-                        <div className="bg-linear-to-r from-orange-500 to-red-500 p-6 text-white text-center">
-                            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4">
+                    <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-[90%] sm:max-w-md border-2 border-black shadow-lg overflow-hidden animate-in zoom-in duration-200">
+                        <div className="bg-linear-to-r from-orange-500 to-red-500 p-5 sm:p-6 text-white text-center">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                             </div>
-                            <h2 className="text-xl font-black uppercase">Confirm Password Change</h2>
-                            <p className="text-white/80 text-sm mt-2">
-                                Are you sure you want to change your password?
+                            <h2 className="text-lg sm:text-xl font-black uppercase">Confirmer le changement</h2>
+                            <p className="text-white/80 text-xs sm:text-sm mt-2">
+                                Êtes-vous sûr de vouloir changer votre mot de passe ?
                             </p>
                         </div>
-                        
-                        <div className="p-6 space-y-4">
-                            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
-                                <p className="text-xs font-bold text-yellow-800 uppercase text-center">
-                                    ⚠️ You will need to log in again with your new password
+
+                        <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+                            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-3 sm:p-4">
+                                <p className="text-[10px] sm:text-xs font-bold text-yellow-800 uppercase text-center leading-tight">
+                                    ⚠️ Vous devrez vous reconnecter avec votre nouveau mot de passe
                                 </p>
                             </div>
-                            
-                            <div className="flex gap-3 pt-4">
-                                <Button 
-                                    type="button" 
-                                    variant="secondary" 
-                                    onClick={handleCancel} 
-                                    className="flex-1"
+
+                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={handleCancel}
+                                    className="flex-1 w-full sm:w-auto order-2 sm:order-1"
                                 >
-                                    Cancel
+                                    Annuler
                                 </Button>
-                                <Button 
-                                    type="button" 
-                                    variant="primary" 
+                                <Button
+                                    type="button"
+                                    variant="primary"
                                     onClick={handleConfirm}
                                     isLoading={isLoading}
-                                    className="flex-1"
+                                    className="flex-1 w-full sm:w-auto order-1 sm:order-2"
                                 >
-                                    Confirm
+                                    Confirmer
                                 </Button>
                             </div>
                         </div>
