@@ -114,19 +114,25 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     contributionId: formData.contributionId
                 });
 
+                // Générer le numéro de reçu: COT2028-001 + date + heure
+                const receiptNumber = `${contributionId}_${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}`;
+                
                 const receipt = {
                     memberName: memberName || 'Membre',
                     memberId: memberId || 'MBR00000000',
                     memberPhone: memberPhone,
                     memberEmail: memberEmail,
+                    memberImageUrl: memberImageUrl,
                     year: year || new Date().getFullYear(),
                     amount: contributionAmount || 0,
                     paidAmount: formData.amountPaid,
                     remaining: (remainingAmount || 0) - formData.amountPaid,
                     paymentDate: paymentDate,
+                    paymentTime: new Date(paymentDate).toLocaleTimeString('fr-FR'),
                     contributionId: contributionId,
-                    invoiceNumber: `RCP-${Date.now()}`,
-                    generatedBy: `${user?.firstName} ${user?.lastName}` || 'Administrateur'
+                    receiptNumber: receiptNumber,
+                    generatedBy: `${user?.firstName} ${user?.lastName}` || 'Administrateur',
+                    generatedByEmail: user?.email || ''
                 };
                 
                 setReceiptData(receipt);
@@ -138,7 +144,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     setShowSuccess(false);
                 }, 2000);
             } catch (error) {
-                console.error('Erreur paiement:', error);
                 toast.error('Erreur lors du paiement');
             }
         }
@@ -200,18 +205,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
     const hasMemberImage = memberImageUrl && memberImageUrl.trim() !== '';
 
-    // Fonction pour capturer et télécharger le reçu en PDF avec dom-to-image
+    // Fonction pour capturer et télécharger le reçu en PDF
     const downloadReceiptAsPDF = async () => {
-        console.log('📸 Capture du reçu avec dom-to-image...');
-        
-        if (!receiptRef.current) {
-            console.error('❌ receiptRef est null');
-            toast.error('Erreur: impossible de générer le reçu');
-            return;
-        }
+        if (!receiptRef.current) return;
         
         try {
-            // Capturer l'élément en image PNG
             const dataUrl = await domtoimage.toPng(receiptRef.current, {
                 quality: 0.95,
                 bgcolor: '#ffffff',
@@ -221,9 +219,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 }
             });
             
-            console.log('✅ Image capturée avec succès');
-            
-            // Créer le PDF
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
@@ -235,20 +230,20 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             
             pdf.addImage(dataUrl, 'PNG', 10, 10, imgWidth, imgHeight);
             
-            const fileName = `recu_${receiptData?.memberId || 'membre'}_${receiptData?.year || 'annee'}.pdf`;
+            const fileName = `recu_${receiptData?.memberId}_${receiptData?.year}.pdf`;
             pdf.save(fileName);
             
-            console.log('✅ PDF sauvegardé avec succès!');
             toast.success('Reçu téléchargé avec succès');
-            
         } catch (error) {
-            console.error('❌ Erreur lors de la génération du PDF:', error);
             toast.error('Erreur lors de la génération du reçu');
         }
     };
 
     // Si le paiement est complété, afficher le reçu
     if (paymentCompleted && receiptData) {
+        const memberImageFullUrl = receiptData.memberImageUrl ? getImageUrl(receiptData.memberImageUrl, 'member') : null;
+        const hasImage = !!memberImageFullUrl;
+        
         return createPortal(
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                 <div className="relative w-full max-w-md">
@@ -262,47 +257,94 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
                         {/* Détails du reçu */}
                         <div className="p-6 space-y-4">
-                            <div className="text-center border-b border-gray-100 pb-3">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Reçu N°</p>
-                                <p className="font-mono text-sm font-bold">{receiptData.invoiceNumber}</p>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-[9px] font-black text-gray-400 uppercase">Membre</p>
+                            {/* Photo du membre et infos */}
+                            <div className="flex items-center gap-4 pb-3 border-b border-gray-100">
+                                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-brand-primary flex items-center justify-center shadow-md shrink-0">
+                                    {hasImage ? (
+                                        <img
+                                            src={memberImageFullUrl!}
+                                            alt={receiptData.memberName}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                                if (target.parentElement) {
+                                                    target.parentElement.innerHTML = getMemberInitials();
+                                                    target.parentElement.classList.add('text-2xl', 'font-black', 'text-white', 'bg-brand-primary', 'flex', 'items-center', 'justify-center');
+                                                }
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-brand-primary flex items-center justify-center">
+                                            <span className="text-2xl font-black text-white">{getMemberInitials()}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex-1">
                                     <p className="font-bold text-sm">{receiptData.memberName}</p>
                                     <p className="text-[10px] text-gray-500">{receiptData.memberId}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[9px] font-black text-gray-400 uppercase">Date</p>
-                                    <p className="font-bold text-sm">{formatDate(receiptData.paymentDate, 'short')}</p>
+                                    {receiptData.memberPhone && (
+                                        <p className="text-[9px] text-gray-400 mt-0.5">{receiptData.memberPhone}</p>
+                                    )}
                                 </div>
                             </div>
 
+                            {/* Numéro de reçu */}
+                            <div className="text-center border-b border-gray-100 pb-3">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Reçu N°</p>
+                                <p className="font-mono text-xs font-bold break-all">{receiptData.receiptNumber}</p>
+                            </div>
+
+                            {/* Détails du paiement */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <p className="text-[8px] font-black text-gray-400 uppercase">Année</p>
+                                    <p className="font-bold text-sm">{receiptData.year}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[8px] font-black text-gray-400 uppercase">Date</p>
+                                    <p className="font-bold text-sm">{formatDate(receiptData.paymentDate, 'short')}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[8px] font-black text-gray-400 uppercase">Heure</p>
+                                    <p className="font-bold text-sm">{receiptData.paymentTime}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[8px] font-black text-gray-400 uppercase">Réf. cotisation</p>
+                                    <p className="font-mono text-[10px] font-bold">{receiptData.contributionId}</p>
+                                </div>
+                            </div>
+
+                            {/* Montants */}
                             <div className="bg-gray-50 rounded-xl p-3 space-y-2">
                                 <div className="flex justify-between">
-                                    <span className="text-[10px] font-black text-gray-500">Année</span>
-                                    <span className="font-bold">{receiptData.year}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-[10px] font-black text-gray-500">Montant total</span>
+                                    <span className="text-[9px] font-black text-gray-500">Montant total</span>
                                     <span className="font-bold">{formatCurrency(receiptData.amount)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-[10px] font-black text-gray-500">Montant payé</span>
+                                    <span className="text-[9px] font-black text-gray-500">Montant payé</span>
                                     <span className="font-bold text-green-600">{formatCurrency(receiptData.paidAmount)}</span>
                                 </div>
                                 <div className="flex justify-between pt-1 border-t border-gray-200">
-                                    <span className="text-[10px] font-black text-gray-500">Reste à payer</span>
+                                    <span className="text-[9px] font-black text-gray-500">Reste à payer</span>
                                     <span className={`font-bold ${receiptData.remaining > 0 ? 'text-orange-600' : 'text-green-600'}`}>
                                         {formatCurrency(receiptData.remaining)}
                                     </span>
                                 </div>
                             </div>
 
+                            {/* Information administrateur */}
+                            <div className="bg-blue-50 rounded-xl p-3 text-center">
+                                <p className="text-[8px] font-black text-blue-600 uppercase">Reçu par</p>
+                                <p className="font-bold text-sm">{receiptData.generatedBy}</p>
+                                {receiptData.generatedByEmail && (
+                                    <p className="text-[8px] text-blue-500 mt-0.5">{receiptData.generatedByEmail}</p>
+                                )}
+                            </div>
+
                             <div className="bg-green-50 rounded-xl p-3 text-center">
-                                <p className="text-[10px] font-black text-green-700">✓ Paiement enregistré</p>
-                                <p className="text-[8px] text-gray-500 mt-1">
+                                <p className="text-[9px] font-black text-green-700">✓ Paiement enregistré</p>
+                                <p className="text-[7px] text-gray-500 mt-1">
                                     {autoDownloadDone ? 'Reçu téléchargé' : 'Téléchargement en cours...'}
                                 </p>
                             </div>
