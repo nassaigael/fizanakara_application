@@ -67,7 +67,7 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
             <div className="bg-white rounded-2xl w-full max-w-md border-2 border-brand-border shadow-[0_8px_0_0_#E5E5E5] overflow-hidden">
-                <div className="bg-gradient-to-r from-brand-primary to-brand-primary-dark p-6 text-white">
+                <div className="bg-linear-to-r from-brand-primary to-brand-primary-dark p-6 text-white">
                     <h2 className="text-2xl font-black uppercase tracking-tight">Modifier {title}</h2>
                     <p className="text-white/80 text-sm mt-1">Mettez à jour le nom du {title.toLowerCase()}</p>
                 </div>
@@ -234,15 +234,15 @@ const SuperAdminManagement: React.FC = () => {
     return (
         <div className={THEME.section}>
             {/* Header Style Duolingo */}
-            <div className="relative overflow-hidden bg-white border-2 border-brand-border rounded-2xl shadow-[0_8px_0_0_#E5E5E5] hover:shadow-[0_12px_0_0_#E5E5E5] hover:translate-y-[-4px] transition-all duration-300 p-6 md:p-8">
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/5 via-transparent to-brand-primary/5" />
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-brand-primary/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="relative overflow-hidden bg-white border-2 border-brand-border rounded-2xl shadow-[0_8px_0_0_#E5E5E5] hover:shadow-[0_12px_0_0_#E5E5E5] hover:-translate-y-1 transition-all duration-300 p-6 md:p-8">
+                <div className="absolute inset-0 bg-linear-to-r from-brand-primary/5 via-transparent to-brand-primary/5" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-brand-primary/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
                 <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-r from-brand-primary to-brand-primary rounded-2xl blur-md opacity-50" />
-                            <div className="relative p-4 bg-gradient-to-br from-brand-primary to-brand-primary-dark text-white rounded-2xl shadow-lg transform hover:scale-105 transition-transform">
+                            <div className="absolute inset-0 bg-linear-to-r from-brand-primary to-brand-primary rounded-2xl blur-md opacity-50" />
+                            <div className="relative p-4 bg-linear-to-br from-brand-primary to-brand-primary-dark text-white rounded-2xl shadow-lg transform hover:scale-105 transition-transform">
                                 {activeTab === 'admins' && <AiOutlineUser size={32} />}
                                 {activeTab === 'districts' && <AiOutlineEnvironment size={32} />}
                                 {activeTab === 'tributes' && <AiOutlineFlag size={32} />}
@@ -283,7 +283,7 @@ const SuperAdminManagement: React.FC = () => {
                         className={`
                             flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all whitespace-nowrap
                             ${activeTab === tab.id
-                                ? 'bg-gradient-to-r from-brand-primary to-brand-primary-dark text-white shadow-md'
+                                ? 'bg-linear-to-r from-brand-primary to-brand-primary-dark text-white shadow-md'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }
                         `}

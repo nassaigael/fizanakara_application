@@ -192,9 +192,6 @@ const AdminProfile: React.FC = () => {
                                             placeholder="admin_username.jpg"
                                             containerClassName="w-full"
                                         />
-                                        <p className="text-[9px] sm:text-[10px] text-gray-400 mt-1 ml-2">
-                                            Nom de l'image sur GitHub (ex: admin_username.jpg)
-                                        </p>
                                     </div>
                                 </div>
                             ) : (
