@@ -19,34 +19,34 @@ interface SidebarProps {
 
 const Sidebar = ({ isOpen }: SidebarProps) => {
     const { logout, isSuperAdmin } = useAuth();
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
+    const [estMenuMobileOuvert, setEstMenuMobileOuvert] = useState(false);
+    const [aDefile, setADefile] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
-            setScrolled(window.scrollY > 10);
+            setADefile(window.scrollY > 10);
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const adminLinks = [
-        { path: '/admin/dashboard', label: 'Dashboard', icon: AiOutlineDashboard },
+    const liensAdmin = [
+        { path: '/admin/dashboard', label: 'Tableau de bord', icon: AiOutlineDashboard },
         { path: '/admin/members', label: 'Membres', icon: AiOutlineTeam },
-        { path: '/admin/finance', label: 'Finance', icon: AiOutlineWallet },
+        { path: '/admin/finance', label: 'Finances', icon: AiOutlineWallet },
         { path: '/admin/profile', label: 'Profil', icon: AiOutlineUser },
     ];
 
-    const superAdminLinks = [
-        { path: '/superadmin/dashboard', label: 'Dashboard', icon: AiOutlineDashboard },
+    const liensSuperAdmin = [
+        { path: '/superadmin/dashboard', label: 'Tableau de bord', icon: AiOutlineDashboard },
         { path: '/superadmin/management', label: 'Gestion', icon: AiOutlineSetting },
         { path: '/superadmin/profile', label: 'Profil', icon: AiOutlineUser },
     ];
 
-    const links = isSuperAdmin ? superAdminLinks : adminLinks;
+    const liens = isSuperAdmin ? liensSuperAdmin : liensAdmin;
 
-    // Style glassmorphism pour la sidebar desktop
-    const sidebarStyle = scrolled
+    // Style glassmorphism pour la barre latérale desktop
+    const styleBarreLaterale = aDefile
         ? 'bg-white/80 backdrop-blur-xl border-r border-white/30 shadow-lg'
         : 'bg-white/95 backdrop-blur-md border-r-2 border-brand-border';
 
@@ -54,26 +54,26 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         <>
             {/* Bouton menu mobile flottant - Glassmorphism */}
             <button
-                onClick={() => setIsMobileMenuOpen(true)}
+                onClick={() => setEstMenuMobileOuvert(true)}
                 className="md:hidden fixed bottom-20 right-4 z-50 p-3 rounded-full bg-white/80 backdrop-blur-xl border border-white/30 shadow-lg text-brand-primary transition-all duration-300 hover:scale-110"
             >
                 <AiOutlineMenu size={24} />
             </button>
 
-            {/* Sidebar Desktop - Glassmorphism */}
+            {/* Barre latérale Desktop - Glassmorphism */}
             <aside className={`
                 hidden md:flex flex-col fixed left-0 h-full transition-all duration-300 z-40
-                ${sidebarStyle}
+                ${styleBarreLaterale}
                 ${isOpen ? 'w-64' : 'w-20'}
             `}>
                 {/* Effet de brillance */}
                 <div className="absolute inset-0 bg-linear-to-b from-white/40 to-white/10 pointer-events-none" />
                 
                 <nav className="relative flex-1 mt-20 p-4 space-y-2 overflow-y-auto">
-                    {links.map((link) => (
+                    {liens.map((lien) => (
                         <NavLink
-                            key={link.path}
-                            to={link.path}
+                            key={lien.path}
+                            to={lien.path}
                             className={({ isActive }) => `
                                 flex items-center gap-4 p-3 rounded-xl transition-all duration-200 font-black text-xs uppercase tracking-wider
                                 ${isActive 
@@ -83,8 +83,8 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                                 ${isOpen ? 'justify-start' : 'justify-center'}
                             `}
                         >
-                            <link.icon size={22} />
-                            {isOpen && <span>{link.label}</span>}
+                            <lien.icon size={22} />
+                            {isOpen && <span>{lien.label}</span>}
                         </NavLink>
                     ))}
                 </nav>
@@ -107,13 +107,13 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                 <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-white/50 to-transparent" />
             </aside>
 
-            {/* Mobile Sidebar Menu - Glassmorphism */}
-            {isMobileMenuOpen && (
+            {/* Menu latéral Mobile - Glassmorphism */}
+            {estMenuMobileOuvert && (
                 <>
-                    {/* Overlay avec blur */}
+                    {/* Superposition avec flou */}
                     <div 
                         className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
+                        onClick={() => setEstMenuMobileOuvert(false)}
                     />
                     
                     {/* Menu latéral mobile */}
@@ -121,7 +121,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                         {/* Effet de brillance */}
                         <div className="absolute inset-0 bg-linear-to-b from-white/40 to-white/10 pointer-events-none" />
                         
-                        {/* Header avec logo */}
+                        {/* En-tête avec logo */}
                         <div className="relative p-6 border-b border-white/30 bg-linear-to-r from-brand-primary/10 to-orange-500/10">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -143,7 +143,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    onClick={() => setEstMenuMobileOuvert(false)}
                                     className="p-2 rounded-lg hover:bg-white/50 backdrop-blur-sm transition-colors"
                                 >
                                     <AiOutlineClose size={20} className="text-gray-500" />
@@ -151,12 +151,12 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                             </div>
                         </div>
 
-                        {/* Navigation items */}
+                        {/* Éléments de navigation */}
                         <nav className="relative p-4 space-y-2">
-                            {links.map((link) => (
+                            {liens.map((lien) => (
                                 <NavLink
-                                    key={link.path}
-                                    to={link.path}
+                                    key={lien.path}
+                                    to={lien.path}
                                     className={({ isActive }) => `
                                         flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                                         ${isActive 
@@ -164,17 +164,17 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                                             : 'text-gray-600 hover:bg-white/50 backdrop-blur-sm hover:text-brand-primary'
                                         }
                                     `}
-                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    onClick={() => setEstMenuMobileOuvert(false)}
                                 >
-                                    <link.icon size={20} />
-                                    <span className="font-medium text-sm">{link.label}</span>
+                                    <lien.icon size={20} />
+                                    <span className="font-medium text-sm">{lien.label}</span>
                                 </NavLink>
                             ))}
 
                             <div className="h-px bg-linear-to-r from-transparent via-gray-200 to-transparent my-3" />
 
                             <button
-                                onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                                onClick={() => { logout(); setEstMenuMobileOuvert(false); }}
                                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-red-500 hover:bg-red-50/80 backdrop-blur-sm"
                             >
                                 <AiOutlineLogout size={20} />
@@ -182,7 +182,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                             </button>
                         </nav>
 
-                        {/* Version et footer */}
+                        {/* Version et pied de page */}
                         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/30">
                             <p className="text-[8px] text-center text-gray-400">
                                 Version 1.0.0 • © 2024 Fizanakara
@@ -195,12 +195,12 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                 </>
             )}
 
-            {/* Bottom Navigation Mobile - Glassmorphism */}
+            {/* Navigation inférieure Mobile - Glassmorphism */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-white/30 px-2 py-2 z-50 flex items-center justify-around shadow-2xl">
-                {links.slice(0, 4).map((link) => (
+                {liens.slice(0, 4).map((lien) => (
                     <NavLink
-                        key={link.path}
-                        to={link.path}
+                        key={lien.path}
+                        to={lien.path}
                         className={({ isActive }) => `
                             flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200
                             ${isActive 
@@ -209,9 +209,9 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                             }
                         `}
                     >
-                        <link.icon size={20} />
+                        <lien.icon size={20} />
                         <span className="text-[8px] font-black uppercase tracking-tighter">
-                            {link.label}
+                            {lien.label}
                         </span>
                     </NavLink>
                 ))}
@@ -221,7 +221,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                     className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 text-brand-muted hover:text-red-500 hover:bg-red-50/50 backdrop-blur-sm"
                 >
                     <AiOutlineLogout size={20} />
-                    <span className="text-[8px] font-black uppercase">Exit</span>
+                    <span className="text-[8px] font-black uppercase">Sortie</span>
                 </button>
             </nav>
         </>
