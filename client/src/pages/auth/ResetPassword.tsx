@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     AiOutlineLock,
-    AiOutlineEye,
-    AiOutlineEyeInvisible,
     AiOutlineCheckCircle
 } from 'react-icons/ai';
 import { useAuth } from '../../context/AuthContext';
@@ -55,7 +53,7 @@ const ResetPassword: React.FC = () => {
     if (isSubmitted) {
         return (
             <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-red-800 via-red-600 to-red-900">
+                <div className="absolute inset-0 bg-linear-to-br from-red-800 via-red-600 to-red-900">
                     <div
                         className="absolute inset-0 opacity-30"
                         style={{
@@ -91,7 +89,7 @@ const ResetPassword: React.FC = () => {
 
     return (
         <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-800 via-red-600 to-red-900">
+            <div className="absolute inset-0 bg-linear-to-br from-red-800 via-red-600 to-red-900">
                 <div
                     className="absolute inset-0 opacity-30"
                     style={{
@@ -161,7 +159,7 @@ const ResetPassword: React.FC = () => {
                                 type="submit"
                                 variant="primary"
                                 isLoading={form.isSubmitting}
-                                className="w-full py-4 text-sm font-bold bg-gradient-to-r from-white/30 to-white/20 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                                className="w-full py-4 text-sm font-bold bg-linear-to-r from-white/30 to-white/20 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
                             >
                                 RÉINITIALISER
                             </Button>
