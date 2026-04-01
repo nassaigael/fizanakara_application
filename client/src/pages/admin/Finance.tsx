@@ -132,6 +132,27 @@ const AdminFinance: React.FC = () => {
         };
     }, [filteredContributions]);
 
+    const handleGenerateAnnual = async () => {
+        if (!selectedYear) {
+            toast.error('Please select a year first');
+            return;
+        }
+        try {
+            const result = await generateAnnualContributions.mutateAsync({ year: selectedYear });
+            if (result && result.length > 0) {
+                toast.success(`${result.length} contributions generated for ${selectedYear}`);
+                if (!availableYears.includes(selectedYear)) {
+                    setAvailableYears(prev => [...prev, selectedYear].sort((a, b) => a - b));
+                }
+            } else {
+                toast.success(`All contributions for ${selectedYear} already exist`);
+            }
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || 'Error during generation';
+            toast.error(errorMessage);
+        }
+        setIsActionMenuOpen(false);
+    };
 
     const handleUpdateContributions = async () => {
         if (!selectedYear) {
@@ -314,6 +335,18 @@ const AdminFinance: React.FC = () => {
                                     )}
 
                                     <button
+                                        onClick={handleGenerateAnnual}
+                                        disabled={!selectedYear || generateAnnualContributions.isPending}
+                                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                                    >
+                                        <AiOutlinePlusCircle size={18} className="text-green-600" />
+                                        <div className="text-left">
+                                            <p className="font-black text-xs uppercase">Generate</p>
+                                            <p className="text-[9px] text-gray-400">Generate contributions for {selectedYear}</p>
+                                        </div>
+                                    </button>
+
+                                    <button
                                         onClick={handleUpdateContributions}
                                         disabled={!selectedYear || regenerateForYear.isPending}
                                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -488,6 +521,18 @@ const AdminFinance: React.FC = () => {
                                                     <p className="text-sm font-bold text-gray-400 uppercase">
                                                         No matching contributions found
                                                     </p>
+                                                    {(statusFilter !== 'all' || typeFilter !== 'all' || searchTerm) && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setSearchTerm('');
+                                                                setStatusFilter('all');
+                                                                setTypeFilter('all');
+                                                            }}
+                                                            className="mt-2 text-xs text-brand-primary hover:underline"
+                                                        >
+                                                            Clear all filters
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -539,10 +584,10 @@ const AdminFinance: React.FC = () => {
                                                     </td>
                                                     <td className="px-4 py-4">
                                                         <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${isPaid
-                                                                ? 'bg-green-100 text-green-600'
-                                                                : isUnpaid
-                                                                    ? 'bg-red-100 text-red-600'
-                                                                    : 'bg-orange-100 text-orange-600'
+                                                            ? 'bg-green-100 text-green-600'
+                                                            : isUnpaid
+                                                                ? 'bg-red-100 text-red-600'
+                                                                : 'bg-orange-100 text-orange-600'
                                                             }`}>
                                                             {isPaid ? 'Paid' : isUnpaid ? 'Unpaid' : 'Partial'}
                                                         </span>
@@ -602,9 +647,12 @@ const AdminFinance: React.FC = () => {
                     }}
                     contributionId={selectedContribution.id}
                     memberName={selectedContribution.memberName}
+                    memberId={selectedContribution.memberId}
+                    memberPhone={members.find(m => m.id === selectedContribution.memberId)?.phoneNumber}
                     memberImageUrl={members.find(m => m.id === selectedContribution.memberId)?.imageUrl}
                     contributionAmount={selectedContribution.amount}
                     remainingAmount={selectedContribution.remaining}
+                    year={selectedContribution.year}
                     onSuccess={() => {
                         setIsPaymentModalOpen(false);
                         setSelectedContribution(null);
