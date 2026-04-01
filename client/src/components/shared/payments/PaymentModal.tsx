@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
     AiOutlineClose,
@@ -17,8 +17,9 @@ import Button from '../../ui/Button';
 import { formatCurrency, formatDate } from '../../../lib/helper';
 import { getImageUrl } from '../../../lib/constant/constant';
 import { useAuth } from '../../../context/AuthContext';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image';
 import jsPDF from 'jspdf';
+import toast from 'react-hot-toast';
 
 interface PaymentModalProps {
     isOpen: boolean;
@@ -57,6 +58,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     const [paymentCompleted, setPaymentCompleted] = useState(false);
     const [receiptData, setReceiptData] = useState<any>(null);
     const receiptRef = useRef<HTMLDivElement>(null);
+    const [autoDownloadDone, setAutoDownloadDone] = useState(false);
 
     const getAutoStatus = (amount: number): PaymentStatus => {
         if (!contributionAmount || !remainingAmount) return PaymentStatus.PENDING;
@@ -130,15 +132,28 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 setReceiptData(receipt);
                 setPaymentCompleted(true);
                 setShowSuccess(true);
+                setAutoDownloadDone(false);
 
                 setTimeout(() => {
                     setShowSuccess(false);
                 }, 2000);
             } catch (error) {
-                console.error('Payment error:', error);
+                console.error('Erreur paiement:', error);
+                toast.error('Erreur lors du paiement');
             }
         }
     });
+
+    // Téléchargement automatique quand le reçu est affiché
+    useEffect(() => {
+        if (paymentCompleted && receiptData && !autoDownloadDone && receiptRef.current) {
+            const timer = setTimeout(() => {
+                downloadReceiptAsPDF();
+                setAutoDownloadDone(true);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [paymentCompleted, receiptData, autoDownloadDone]);
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const amount = parseFloat(e.target.value) || 0;
@@ -185,18 +200,30 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
     const hasMemberImage = memberImageUrl && memberImageUrl.trim() !== '';
 
-    // Fonction pour capturer et télécharger le reçu en PDF
+    // Fonction pour capturer et télécharger le reçu en PDF avec dom-to-image
     const downloadReceiptAsPDF = async () => {
-        if (!receiptRef.current) return;
+        console.log('📸 Capture du reçu avec dom-to-image...');
+        
+        if (!receiptRef.current) {
+            console.error('❌ receiptRef est null');
+            toast.error('Erreur: impossible de générer le reçu');
+            return;
+        }
         
         try {
-            const canvas = await html2canvas(receiptRef.current, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false
+            // Capturer l'élément en image PNG
+            const dataUrl = await domtoimage.toPng(receiptRef.current, {
+                quality: 0.95,
+                bgcolor: '#ffffff',
+                style: {
+                    transform: 'scale(1)',
+                    transformOrigin: 'top left'
+                }
             });
             
-            const imgData = canvas.toDataURL('image/png');
+            console.log('✅ Image capturée avec succès');
+            
+            // Créer le PDF
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
@@ -204,23 +231,24 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             });
             
             const imgWidth = 190;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let position = 0;
+            const imgHeight = (receiptRef.current.clientHeight * imgWidth) / receiptRef.current.clientWidth;
             
-            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-            pdf.save(`recu_${receiptData.memberId}_${receiptData.year}.pdf`);
+            pdf.addImage(dataUrl, 'PNG', 10, 10, imgWidth, imgHeight);
+            
+            const fileName = `recu_${receiptData?.memberId || 'membre'}_${receiptData?.year || 'annee'}.pdf`;
+            pdf.save(fileName);
+            
+            console.log('✅ PDF sauvegardé avec succès!');
+            toast.success('Reçu téléchargé avec succès');
+            
         } catch (error) {
-            console.error('Error generating PDF:', error);
+            console.error('❌ Erreur lors de la génération du PDF:', error);
+            toast.error('Erreur lors de la génération du reçu');
         }
     };
 
-    // Si le paiement est complété, afficher le reçu et télécharger automatiquement
+    // Si le paiement est complété, afficher le reçu
     if (paymentCompleted && receiptData) {
-        // Télécharger automatiquement le PDF après un court délai
-        setTimeout(() => {
-            downloadReceiptAsPDF();
-        }, 500);
-        
         return createPortal(
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                 <div className="relative w-full max-w-md">
@@ -274,7 +302,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
                             <div className="bg-green-50 rounded-xl p-3 text-center">
                                 <p className="text-[10px] font-black text-green-700">✓ Paiement enregistré</p>
-                                <p className="text-[8px] text-gray-500 mt-1">Téléchargement automatique...</p>
+                                <p className="text-[8px] text-gray-500 mt-1">
+                                    {autoDownloadDone ? 'Reçu téléchargé' : 'Téléchargement en cours...'}
+                                </p>
                             </div>
 
                             <div className="flex gap-3 pt-2">
