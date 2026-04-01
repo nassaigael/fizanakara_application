@@ -4,7 +4,6 @@ import {
   AiOutlineClose,
   AiOutlineGlobal,
   AiOutlineTeam,
-  AiOutlineInfoCircle,
   AiOutlineCamera,
   AiOutlineCalendar,
   AiOutlineUserAdd,
