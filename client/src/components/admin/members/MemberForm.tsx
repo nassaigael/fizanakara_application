@@ -421,12 +421,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                     disabled={loading}
                     required
                   />
-                  <div className="flex items-start gap-2 mt-4 text-orange-700">
-                    <AiOutlineInfoCircle size={16} className="shrink-0 mt-0.5" />
-                    <p className="text-[9px] font-bold uppercase leading-tight">
-                      L'enfant sera lié aux cotisations et à l'arbre généalogique du parent.
-                    </p>
-                  </div>
                 </div>
               )}
             </div>

@@ -34,19 +34,19 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
   // Filtrer les membres pour la recherche - Afficher TOUS les membres sauf celui en cours d'édition
   const filteredMembers = useMemo(() => {
     if (!searchTerm.trim()) return [];
-    
+
     const searchLower = searchTerm.toLowerCase();
     return members.filter(member => {
       // Exclure le membre en cours d'édition (pour éviter de se choisir soi-même)
       if (excludeCurrentMemberId && member.id === excludeCurrentMemberId) return false;
-      
+
       // Rechercher par ID, nom, prénom, téléphone
       const matchesId = member.id.toLowerCase().includes(searchLower);
       const matchesFirstName = member.firstName.toLowerCase().includes(searchLower);
       const matchesLastName = member.lastName.toLowerCase().includes(searchLower);
       const matchesFullName = `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchLower);
       const matchesPhone = member.phoneNumber?.toLowerCase().includes(searchLower);
-      
+
       return matchesId || matchesFirstName || matchesLastName || matchesFullName || matchesPhone;
     }).slice(0, 15); // Limiter à 15 résultats
   }, [members, searchTerm, excludeCurrentMemberId]);
@@ -84,14 +84,14 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
   const getMemberTypeInfo = (member: PersonResponse) => {
     if (member.parentId && member.childrenCount > 0) {
       return {
-        label: 'Parent & Child',
+        label: 'Parent & Enfant',
         icon: <AiOutlineCrown size={10} />,
         color: 'text-purple-600 bg-purple-100'
       };
     }
     if (member.parentId) {
       return {
-        label: 'Child',
+        label: 'Enfant',
         icon: <AiOutlineStar size={10} />,
         color: 'text-blue-600 bg-blue-100'
       };
@@ -104,7 +104,7 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
       };
     }
     return {
-      label: 'Member',
+      label: 'Membre',
       icon: <AiOutlineUser size={10} />,
       color: 'text-gray-600 bg-gray-100'
     };
@@ -115,7 +115,7 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
       <label className="block text-[9px] font-black uppercase tracking-wider text-gray-500 mb-2">
         Parent {required && <span className="text-red-500">*</span>}
       </label>
-      
+
       {selectedParent ? (
         // Affichage du parent sélectionné
         <div className="bg-white border-2 border-brand-primary rounded-xl p-3 flex items-center justify-between">
@@ -145,12 +145,12 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
               <div className="flex items-center gap-2 text-[10px] text-gray-400">
                 <span className="font-mono">{selectedParent.id}</span>
                 <span>•</span>
-                <span>{selectedParent.status === MemberStatus.STUDENT ? 'Student' : 'Worker'}</span>
+                <span>{selectedParent.status === MemberStatus.STUDENT ? 'Étudiant' : 'Travailleur'}</span>
                 {selectedParent.isActiveMember && (
-                  <span className="text-green-500">• Active</span>
+                  <span className="text-green-500">• Actif</span>
                 )}
                 {selectedParent.childrenCount > 0 && (
-                  <span className="text-purple-500">• {selectedParent.childrenCount} child{selectedParent.childrenCount > 1 ? 'ren' : ''}</span>
+                  <span className="text-purple-500">• {selectedParent.childrenCount} enfant{selectedParent.childrenCount > 1 ? 's' : ''}</span>
                 )}
               </div>
             </div>
@@ -161,7 +161,7 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
             className="px-3 py-1 text-xs font-bold uppercase text-gray-400 hover:text-red-500 transition-colors"
             disabled={disabled}
           >
-            Change
+            Changer
           </button>
         </div>
       ) : (
@@ -174,7 +174,7 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
               value={searchTerm}
               onChange={handleInputChange}
               onFocus={() => setIsOpen(true)}
-              placeholder="Search by ID, name, or phone number..."
+              placeholder="Rechercher par ID, nom ou numéro de téléphone..."
               className={`
                 w-full pl-11 pr-4 py-3 rounded-xl border-2 
                 ${error ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-brand-primary'}
@@ -184,7 +184,7 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
               disabled={disabled}
             />
           </div>
-          
+
           {/* Dropdown de recherche */}
           {isOpen && searchTerm && filteredMembers.length > 0 && (
             <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-80 overflow-y-auto">
@@ -192,7 +192,7 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
                 const avatarUrl = member.imageUrl ? getImageUrl(member.imageUrl, 'member') : null;
                 const isSelected = value === member.id;
                 const memberType = getMemberTypeInfo(member);
-                
+
                 return (
                   <button
                     key={member.id}
@@ -223,7 +223,7 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <p className="font-bold text-sm">
@@ -243,16 +243,16 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
                             <span className="ml-1">{memberType.label}</span>
                           </span>
                           {member.status === MemberStatus.WORKER ? (
-                            <span className="text-[9px] text-purple-500 font-bold">Worker</span>
+                            <span className="text-[9px] text-purple-500 font-bold">Travailleur</span>
                           ) : (
-                            <span className="text-[9px] text-amber-500 font-bold">Student</span>
+                            <span className="text-[9px] text-amber-500 font-bold">Étudiant</span>
                           )}
                           {member.isActiveMember && (
-                            <span className="text-[9px] text-green-500 font-bold">Active</span>
+                            <span className="text-[9px] text-green-500 font-bold">Actif</span>
                           )}
                           {member.childrenCount > 0 && (
                             <span className="text-[9px] text-purple-500 font-bold">
-                              {member.childrenCount} child{member.childrenCount > 1 ? 'ren' : ''}
+                              {member.childrenCount} enfant{member.childrenCount > 1 ? 's' : ''}
                             </span>
                           )}
                         </div>
@@ -263,28 +263,28 @@ const ParentSearchInput: React.FC<ParentSearchInputProps> = ({
               })}
             </div>
           )}
-          
+
           {isOpen && searchTerm && filteredMembers.length === 0 && (
             <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl p-4 text-center">
-              <p className="text-sm text-gray-400">No member found</p>
+              <p className="text-sm text-gray-400">Aucun membre trouvé</p>
               <p className="text-[10px] text-gray-400 mt-1">
-                Try searching by ID, name, or phone number
+                Essayez de rechercher par ID, nom ou numéro de téléphone
               </p>
             </div>
           )}
         </div>
       )}
-      
+
       {error && (
         <p className="text-red-500 text-[10px] font-bold mt-2 uppercase tracking-wide">
           {error}
         </p>
       )}
-      
+
       <div className="flex items-start gap-2 mt-2 text-gray-400">
         <AiOutlineUser size={12} />
         <p className="text-[8px] font-bold uppercase leading-tight">
-          Search any member by ID, name, or phone number to set as parent (multi-generation hierarchy supported)
+          Recherchez un membre par ID, nom ou numéro de téléphone pour le définir comme parent
         </p>
       </div>
     </div>
