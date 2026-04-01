@@ -32,7 +32,6 @@ const AdminDashboard: React.FC = () => {
     const { members, isLoading: loadingMembers } = useMembers();
     const { contributions, isLoading: loadingContribs } = useFinance(undefined, selectedYear);
 
-    // Générer les données mensuelles à partir des vraies contributions
     const monthlyData = useMemo(() => {
         const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
         const targetPerMonth = 15000;
