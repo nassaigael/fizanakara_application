@@ -4,3 +4,4 @@ node_modules
 
 *.sh
 api/src/main/resources/application.properties
+api/src/main/resources/application.properties
