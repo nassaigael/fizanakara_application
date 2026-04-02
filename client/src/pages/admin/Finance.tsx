@@ -224,6 +224,7 @@ const AdminFinance: React.FC = () => {
         setNewYear(availableYears.length > 0 ? Math.max(...availableYears) + 1 : currentYear + 1);
     };
 
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-96">

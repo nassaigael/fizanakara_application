@@ -203,14 +203,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
     const hasMemberImage = memberImageUrl && memberImageUrl.trim() !== '';
 
-    const downloadReceiptAsPDF = async () => {
-        if (!receiptRef.current) return;
+    const downloadReceiptAsPDF = async () => {        
+        if (!receiptRef.current) {
+            toast.error('Erreur: impossible de générer le reçu');
+            return;
+        }
         
         try {
             const dataUrl = await domtoimage.toPng(receiptRef.current, {
                 quality: 0.95,
                 bgcolor: '#ffffff'
             });
+            
             
             const pdf = new jsPDF({
                 orientation: 'portrait',

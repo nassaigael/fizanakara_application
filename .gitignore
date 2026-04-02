@@ -3,3 +3,5 @@ node_modules
 .idea/
 
 *.sh
+api/src/main/resources/application.properties
+api/src/main/resources/application.properties
