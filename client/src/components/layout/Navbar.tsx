@@ -23,7 +23,6 @@ const Navbar = ({ }: NavbarProps) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
-    // Détecter le scroll pour changer l'apparence
     useEffect(() => {
         const handleScroll = () => {
             setScrolled(window.scrollY > 10);
@@ -53,7 +52,6 @@ const Navbar = ({ }: NavbarProps) => {
 
     const hasImage = user?.imageUrl && user.imageUrl.trim() !== '';
 
-    // Style glassmorphism pour la navbar
     const navbarStyle = scrolled 
         ? 'bg-white/80 backdrop-blur-xl border-b border-white/30 shadow-lg'
         : 'bg-white/95 backdrop-blur-md border-b-4 border-brand-border';
