@@ -26,45 +26,37 @@ const Login: React.FC = () => {
 
     return (
         <div className="relative min-h-screen flex items-center justify-center p-4 bg-white">
-            {/* Background blanc pur */}
             <div className="absolute inset-0 bg-white" />
             
-            {/* Éléments décoratifs subtils en arrière-plan */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-brand-primary/5 rounded-full blur-3xl" />
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-500/5 rounded-full blur-3xl" />
             </div>
 
             <div className="relative w-full max-w-md z-10">
-                {/* Logo et titre */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-brand-primary to-orange-500 rounded-2xl shadow-lg mb-4">
-                        <svg 
-                            width="32" 
-                            height="32" 
-                            viewBox="0 0 24 24" 
-                            fill="currentColor" 
-                            className="text-white"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                            <path d="M11 5l1 1-1 1-1-1 1-1zM15 3l1 1-1 1-1-1 1-1zM18 6l1 1-1 1-1-1 1-1z" />
-                        </svg>
-                    </div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-                        FIZANAKARA
-                    </h1>
-                    <p className="text-gray-500 text-sm mt-1 font-medium">
-                        Gestion des cotisations
-                    </p>
-                </div>
-
-                {/* Card de connexion - fond blanc avec ombre */}
-                <div className="bg-white rounded-2xl shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-2xl shadow-black/20 border border-gray-100 overflow-hidden">
                     <div className="p-6 sm:p-8">
-                        <h2 className="text-xl font-bold text-gray-800 mb-6">
-                            Connexion
-                        </h2>
+                        <div className="text-center mb-6">
+                            <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-brand-primary to-orange-500 rounded-2xl shadow-lg mb-3">
+                                <svg 
+                                    width="32" 
+                                    height="32" 
+                                    viewBox="0 0 24 24" 
+                                    fill="currentColor" 
+                                    className="text-white"
+                                >
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                                    <path d="M11 5l1 1-1 1-1-1 1-1zM15 3l1 1-1 1-1-1 1-1zM18 6l1 1-1 1-1-1 1-1z" />
+                                </svg>
+                            </div>
+                            <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+                                FIZANAKARA
+                            </h1>
+                            <p className="text-gray-500 text-xs mt-1 font-medium">
+                                Gestion des cotisations
+                            </p>
+                        </div>
+
                         
                         <form onSubmit={form.handleSubmit} className="space-y-5">
                             <Input
@@ -82,28 +74,45 @@ const Login: React.FC = () => {
                                 errorClassName="border-red-500 focus:border-red-500 focus:ring-red-500/20"
                             />
 
-                            <div className="relative">
-                                <Input
-                                    label="Mot de passe"
-                                    name="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={form.values.password}
-                                    onChange={form.handleChange}
-                                    onBlur={form.handleBlur}
-                                    error={form.touched.password ? form.errors.password : undefined}
-                                    icon={<AiOutlineLock size={18} />}
-                                    placeholder="••••••••"
-                                    required
-                                    className="border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all pr-12"
-                                    errorClassName="border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-10.5 text-gray-400 hover:text-gray-600 transition-colors"
-                                >
-                                    {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
-                                </button>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                                    Mot de passe
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                                        <AiOutlineLock size={18} />
+                                    </div>
+                                    <input
+                                        name="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={form.values.password}
+                                        onChange={form.handleChange}
+                                        onBlur={form.handleBlur}
+                                        placeholder="••••••••"
+                                        className={`
+                                            w-full px-3 py-2.5 rounded-xl border-2 bg-white text-gray-800
+                                            transition-all duration-200 outline-none
+                                            pl-9 pr-10
+                                            ${form.touched.password && form.errors.password
+                                                ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                                : 'border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                            }
+                                        `}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
+                                    </button>
+                                </div>
+                                {form.touched.password && form.errors.password && (
+                                    <p className="text-red-500 text-xs font-medium mt-1.5 ml-1">
+                                        {form.errors.password}
+                                    </p>
+                                )}
                             </div>
 
                             {form.submitError && (
@@ -136,7 +145,6 @@ const Login: React.FC = () => {
                     </div>
                 </div>
                 
-                {/* Footer */}
                 <p className="text-center text-xs text-gray-400 mt-6">
                     &copy; {new Date().getFullYear()} Fizanakara. Tous droits réservés.
                 </p>
