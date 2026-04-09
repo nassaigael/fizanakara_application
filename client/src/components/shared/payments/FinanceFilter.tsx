@@ -40,9 +40,9 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
     };
 
     return (
-        <div className="bg-white border-4 border-black rounded-2xl sm:rounded-4xl p-3 sm:p-4 mb-4 sm:mb-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-end">
-            <div className="flex-1 min-w-0 sm:min-w-37.5">
-                <label className="text-[8px] sm:text-[10px] font-black uppercase mb-1 block ml-2 text-gray-400">
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 sm:p-4 mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-end">
+            <div className="flex-1 min-w-0 sm:min-w-36">
+                <label className="text-[8px] sm:text-[10px] font-black uppercase mb-1 block ml-2 text-gray-500">
                     État du compte
                 </label>
                 <Select
@@ -54,8 +54,8 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
                 />
             </div>
 
-            <div className="flex-1 min-w-0 sm:min-w-37.5">
-                <label className="text-[8px] sm:text-[10px] font-black uppercase mb-1 block ml-2 text-gray-400">
+            <div className="flex-1 min-w-0 sm:min-w-36">
+                <label className="text-[8px] sm:text-[10px] font-black uppercase mb-1 block ml-2 text-gray-500">
                     Catégorie
                 </label>
                 <Select
@@ -68,7 +68,7 @@ export const FinanceFilters: React.FC<FinanceFiltersProps> = ({
             </div>
 
             <Button
-                variant="secondary"
+                variant="primary"
                 onClick={handleReset}
                 className="px-4 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs w-full sm:w-auto mt-1 sm:mt-0"
             >

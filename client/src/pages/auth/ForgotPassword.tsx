@@ -24,6 +24,7 @@ const ForgotPassword: React.FC = () => {
         }
     });
 
+    // Success state – clean and minimal
     if (isSubmitted) {
         return (
             <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
@@ -48,13 +49,13 @@ const ForgotPassword: React.FC = () => {
                             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-500/30 backdrop-blur-sm border border-green-400/50 flex items-center justify-center">
                                 <AiOutlineCheckCircle size={48} className="text-green-400" />
                             </div>
-                            <h1 className="text-2xl font-black text-white uppercase tracking-tighter">
+                            <h2 className="text-2xl font-black text-gray-800 tracking-tight">
                                 Email envoyé !
-                            </h1>
-                            <p className="text-white/80 text-sm font-medium mt-4">
+                            </h2>
+                            <p className="text-gray-500 text-sm mt-3">
                                 Si un compte existe avec cette adresse email, vous recevrez un lien pour réinitialiser votre mot de passe.
                             </p>
-                            <div className="mt-8">
+                            <div className="mt-6">
                                 <Link to="/login">
                                     <Button
                                         variant="primary"
@@ -97,9 +98,20 @@ const ForgotPassword: React.FC = () => {
                             Entrez votre email pour recevoir un lien de réinitialisation
                         </p>
                     </div>
+                </div>
 
-                    <div className="p-8">
-                        <form onSubmit={form.handleSubmit} className="space-y-6">
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div className="p-6 sm:p-8">
+                        <div className="text-center mb-6">
+                            <h1 className="text-2xl font-black text-gray-800 tracking-tight">
+                                Mot de passe oublié ?
+                            </h1>
+                            <p className="text-gray-500 text-sm mt-1">
+                                Entrez votre email pour recevoir un lien de réinitialisation
+                            </p>
+                        </div>
+
+                        <form onSubmit={form.handleSubmit} className="space-y-5">
                             <Input
                                 label="Adresse email"
                                 name="email"
@@ -108,15 +120,15 @@ const ForgotPassword: React.FC = () => {
                                 onChange={form.handleChange}
                                 onBlur={form.handleBlur}
                                 error={form.touched.email ? form.errors.email : undefined}
-                                icon={<AiOutlineMail size={20} />}
+                                icon={<AiOutlineMail size={18} />}
                                 placeholder="admin@fizanakara.mg"
                                 required
-                                className="bg-white/10 border-white/20 text-white placeholder-white/40 focus:ring-2 focus:ring-white/60 focus:border-transparent transition-all"
+                                className="border-gray-200 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-all"
                             />
 
                             {form.submitError && (
-                                <div className="p-4 bg-red-500/30 backdrop-blur-sm border border-red-400 rounded-xl">
-                                    <p className="text-red-100 text-xs font-bold text-center">
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+                                    <p className="text-red-600 text-xs font-medium text-center">
                                         {form.submitError}
                                     </p>
                                 </div>
@@ -131,10 +143,10 @@ const ForgotPassword: React.FC = () => {
                                 ENVOYER LE LIEN
                             </Button>
 
-                            <div className="text-center">
+                            <div className="text-center pt-2">
                                 <Link
                                     to="/login"
-                                    className="text-xs font-bold text-white/60 hover:text-white transition-colors uppercase tracking-widest"
+                                    className="text-xs font-medium text-gray-500 hover:text-brand-primary transition-colors uppercase tracking-wide"
                                 >
                                     Retour à la connexion
                                 </Link>

@@ -224,7 +224,6 @@ const AdminFinance: React.FC = () => {
         setNewYear(availableYears.length > 0 ? Math.max(...availableYears) + 1 : currentYear + 1);
     };
 
-
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-96">
@@ -238,11 +237,10 @@ const AdminFinance: React.FC = () => {
 
     return (
         <div className="h-full flex flex-col px-3 sm:px-4 md:px-6 py-4 sm:py-6">
-            {/* Header et Stats */}
             <div className="shrink-0 space-y-4 sm:space-y-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="p-3 sm:p-4 bg-linear-to-r from-brand-primary to-orange-500 text-white rounded-2xl sm:rounded-3xl border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="p-3 sm:p-4 bg-gradient-to-r from-brand-primary to-orange-500 text-white rounded-2xl sm:rounded-3xl shadow-md">
                             <AiOutlineDollar className="w-6 h-6 sm:w-8 sm:h-8" />
                         </div>
                         <div>
@@ -259,7 +257,7 @@ const AdminFinance: React.FC = () => {
                             <select
                                 value={selectedYear || ''}
                                 onChange={handleYearChange}
-                                className="appearance-none bg-white border-2 border-gray-200 rounded-xl sm:rounded-2xl py-2.5 sm:py-3 pl-9 sm:pl-11 pr-8 sm:pr-10 text-xs sm:text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:border-brand-primary w-full sm:min-w-32"
+                                className="appearance-none bg-white border border-gray-200 rounded-xl sm:rounded-2xl py-2.5 sm:py-3 pl-9 sm:pl-11 pr-8 sm:pr-10 text-xs sm:text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary/20 w-full sm:min-w-32 shadow-sm"
                             >
                                 {yearOptions.length === 0 ? (
                                     <option value="" disabled>Aucune année disponible</option>
@@ -278,7 +276,7 @@ const AdminFinance: React.FC = () => {
                             <Button
                                 variant="primary"
                                 onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-                                className="whitespace-nowrap flex items-center gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2.5 sm:py-3"
+                                className="whitespace-nowrap flex items-center gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2.5 sm:py-3 shadow-sm"
                                 disabled={!selectedYear && availableYears.length === 0}
                             >
                                 <AiOutlineMenu className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -287,7 +285,7 @@ const AdminFinance: React.FC = () => {
                             </Button>
 
                             {isActionMenuOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-56 sm:w-64 bg-white border-2 border-gray-200 rounded-xl sm:rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                <div className="absolute right-0 top-full mt-2 w-56 sm:w-64 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
                                     {!isAddingYear ? (
                                         <button
                                             onClick={handleOpenAddYear}
@@ -308,7 +306,7 @@ const AdminFinance: React.FC = () => {
                                                     type="number"
                                                     value={newYear}
                                                     onChange={(e) => setNewYear(parseInt(e.target.value) || currentYear + 1)}
-                                                    className="w-full px-3 py-2 text-xs sm:text-sm font-black uppercase text-center border-2 border-gray-200 rounded-xl focus:border-brand-primary focus:outline-none"
+                                                    className="w-full px-3 py-2 text-xs sm:text-sm font-black uppercase text-center border border-gray-200 rounded-xl focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                                                     min={2000}
                                                     max={2100}
                                                     placeholder="Année"
@@ -362,10 +360,8 @@ const AdminFinance: React.FC = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Stats Cards - Responsive */}
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <div className="bg-blue-50 rounded-xl border border-blue-200 p-3 sm:p-5">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-2 sm:mt-4">
+                    <div className="bg-blue-50 rounded-xl border border-blue-200 p-3 sm:p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-2 sm:mb-4">
                             <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100">
                                 <AiOutlineDollar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
@@ -376,7 +372,7 @@ const AdminFinance: React.FC = () => {
                         </p>
                         <p className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Total dû</p>
                     </div>
-                    <div className="bg-green-50 rounded-xl border border-green-200 p-3 sm:p-5">
+                    <div className="bg-green-50 rounded-xl border border-green-200 p-3 sm:p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-2 sm:mb-4">
                             <div className="p-1.5 sm:p-2 rounded-lg bg-green-100">
                                 <AiOutlineCheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
@@ -387,7 +383,7 @@ const AdminFinance: React.FC = () => {
                         </p>
                         <p className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Total payé</p>
                     </div>
-                    <div className="bg-red-50 rounded-xl border border-red-200 p-3 sm:p-5">
+                    <div className="bg-red-50 rounded-xl border border-red-200 p-3 sm:p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-2 sm:mb-4">
                             <div className="p-1.5 sm:p-2 rounded-lg bg-red-100">
                                 <AiOutlineWarning className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
@@ -398,7 +394,7 @@ const AdminFinance: React.FC = () => {
                         </p>
                         <p className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Reste à payer</p>
                     </div>
-                    <div className="bg-purple-50 rounded-xl border border-purple-200 p-3 sm:p-5">
+                    <div className="bg-purple-50 rounded-xl border border-purple-200 p-3 sm:p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-2 sm:mb-4">
                             <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100">
                                 <AiOutlineSearch className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
@@ -412,104 +408,68 @@ const AdminFinance: React.FC = () => {
                 </div>
             </div>
 
-            {/* Filtres section - Sticky */}
             {selectedYear && contributions.length > 0 && (
-                <div className="sticky top-0 z-20 bg-brand-bg pt-3 sm:pt-4 pb-2 -mt-2 space-y-3 sm:space-y-4">
-                    <FinanceFilters
-                        statusFilter={statusFilter}
-                        setStatusFilter={setStatusFilter}
-                        typeFilter={typeFilter}
-                        setTypeFilter={setTypeFilter}
-                    />
-
-                    <div className="relative">
-                        <Input
-                            placeholder="Rechercher un membre..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            icon={<AiOutlineSearch />}
+                <div className="mt-6 sm:mt-8">
+                    <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5 space-y-4">
+                        <FinanceFilters
+                            statusFilter={statusFilter}
+                            setStatusFilter={setStatusFilter}
+                            typeFilter={typeFilter}
+                            setTypeFilter={setTypeFilter}
                         />
+                        <div className="relative">
+                            <Input
+                                placeholder="Rechercher un membre..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                icon={<AiOutlineSearch />}
+                            />
+                        </div>
                     </div>
                 </div>
             )}
-
-            {/* Tableau des cotisations - Scrollable */}
             <div className="flex-1 min-h-0 mt-3 sm:mt-4">
                 {!selectedYear ? (
-                    <div className="bg-white rounded-2xl sm:rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden">
-                        <table className="w-full">
-                            <thead className="bg-gray-50 border-b-2 border-gray-200">
-                                <tr>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Membre</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Année</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Statut</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Montant</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Payé</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Reste</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-right text-[10px] sm:text-xs font-black uppercase text-gray-400">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colSpan={7} className="px-3 sm:px-4 py-8 sm:py-12 text-center">
-                                        <div className="flex flex-col items-center justify-center gap-2">
-                                            <AiOutlineCalendar className="w-6 h-6 sm:w-8 sm:h-8 text-gray-300" />
-                                            <p className="text-xs sm:text-sm font-bold text-gray-400 uppercase">
-                                                Sélectionnez une année pour voir les cotisations
-                                            </p>
-                                            <p className="text-[10px] sm:text-xs text-gray-400">
-                                                Choisissez une année dans le menu déroulant ou ajoutez une nouvelle année
-                                            </p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden">
+                        <div className="p-8 text-center">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                                <AiOutlineCalendar className="w-8 h-8 text-gray-300" />
+                                <p className="text-sm font-bold text-gray-400 uppercase">
+                                    Sélectionnez une année pour voir les cotisations
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                    Choisissez une année dans le menu déroulant ou ajoutez une nouvelle année
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 ) : contributions.length === 0 ? (
-                    <div className="bg-white rounded-2xl sm:rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden">
-                        <table className="w-full">
-                            <thead className="bg-gray-50 border-b-2 border-gray-200">
-                                <tr>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Membre</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Année</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Statut</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Montant</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Payé</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Reste</th>
-                                    <th className="px-3 sm:px-4 py-3 sm:py-4 text-right text-[10px] sm:text-xs font-black uppercase text-gray-400">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colSpan={7} className="px-3 sm:px-4 py-8 sm:py-12 text-center">
-                                        <div className="flex flex-col items-center justify-center gap-2">
-                                            <AiOutlineWarning className="w-6 h-6 sm:w-8 sm:h-8 text-amber-400" />
-                                            <p className="text-xs sm:text-sm font-bold text-amber-600 uppercase">
-                                                Aucune cotisation pour {selectedYear}
-                                            </p>
-                                            <p className="text-[10px] sm:text-xs text-amber-500">
-                                                Cliquez sur "Actions" → "Ajouter une année & générer" pour créer des cotisations
-                                            </p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden">
+                        <div className="p-8 text-center">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                                <AiOutlineWarning className="w-8 h-8 text-amber-400" />
+                                <p className="text-sm font-bold text-amber-600 uppercase">
+                                    Aucune cotisation pour {selectedYear}
+                                </p>
+                                <p className="text-xs text-amber-500">
+                                    Cliquez sur "Actions" → "Ajouter une année & générer" pour créer des cotisations
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-2xl sm:rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden h-full flex flex-col">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden h-full flex flex-col">
                         <div className="flex-1 overflow-auto">
-                            <table className="w-full min-w-175 sm:min-w-200">
-                                <thead className="bg-gray-50 border-b-2 border-gray-200 sticky top-0 z-10">
+                            <table className="w-full min-w-[500px]">
+                                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                                     <tr>
-                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Membre</th>
-                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Année</th>
-                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Statut</th>
-                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Montant</th>
-                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Payé</th>
-                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-400">Reste</th>
-                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-right text-[10px] sm:text-xs font-black uppercase text-gray-400">Actions</th>
+                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500">Membre</th>
+                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 hidden sm:table-cell">Année</th>
+                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 hidden md:table-cell">Statut</th>
+                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500">Montant</th>
+                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 hidden sm:table-cell">Payé</th>
+                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 hidden lg:table-cell">Reste</th>
+                                        <th className="px-3 sm:px-4 py-3 sm:py-4 text-right text-[10px] sm:text-xs font-black uppercase text-gray-500">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -579,15 +539,15 @@ const AdminFinance: React.FC = () => {
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-xs sm:text-sm">
+                                                    <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-xs sm:text-sm hidden sm:table-cell">
                                                         {contribution.year}
                                                     </td>
-                                                    <td className="px-3 sm:px-4 py-3 sm:py-4">
+                                                    <td className="px-3 sm:px-4 py-3 sm:py-4 hidden md:table-cell">
                                                         <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[7px] sm:text-[8px] font-black uppercase ${isPaid
-                                                                ? 'bg-green-100 text-green-600'
-                                                                : isUnpaid
-                                                                    ? 'bg-red-100 text-red-600'
-                                                                    : 'bg-orange-100 text-orange-600'
+                                                            ? 'bg-green-100 text-green-600'
+                                                            : isUnpaid
+                                                                ? 'bg-red-100 text-red-600'
+                                                                : 'bg-orange-100 text-orange-600'
                                                             }`}>
                                                             {isPaid ? 'Payé' : isUnpaid ? 'Impayé' : 'Partiel'}
                                                         </span>
@@ -595,29 +555,31 @@ const AdminFinance: React.FC = () => {
                                                     <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-xs sm:text-sm">
                                                         {formatCurrency(amount)}
                                                     </td>
-                                                    <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-green-600 text-xs sm:text-sm">
+                                                    <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-green-600 text-xs sm:text-sm hidden sm:table-cell">
                                                         {formatCurrency(totalPaid)}
                                                     </td>
-                                                    <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-red-600 text-xs sm:text-sm">
+                                                    <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-red-600 text-xs sm:text-sm hidden lg:table-cell">
                                                         {formatCurrency(remaining)}
                                                     </td>
                                                     <td className="px-3 sm:px-4 py-3 sm:py-4 text-right">
                                                         {isPaid ? (
-                                                            <span className="inline-flex items-center gap-1 text-green-600 font-black text-[8px] sm:text-[10px] uppercase">
-                                                                <AiOutlineCheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                                Réglé
+                                                            <span
+                                                                className="inline-flex items-center justify-center text-green-600"
+                                                                title="Réglé"
+                                                            >
+                                                                <AiOutlineCheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                                                             </span>
                                                         ) : (
-                                                            <Button
-                                                                variant="primary"
+                                                            <button
                                                                 onClick={() => {
                                                                     setSelectedContribution(contribution);
                                                                     setIsPaymentModalOpen(true);
                                                                 }}
-                                                                className="px-2 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs"
+                                                                className="p-1.5 sm:p-2 rounded-lg text-brand-primary hover:bg-brand-primary/10 transition-colors"
+                                                                title="Payer"
                                                             >
-                                                                Payer
-                                                            </Button>
+                                                                <AiOutlineDollar size={18} className="sm:w-5 sm:h-5" />
+                                                            </button>
                                                         )}
                                                     </td>
                                                 </tr>
@@ -628,7 +590,7 @@ const AdminFinance: React.FC = () => {
                             </table>
                         </div>
                         {filteredContributions.length > 0 && (
-                            <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border-t-2 border-gray-200 shrink-0">
+                            <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border-t border-gray-200 shrink-0">
                                 <p className="text-[8px] sm:text-[10px] font-black text-gray-400 uppercase">
                                     Affichage de {filteredContributions.length} / {contributions.length} cotisations
                                 </p>

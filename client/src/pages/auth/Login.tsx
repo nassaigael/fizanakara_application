@@ -46,9 +46,16 @@ const Login: React.FC = () => {
                             Gestion des cotisations
                         </p>
                     </div>
+                    <h1 className="text-3xl font-black text-gray-800 tracking-tight">
+                        FIZANAKARA
+                    </h1>
+                    <p className="text-gray-500 text-sm mt-1">Gestion des cotisations</p>
+                </div>
 
-                    <div className="p-8">
-                        <form onSubmit={form.handleSubmit} className="space-y-6">
+                {/* Card */}
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div className="p-6 sm:p-8">
+                        <form onSubmit={form.handleSubmit} className="space-y-5">
                             <Input
                                 label="Adresse email"
                                 name="email"
@@ -57,30 +64,29 @@ const Login: React.FC = () => {
                                 onChange={form.handleChange}
                                 onBlur={form.handleBlur}
                                 error={form.touched.email ? form.errors.email : undefined}
-                                icon={<AiOutlineMail size={20} />}
+                                icon={<AiOutlineMail size={18} />}
                                 placeholder="admin@fizanakara.mg"
                                 required
-                                className="bg-white/10 border-white/20 text-white placeholder-white/40 focus:ring-2 focus:ring-white/60 focus:border-transparent transition-all"
+                                className="border-gray-200 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-all"
                             />
-                            <div className="relative">
-                                <Input
-                                    label="Mot de passe"
-                                    name="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={form.values.password}
-                                    onChange={form.handleChange}
-                                    onBlur={form.handleBlur}
-                                    error={form.touched.password ? form.errors.password : undefined}
-                                    icon={<AiOutlineLock size={20} />}
-                                    placeholder="••••••••"
-                                    required
-                                    className="bg-white/10 border-white/20 text-white placeholder-white/40 focus:ring-2 focus:ring-white/60 focus:border-transparent pr-12 transition-all"
-                                />
-                            </div>
+
+                            <Input
+                                label="Mot de passe"
+                                name="password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={form.values.password}
+                                onChange={form.handleChange}
+                                onBlur={form.handleBlur}
+                                error={form.touched.password ? form.errors.password : undefined}
+                                icon={<AiOutlineLock size={18} />}
+                                placeholder="••••••••"
+                                required
+                                className="border-gray-200 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                            />
 
                             {form.submitError && (
-                                <div className="p-4 bg-red-500/30 backdrop-blur-sm border border-red-400 rounded-xl">
-                                    <p className="text-red-100 text-xs font-bold text-center">
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+                                    <p className="text-red-600 text-xs font-medium text-center">
                                         {form.submitError}
                                     </p>
                                 </div>
@@ -96,10 +102,10 @@ const Login: React.FC = () => {
                                 <AiOutlineArrowRight className="ml-2" />
                             </Button>
 
-                            <div className="text-center">
+                            <div className="text-center pt-2">
                                 <Link
                                     to="/forgot-password"
-                                    className="text-xs font-bold text-white/60 hover:text-white transition-colors uppercase tracking-widest"
+                                    className="text-xs font-medium text-gray-500 hover:text-brand-primary transition-colors uppercase tracking-wide"
                                 >
                                     Mot de passe oublié ?
                                 </Link>
@@ -107,6 +113,9 @@ const Login: React.FC = () => {
                         </form>
                     </div>
                 </div>
+                <p className="text-center text-xs text-gray-400 mt-6">
+                    &copy; {new Date().getFullYear()} Fizanakara. Tous droits réservés.
+                </p>
             </div>
         </div>
     );

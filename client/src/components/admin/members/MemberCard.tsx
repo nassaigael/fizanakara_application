@@ -84,7 +84,6 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onEdit, onDelete, onVie
 
     return (
         <div className="group relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-            {/* Photo de couverture avec dégradé selon le sexe */}
             <div className={`relative h-32 bg-linear-to-r ${couleursCouverture[estHomme ? 'male' : 'female']} overflow-hidden`}>
                 <div className="absolute inset-0 opacity-20">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />

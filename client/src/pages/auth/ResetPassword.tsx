@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     AiOutlineLock,
-    AiOutlineCheckCircle
+    AiOutlineCheckCircle,
+    AiOutlineEye,
+    AiOutlineEyeInvisible
 } from 'react-icons/ai';
 import { useAuth } from '../../context/AuthContext';
 import { useForm } from '../../hooks/useForm';
@@ -19,8 +21,8 @@ const ResetPassword: React.FC = () => {
     const { token } = useParams<{ token: string }>();
     const navigate = useNavigate();
     const { resetPassword } = useAuth();
-    const [showPassword] = useState(false);
-    const [showConfirmPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [localSubmitError, setLocalSubmitError] = useState<string | undefined>(undefined);
 
@@ -35,13 +37,16 @@ const ResetPassword: React.FC = () => {
                 setLocalSubmitError('Token invalide ou manquant');
                 return;
             }
+            console.log('Sending reset request with token:', token, 'password:', data.newPassword);
             try {
-                await resetPassword(token, data.newPassword);
+                const result = await resetPassword(token, data.newPassword);
+                console.log('Reset response:', result);
                 setIsSubmitted(true);
                 setTimeout(() => {
                     navigate('/login');
                 }, 3000);
             } catch (error: any) {
+                console.error('Reset error:', error);
                 const message = error?.response?.data?.message || error?.message || 'Erreur lors de la réinitialisation';
                 setLocalSubmitError(message);
             }
@@ -72,10 +77,10 @@ const ResetPassword: React.FC = () => {
                             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-500/30 backdrop-blur-sm border border-green-400/50 flex items-center justify-center">
                                 <AiOutlineCheckCircle size={48} className="text-green-400" />
                             </div>
-                            <h1 className="text-2xl font-black text-white uppercase tracking-tighter">
+                            <h2 className="text-2xl font-black text-gray-800 tracking-tight">
                                 Mot de passe modifié !
-                            </h1>
-                            <p className="text-white/80 text-sm font-medium mt-4">
+                            </h2>
+                            <p className="text-gray-500 text-sm mt-3">
                                 Votre mot de passe a été réinitialisé avec succès.
                                 <br />
                                 Vous allez être redirigé vers la page de connexion.
@@ -112,9 +117,20 @@ const ResetPassword: React.FC = () => {
                             Choisissez un mot de passe sécurisé
                         </p>
                     </div>
+                </div>
 
-                    <div className="p-8">
-                        <form onSubmit={form.handleSubmit} className="space-y-6">
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div className="p-6 sm:p-8">
+                        <div className="text-center mb-6">
+                            <h1 className="text-2xl font-black text-gray-800 tracking-tight">
+                                Nouveau mot de passe
+                            </h1>
+                            <p className="text-gray-500 text-sm mt-1">
+                                Choisissez un mot de passe sécurisé
+                            </p>
+                        </div>
+
+                        <form onSubmit={form.handleSubmit} className="space-y-5">
                             <div className="relative">
                                 <Input
                                     label="Nouveau mot de passe"
@@ -124,11 +140,18 @@ const ResetPassword: React.FC = () => {
                                     onChange={form.handleChange}
                                     onBlur={form.handleBlur}
                                     error={form.touched.newPassword ? form.errors.newPassword : undefined}
-                                    icon={<AiOutlineLock size={20} />}
+                                    icon={<AiOutlineLock size={18} />}
                                     placeholder="••••••••"
                                     required
-                                    className="bg-white/10 border-white/20 text-white placeholder-white/40 focus:ring-2 focus:ring-white/60 focus:border-transparent pr-12 transition-all"
+                                    className="border-gray-200 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-all pr-10"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-10.5 text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
+                                </button>
                             </div>
 
                             <div className="relative">
@@ -140,16 +163,23 @@ const ResetPassword: React.FC = () => {
                                     onChange={form.handleChange}
                                     onBlur={form.handleBlur}
                                     error={form.touched.confirmPassword ? form.errors.confirmPassword : undefined}
-                                    icon={<AiOutlineLock size={20} />}
+                                    icon={<AiOutlineLock size={18} />}
                                     placeholder="••••••••"
                                     required
-                                    className="bg-white/10 border-white/20 text-white placeholder-white/40 focus:ring-2 focus:ring-white/60 focus:border-transparent pr-12 transition-all"
+                                    className="border-gray-200 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-all pr-10"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-10.5 text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    {showConfirmPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
+                                </button>
                             </div>
 
                             {displaySubmitError && (
-                                <div className="p-4 bg-red-500/30 backdrop-blur-sm border border-red-400 rounded-xl">
-                                    <p className="text-red-100 text-xs font-bold text-center">
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+                                    <p className="text-red-600 text-xs font-medium text-center">
                                         {displaySubmitError}
                                     </p>
                                 </div>
