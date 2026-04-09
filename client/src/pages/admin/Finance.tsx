@@ -36,9 +36,9 @@ const AdminFinance: React.FC = () => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedContribution, setSelectedContribution] = useState<any>(null);
 
-    // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(20);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [isMobile, setIsMobile] = useState(false);
 
     const actionMenuRef = useRef<HTMLDivElement>(null);
     const addYearInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +48,22 @@ const AdminFinance: React.FC = () => {
 
     const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear || undefined);
     const { members } = useMembers();
+
+    useEffect(() => {
+        const checkMobile = () => {
+            const isMobileView = window.innerWidth < 640;
+            setIsMobile(isMobileView);
+            if (isMobileView) {
+                setItemsPerPage(3);
+            } else {
+                setItemsPerPage(5);
+            }
+        };
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     useEffect(() => {
         const fetchExistingYears = async () => {
@@ -69,12 +85,10 @@ const AdminFinance: React.FC = () => {
         fetchExistingYears();
     }, [currentYear, selectedYear]);
 
-    // Reset page when filters change
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm, statusFilter, typeFilter, selectedYear]);
 
-    // Gestion du scroll pour rendre les filtres sticky en bas
     useEffect(() => {
         const handleScroll = () => {
             if (filtersRef.current) {
@@ -152,7 +166,6 @@ const AdminFinance: React.FC = () => {
         });
     }, [contributions, members, searchTerm, statusFilter, typeFilter, selectedYear]);
 
-    // Pagination logic
     const totalPages = Math.ceil(filteredContributions.length / itemsPerPage);
     const paginatedContributions = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -279,7 +292,6 @@ const AdminFinance: React.FC = () => {
 
     return (
         <div className="h-full flex flex-col px-3 sm:px-4 md:px-6 py-4 sm:py-6">
-            {/* Section header (non sticky) */}
             <div className="shrink-0 space-y-4 sm:space-y-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3 sm:gap-4">
@@ -453,7 +465,6 @@ const AdminFinance: React.FC = () => {
                 </div>
             </div>
 
-            {/* Section des filtres - Mode sticky en bas */}
             {selectedYear && contributions.length > 0 && (
                 <>
                     <div
@@ -490,7 +501,6 @@ const AdminFinance: React.FC = () => {
                 </>
             )}
 
-            {/* Tableau des cotisations avec scroll horizontal et vertical */}
             <div className="flex-1 min-h-0 mt-3 sm:mt-4">
                 {!selectedYear ? (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden">
@@ -522,7 +532,6 @@ const AdminFinance: React.FC = () => {
                     </div>
                 ) : (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden h-full flex flex-col">
-                        {/* Container avec scroll horizontal ET vertical */}
                         <div className="flex-1 overflow-auto">
                             <div className="min-w-200">
                                 <table className="w-full">
@@ -657,36 +666,14 @@ const AdminFinance: React.FC = () => {
                             </div>
                         </div>
                         
-                        {/* Pagination */}
                         {filteredContributions.length > 0 && (
                             <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 shrink-0">
                                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                                    {/* Info du nombre d'affichage */}
                                     <p className="text-[10px] sm:text-xs font-medium text-gray-500 order-2 sm:order-1">
                                         Affichage de {(currentPage - 1) * itemsPerPage + 1} à {Math.min(currentPage * itemsPerPage, filteredContributions.length)} sur {filteredContributions.length} cotisations
                                     </p>
                                     
-                                    {/* Contrôles de pagination */}
                                     <div className="flex items-center gap-3 order-1 sm:order-2">
-                                        {/* Sélecteur lignes par page */}
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase">Lignes:</span>
-                                            <select
-                                                value={itemsPerPage}
-                                                onChange={(e) => {
-                                                    setItemsPerPage(Number(e.target.value));
-                                                    setCurrentPage(1);
-                                                }}
-                                                className="px-2 py-1 text-xs border border-gray-200 rounded-lg focus:border-[#E51A1A] focus:outline-none"
-                                            >
-                                                <option value={10}>10</option>
-                                                <option value={20}>20</option>
-                                                <option value={50}>50</option>
-                                                <option value={100}>100</option>
-                                            </select>
-                                        </div>
-                                        
-                                        {/* Boutons navigation */}
                                         <div className="flex items-center gap-1">
                                             <button
                                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -698,7 +685,7 @@ const AdminFinance: React.FC = () => {
                                             
                                             <div className="flex items-center gap-1">
                                                 {(() => {
-                                                    const maxVisible = 5;
+                                                    const maxVisible = isMobile ? 3 : 5;
                                                     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
                                                     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
                                                     
