@@ -266,7 +266,7 @@ public class ContributionService {
         int age = person.calculateAgeAtYear(person.getBirthDate(), year);
         MemberStatus status = person.getStatus();
         if (age >= 18 && age <= 21 && status == MemberStatus.STUDENT) {
-            return BigDecimal.valueOf(30000);
+            return BigDecimal.valueOf(20000);
         }
         return BigDecimal.valueOf(40000);
     }

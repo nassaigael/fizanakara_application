@@ -34,7 +34,7 @@ public class Person extends Users {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @NotNull(message = "Status is required")
-    private MemberStatus status = MemberStatus.STUDENT;
+    private MemberStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "district_id", nullable = false)
@@ -60,7 +60,7 @@ public class Person extends Users {
     private List<Person> children = new ArrayList<>();
 
     @Column(name = "is_active_member", nullable = false)
-    private boolean isActiveMember = false;
+    private boolean isActiveMember;
 
     @Override
     public String generatedCustomId() {
