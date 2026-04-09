@@ -24,32 +24,24 @@ const ForgotPassword: React.FC = () => {
         }
     });
 
-    // Success state – clean and minimal
+    // Success state
     if (isSubmitted) {
         return (
-            <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-                {/* Fond vitre d'eau */}
-                <div className="absolute inset-0 bg-linear-to-br from-red-800 via-red-600 to-red-900">
-                    <div
-                        className="absolute inset-0 opacity-30"
-                        style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ffffff' fill-opacity='0.3' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E")`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'bottom',
-                            backgroundRepeat: 'no-repeat'
-                        }}
-                    />
-                    <div className="absolute inset-0 backdrop-blur-[1px]"></div>
+            <div className="relative min-h-screen flex items-center justify-center p-4 bg-white">
+                <div className="absolute inset-0 bg-white" />
+                
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-500/5 rounded-full blur-3xl" />
+                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl" />
                 </div>
 
-                {/* Carte de succès */}
                 <div className="relative w-full max-w-md z-10">
-                    <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden transition-all duration-500">
+                    <div className="bg-white rounded-2xl shadow-2xl shadow-black/10 border border-gray-100 overflow-hidden">
                         <div className="p-8 text-center">
-                            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-500/30 backdrop-blur-sm border border-green-400/50 flex items-center justify-center">
-                                <AiOutlineCheckCircle size={48} className="text-green-400" />
+                            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
+                                <AiOutlineCheckCircle size={48} className="text-green-500" />
                             </div>
-                            <h2 className="text-2xl font-black text-gray-800 tracking-tight">
+                            <h2 className="text-2xl font-black text-gray-900 tracking-tight">
                                 Email envoyé !
                             </h2>
                             <p className="text-gray-500 text-sm mt-3">
@@ -59,7 +51,7 @@ const ForgotPassword: React.FC = () => {
                                 <Link to="/login">
                                     <Button
                                         variant="primary"
-                                        className="w-full py-3 text-sm font-bold bg-linear-to-r from-white/30 to-white/20 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                                        className="w-full py-3 text-sm font-bold bg-linear-to-r from-brand-primary to-orange-500 hover:from-brand-primary/90 hover:to-orange-500/90 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
                                     >
                                         <AiOutlineArrowLeft className="mr-2" />
                                         RETOUR À LA CONNEXION
@@ -74,42 +66,44 @@ const ForgotPassword: React.FC = () => {
     }
 
     return (
-        <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-            {/* Fond vitre d'eau */}
-            <div className="absolute inset-0 bg-linear-to-br from-red-800 via-red-600 to-red-900">
-                <div
-                    className="absolute inset-0 opacity-30"
-                    style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ffffff' fill-opacity='0.3' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E")`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'bottom',
-                        backgroundRepeat: 'no-repeat'
-                    }}
-                />
-                <div className="absolute inset-0 backdrop-blur-[1px]"></div>
+        <div className="relative min-h-screen flex items-center justify-center p-4 bg-white">
+            <div className="absolute inset-0 bg-white" />
+            
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-brand-primary/5 rounded-full blur-3xl" />
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-500/5 rounded-full blur-3xl" />
             </div>
-            <div className="relative w-full max-w-md z-10">
-                <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden transition-all duration-500 hover:shadow-3xl">
-                    <div className="p-8 text-center border-b border-white/10">
-                        <h1 className="text-3xl font-black text-white uppercase tracking-tighter">
-                            Mot de passe oublié ?
-                        </h1>
-                        <p className="text-white/70 font-medium text-sm uppercase tracking-widest mt-2">
-                            Entrez votre email pour recevoir un lien de réinitialisation
-                        </p>
-                    </div>
-                </div>
 
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="relative w-full max-w-md z-10">
+                <div className="bg-white rounded-2xl shadow-2xl shadow-black/10 border border-gray-100 overflow-hidden">
                     <div className="p-6 sm:p-8">
                         <div className="text-center mb-6">
-                            <h1 className="text-2xl font-black text-gray-800 tracking-tight">
-                                Mot de passe oublié ?
+                            <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-brand-primary to-orange-500 rounded-2xl shadow-lg mb-3">
+                                <svg 
+                                    width="32" 
+                                    height="32" 
+                                    viewBox="0 0 24 24" 
+                                    fill="currentColor" 
+                                    className="text-white"
+                                >
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                                    <path d="M11 5l1 1-1 1-1-1 1-1zM15 3l1 1-1 1-1-1 1-1zM18 6l1 1-1 1-1-1 1-1z" />
+                                </svg>
+                            </div>
+                            <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+                                FIZANAKARA
                             </h1>
-                            <p className="text-gray-500 text-sm mt-1">
-                                Entrez votre email pour recevoir un lien de réinitialisation
+                            <p className="text-gray-500 text-xs mt-1 font-medium">
+                                Gestion des cotisations
                             </p>
                         </div>
+
+                        <h2 className="text-center text-lg font-bold text-gray-800 mb-2">
+                            Mot de passe oublié ?
+                        </h2>
+                        <p className="text-center text-gray-500 text-xs mb-6">
+                            Entrez votre email pour recevoir un lien de réinitialisation
+                        </p>
 
                         <form onSubmit={form.handleSubmit} className="space-y-5">
                             <Input
@@ -123,7 +117,8 @@ const ForgotPassword: React.FC = () => {
                                 icon={<AiOutlineMail size={18} />}
                                 placeholder="admin@fizanakara.mg"
                                 required
-                                className="border-gray-200 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                                className="border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all"
+                                errorClassName="border-red-500 focus:border-red-500 focus:ring-red-500/20"
                             />
 
                             {form.submitError && (
@@ -138,7 +133,7 @@ const ForgotPassword: React.FC = () => {
                                 type="submit"
                                 variant="primary"
                                 isLoading={form.isSubmitting}
-                                className="w-full py-4 text-sm font-bold bg-linear-to-r from-white/30 to-white/20 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                                className="w-full py-3.5 text-sm font-bold bg-linear-to-r from-brand-primary to-orange-500 hover:from-brand-primary/90 hover:to-orange-500/90 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
                             >
                                 ENVOYER LE LIEN
                             </Button>
@@ -146,7 +141,7 @@ const ForgotPassword: React.FC = () => {
                             <div className="text-center pt-2">
                                 <Link
                                     to="/login"
-                                    className="text-xs font-medium text-gray-500 hover:text-brand-primary transition-colors uppercase tracking-wide"
+                                    className="text-xs font-medium text-gray-400 hover:text-brand-primary transition-colors uppercase tracking-wide"
                                 >
                                     Retour à la connexion
                                 </Link>
@@ -154,6 +149,10 @@ const ForgotPassword: React.FC = () => {
                         </form>
                     </div>
                 </div>
+                
+                <p className="text-center text-xs text-gray-400 mt-6">
+                    &copy; {new Date().getFullYear()} Fizanakara. Tous droits réservés.
+                </p>
             </div>
         </div>
     );
