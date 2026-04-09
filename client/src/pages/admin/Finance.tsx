@@ -38,6 +38,7 @@ const AdminFinance: React.FC = () => {
     const addYearInputRef = useRef<HTMLInputElement>(null);
     const filtersRef = useRef<HTMLDivElement>(null);
     const [isFiltersSticky, setIsFiltersSticky] = useState(false);
+    const [filtersHeight, setFiltersHeight] = useState(0);
 
     const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear || undefined);
     const { members } = useMembers();
@@ -62,16 +63,23 @@ const AdminFinance: React.FC = () => {
         fetchExistingYears();
     }, [currentYear, selectedYear]);
 
-    // Gestion du scroll pour rendre les filtres sticky
+    // Gestion du scroll pour rendre les filtres sticky en bas
     useEffect(() => {
         const handleScroll = () => {
             if (filtersRef.current) {
                 const rect = filtersRef.current.getBoundingClientRect();
-                const offsetTop = rect.top;
-                // Rendre sticky quand l'élément atteint le haut de la page (ou un offset de 80px pour la navbar)
-                setIsFiltersSticky(offsetTop <= 80);
+                const windowHeight = window.innerHeight;
+                const filtersBottom = rect.bottom;
+                
+                // Rendre sticky quand les filtres atteignent le bas de la fenêtre
+                setIsFiltersSticky(filtersBottom >= windowHeight - 50);
             }
         };
+
+        // Mesurer la hauteur des filtres
+        if (filtersRef.current) {
+            setFiltersHeight(filtersRef.current.offsetHeight);
+        }
 
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
@@ -428,41 +436,42 @@ const AdminFinance: React.FC = () => {
                 </div>
             </div>
 
-            {/* Section des filtres - Mode sticky */}
+            {/* Section des filtres - Mode sticky en bas */}
             {selectedYear && contributions.length > 0 && (
-                <div
-                    ref={filtersRef}
-                    className={`transition-all duration-300 z-20 ${isFiltersSticky
-                            ? 'fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 px-3 sm:px-4 md:px-6 py-3'
-                            : 'mt-6 sm:mt-8'
+                <>
+                    <div
+                        ref={filtersRef}
+                        className={`transition-all duration-300 z-20 ${
+                            isFiltersSticky
+                                ? 'fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-100 px-3 sm:px-4 md:px-6 py-3 animate-in slide-in-from-bottom duration-300'
+                                : 'mt-6 sm:mt-8'
                         }`}
-                    style={isFiltersSticky ? { marginLeft: 0, marginRight: 0 } : {}}
-                >
-                    <div className={`${isFiltersSticky ? 'max-w-7xl mx-auto' : ''}`}>
-                        <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5 space-y-4">
-                            <FinanceFilters
-                                statusFilter={statusFilter}
-                                setStatusFilter={setStatusFilter}
-                                typeFilter={typeFilter}
-                                setTypeFilter={setTypeFilter}
-                            />
-                            <div className="relative">
-                                <Input
-                                    placeholder="Rechercher un membre..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    icon={<AiOutlineSearch />}
-                                    className="border-gray-200 focus:border-[#E51A1A] focus:ring-2 focus:ring-[#E51A1A]/20"
+                        style={isFiltersSticky ? { marginLeft: 0, marginRight: 0 } : {}}
+                    >
+                        <div className={`${isFiltersSticky ? 'max-w-7xl mx-auto' : ''}`}>
+                            <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5 space-y-4">
+                                <FinanceFilters
+                                    statusFilter={statusFilter}
+                                    setStatusFilter={setStatusFilter}
+                                    typeFilter={typeFilter}
+                                    setTypeFilter={setTypeFilter}
                                 />
+                                <div className="relative">
+                                    <Input
+                                        placeholder="Rechercher un membre..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        icon={<AiOutlineSearch />}
+                                        className="border-gray-200 focus:border-[#E51A1A] focus:ring-2 focus:ring-[#E51A1A]/20"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
 
-            {/* Espace réservé quand les filtres sont sticky pour éviter le saut de contenu */}
-            {isFiltersSticky && selectedYear && contributions.length > 0 && (
-                <div className="h-42" />
+                    {/* Espace réservé quand les filtres sont sticky pour éviter de cacher le contenu */}
+                    {isFiltersSticky && <div className="h-42" />}
+                </>
             )}
 
             {/* Tableau des cotisations */}
