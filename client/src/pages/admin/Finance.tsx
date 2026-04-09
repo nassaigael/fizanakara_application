@@ -36,6 +36,8 @@ const AdminFinance: React.FC = () => {
 
     const actionMenuRef = useRef<HTMLDivElement>(null);
     const addYearInputRef = useRef<HTMLInputElement>(null);
+    const filtersRef = useRef<HTMLDivElement>(null);
+    const [isFiltersSticky, setIsFiltersSticky] = useState(false);
 
     const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear || undefined);
     const { members } = useMembers();
@@ -59,6 +61,21 @@ const AdminFinance: React.FC = () => {
         };
         fetchExistingYears();
     }, [currentYear, selectedYear]);
+
+    // Gestion du scroll pour rendre les filtres sticky
+    useEffect(() => {
+        const handleScroll = () => {
+            if (filtersRef.current) {
+                const rect = filtersRef.current.getBoundingClientRect();
+                const offsetTop = rect.top;
+                // Rendre sticky quand l'élément atteint le haut de la page (ou un offset de 80px pour la navbar)
+                setIsFiltersSticky(offsetTop <= 80);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -228,7 +245,7 @@ const AdminFinance: React.FC = () => {
         return (
             <div className="flex items-center justify-center h-96">
                 <div className="text-center">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-[#E51A1A] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                     <p className="font-black text-gray-500 uppercase text-xs sm:text-sm">Chargement des cotisations...</p>
                 </div>
             </div>
@@ -237,10 +254,11 @@ const AdminFinance: React.FC = () => {
 
     return (
         <div className="h-full flex flex-col px-3 sm:px-4 md:px-6 py-4 sm:py-6">
+            {/* Section header (non sticky) */}
             <div className="shrink-0 space-y-4 sm:space-y-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="p-3 sm:p-4 bg-gradient-to-r from-brand-primary to-orange-500 text-white rounded-2xl sm:rounded-3xl shadow-md">
+                        <div className="p-3 sm:p-4 bg-[#E51A1A] text-white rounded-2xl sm:rounded-3xl shadow-md">
                             <AiOutlineDollar className="w-6 h-6 sm:w-8 sm:h-8" />
                         </div>
                         <div>
@@ -257,7 +275,7 @@ const AdminFinance: React.FC = () => {
                             <select
                                 value={selectedYear || ''}
                                 onChange={handleYearChange}
-                                className="appearance-none bg-white border border-gray-200 rounded-xl sm:rounded-2xl py-2.5 sm:py-3 pl-9 sm:pl-11 pr-8 sm:pr-10 text-xs sm:text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary/20 w-full sm:min-w-32 shadow-sm"
+                                className="appearance-none bg-white border border-gray-200 rounded-xl sm:rounded-2xl py-2.5 sm:py-3 pl-9 sm:pl-11 pr-8 sm:pr-10 text-xs sm:text-sm font-black uppercase tracking-wider cursor-pointer hover:border-[#E51A1A] transition-all focus:outline-none focus:ring-2 focus:ring-[#E51A1A]/20 w-full sm:min-w-32 shadow-sm"
                             >
                                 {yearOptions.length === 0 ? (
                                     <option value="" disabled>Aucune année disponible</option>
@@ -276,7 +294,7 @@ const AdminFinance: React.FC = () => {
                             <Button
                                 variant="primary"
                                 onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-                                className="whitespace-nowrap flex items-center gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2.5 sm:py-3 shadow-sm"
+                                className="whitespace-nowrap flex items-center gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2.5 sm:py-3 shadow-sm bg-[#E51A1A] hover:bg-[#C41515]"
                                 disabled={!selectedYear && availableYears.length === 0}
                             >
                                 <AiOutlineMenu className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -306,7 +324,7 @@ const AdminFinance: React.FC = () => {
                                                     type="number"
                                                     value={newYear}
                                                     onChange={(e) => setNewYear(parseInt(e.target.value) || currentYear + 1)}
-                                                    className="w-full px-3 py-2 text-xs sm:text-sm font-black uppercase text-center border border-gray-200 rounded-xl focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                                                    className="w-full px-3 py-2 text-xs sm:text-sm font-black uppercase text-center border border-gray-200 rounded-xl focus:border-[#E51A1A] focus:outline-none focus:ring-2 focus:ring-[#E51A1A]/20"
                                                     min={2000}
                                                     max={2100}
                                                     placeholder="Année"
@@ -315,7 +333,7 @@ const AdminFinance: React.FC = () => {
                                             <div className="flex gap-2 mt-2">
                                                 <button
                                                     onClick={handleAddAndGenerateYear}
-                                                    className="flex-1 px-2 py-1 bg-green-600 text-white text-[9px] sm:text-[10px] font-black uppercase rounded-lg hover:bg-green-700"
+                                                    className="flex-1 px-2 py-1 bg-[#E51A1A] text-white text-[9px] sm:text-[10px] font-black uppercase rounded-lg hover:bg-[#C41515]"
                                                 >
                                                     Générer
                                                 </button>
@@ -360,6 +378,8 @@ const AdminFinance: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Cartes statistiques */}
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-2 sm:mt-4">
                     <div className="bg-blue-50 rounded-xl border border-blue-200 p-3 sm:p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-2 sm:mb-4">
@@ -408,26 +428,44 @@ const AdminFinance: React.FC = () => {
                 </div>
             </div>
 
+            {/* Section des filtres - Mode sticky */}
             {selectedYear && contributions.length > 0 && (
-                <div className="mt-6 sm:mt-8">
-                    <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5 space-y-4">
-                        <FinanceFilters
-                            statusFilter={statusFilter}
-                            setStatusFilter={setStatusFilter}
-                            typeFilter={typeFilter}
-                            setTypeFilter={setTypeFilter}
-                        />
-                        <div className="relative">
-                            <Input
-                                placeholder="Rechercher un membre..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                icon={<AiOutlineSearch />}
+                <div
+                    ref={filtersRef}
+                    className={`transition-all duration-300 z-20 ${isFiltersSticky
+                            ? 'fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 px-3 sm:px-4 md:px-6 py-3'
+                            : 'mt-6 sm:mt-8'
+                        }`}
+                    style={isFiltersSticky ? { marginLeft: 0, marginRight: 0 } : {}}
+                >
+                    <div className={`${isFiltersSticky ? 'max-w-7xl mx-auto' : ''}`}>
+                        <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5 space-y-4">
+                            <FinanceFilters
+                                statusFilter={statusFilter}
+                                setStatusFilter={setStatusFilter}
+                                typeFilter={typeFilter}
+                                setTypeFilter={setTypeFilter}
                             />
+                            <div className="relative">
+                                <Input
+                                    placeholder="Rechercher un membre..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    icon={<AiOutlineSearch />}
+                                    className="border-gray-200 focus:border-[#E51A1A] focus:ring-2 focus:ring-[#E51A1A]/20"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
+
+            {/* Espace réservé quand les filtres sont sticky pour éviter le saut de contenu */}
+            {isFiltersSticky && selectedYear && contributions.length > 0 && (
+                <div className="h-42" />
+            )}
+
+            {/* Tableau des cotisations */}
             <div className="flex-1 min-h-0 mt-3 sm:mt-4">
                 {!selectedYear ? (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden">
@@ -460,7 +498,7 @@ const AdminFinance: React.FC = () => {
                 ) : (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden h-full flex flex-col">
                         <div className="flex-1 overflow-auto">
-                            <table className="w-full min-w-[500px]">
+                            <table className="w-full min-w-125">
                                 <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                                     <tr>
                                         <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500">Membre</th>
@@ -488,7 +526,7 @@ const AdminFinance: React.FC = () => {
                                                                 setStatusFilter('all');
                                                                 setTypeFilter('all');
                                                             }}
-                                                            className="mt-2 text-[10px] sm:text-xs text-brand-primary hover:underline"
+                                                            className="mt-2 text-[10px] sm:text-xs text-[#E51A1A] hover:underline"
                                                         >
                                                             Effacer tous les filtres
                                                         </button>
@@ -575,7 +613,7 @@ const AdminFinance: React.FC = () => {
                                                                     setSelectedContribution(contribution);
                                                                     setIsPaymentModalOpen(true);
                                                                 }}
-                                                                className="p-1.5 sm:p-2 rounded-lg text-brand-primary hover:bg-brand-primary/10 transition-colors"
+                                                                className="p-1.5 sm:p-2 rounded-lg text-[#E51A1A] hover:bg-[#E51A1A]/10 transition-colors"
                                                                 title="Payer"
                                                             >
                                                                 <AiOutlineDollar size={18} className="sm:w-5 sm:h-5" />
