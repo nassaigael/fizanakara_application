@@ -54,9 +54,9 @@ const AdminFinance: React.FC = () => {
             const isMobileView = window.innerWidth < 640;
             setIsMobile(isMobileView);
             if (isMobileView) {
-                setItemsPerPage(3);
-            } else {
                 setItemsPerPage(5);
+            } else {
+                setItemsPerPage(6);
             }
         };
         
@@ -580,8 +580,13 @@ const AdminFinance: React.FC = () => {
                                                 const isPaid = totalPaid >= amount;
                                                 const isUnpaid = totalPaid === 0;
 
+                                                // Déterminer la couleur de fond de la ligne
+                                                const rowBgClass = isStudent 
+                                                    ? 'bg-gray-500/10' 
+                                                    : 'bg-white';
+
                                                 return (
-                                                    <tr key={contribution.id} className="hover:bg-gray-50 transition-colors">
+                                                    <tr key={contribution.id} className={`${rowBgClass} hover:bg-gray-100 transition-colors`}>
                                                         <td className="px-3 sm:px-4 py-3 sm:py-4">
                                                             <div className="flex items-center gap-2 sm:gap-3">
                                                                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
@@ -670,7 +675,7 @@ const AdminFinance: React.FC = () => {
                             <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 shrink-0">
                                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                                     <p className="text-[10px] sm:text-xs font-medium text-gray-500 order-2 sm:order-1">
-                                        Affichage de {(currentPage - 1) * itemsPerPage + 1} à {Math.min(currentPage * itemsPerPage, filteredContributions.length)} sur {filteredContributions.length} cotisations
+                                        Affichage de {(currentPage - 1) * itemsPerPage + 1} à {Math.min(currentPage * itemsPerPage, filteredContributions.length)}/{filteredContributions.length} cotisations
                                     </p>
                                     
                                     <div className="flex items-center gap-3 order-1 sm:order-2">
