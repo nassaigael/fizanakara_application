@@ -8,7 +8,9 @@ import {
     AiOutlineDown,
     AiOutlineReload,
     AiOutlinePlusCircle,
-    AiOutlineMenu
+    AiOutlineMenu,
+    AiOutlineLeft,
+    AiOutlineRight
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
@@ -33,6 +35,10 @@ const AdminFinance: React.FC = () => {
     const [typeFilter, setTypeFilter] = useState('all');
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedContribution, setSelectedContribution] = useState<any>(null);
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(20);
 
     const actionMenuRef = useRef<HTMLDivElement>(null);
     const addYearInputRef = useRef<HTMLInputElement>(null);
@@ -62,6 +68,11 @@ const AdminFinance: React.FC = () => {
         };
         fetchExistingYears();
     }, [currentYear, selectedYear]);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter, typeFilter, selectedYear]);
 
     // Gestion du scroll pour rendre les filtres sticky en bas
     useEffect(() => {
@@ -140,6 +151,14 @@ const AdminFinance: React.FC = () => {
             return true;
         });
     }, [contributions, members, searchTerm, statusFilter, typeFilter, selectedYear]);
+
+    // Pagination logic
+    const totalPages = Math.ceil(filteredContributions.length / itemsPerPage);
+    const paginatedContributions = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return filteredContributions.slice(startIndex, endIndex);
+    }, [filteredContributions, currentPage, itemsPerPage]);
 
     const stats = useMemo(() => {
         const totalAmount = filteredContributions.reduce((sum, c) => sum + (c.amount || 0), 0);
@@ -519,7 +538,7 @@ const AdminFinance: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
-                                        {filteredContributions.length === 0 ? (
+                                        {paginatedContributions.length === 0 ? (
                                             <tr>
                                                 <td colSpan={7} className="px-3 sm:px-4 py-8 sm:py-12 text-center">
                                                     <div className="flex flex-col items-center justify-center gap-2">
@@ -543,7 +562,7 @@ const AdminFinance: React.FC = () => {
                                                 </td>
                                             </tr>
                                         ) : (
-                                            filteredContributions.map((contribution) => {
+                                            paginatedContributions.map((contribution) => {
                                                 const member = members.find(m => m.id === contribution.memberId);
                                                 const isStudent = member?.status === 'STUDENT';
                                                 const totalPaid = contribution.totalPaid ?? 0;
@@ -637,11 +656,87 @@ const AdminFinance: React.FC = () => {
                                 </table>
                             </div>
                         </div>
+                        
+                        {/* Pagination */}
                         {filteredContributions.length > 0 && (
-                            <div className="px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border-t border-gray-200 shrink-0">
-                                <p className="text-[8px] sm:text-[10px] font-black text-gray-400 uppercase">
-                                    Affichage de {filteredContributions.length} / {contributions.length} cotisations
-                                </p>
+                            <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 shrink-0">
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    {/* Info du nombre d'affichage */}
+                                    <p className="text-[10px] sm:text-xs font-medium text-gray-500 order-2 sm:order-1">
+                                        Affichage de {(currentPage - 1) * itemsPerPage + 1} à {Math.min(currentPage * itemsPerPage, filteredContributions.length)} sur {filteredContributions.length} cotisations
+                                    </p>
+                                    
+                                    {/* Contrôles de pagination */}
+                                    <div className="flex items-center gap-3 order-1 sm:order-2">
+                                        {/* Sélecteur lignes par page */}
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase">Lignes:</span>
+                                            <select
+                                                value={itemsPerPage}
+                                                onChange={(e) => {
+                                                    setItemsPerPage(Number(e.target.value));
+                                                    setCurrentPage(1);
+                                                }}
+                                                className="px-2 py-1 text-xs border border-gray-200 rounded-lg focus:border-[#E51A1A] focus:outline-none"
+                                            >
+                                                <option value={10}>10</option>
+                                                <option value={20}>20</option>
+                                                <option value={50}>50</option>
+                                                <option value={100}>100</option>
+                                            </select>
+                                        </div>
+                                        
+                                        {/* Boutons navigation */}
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                                disabled={currentPage === 1}
+                                                className="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                <AiOutlineLeft size={14} />
+                                            </button>
+                                            
+                                            <div className="flex items-center gap-1">
+                                                {(() => {
+                                                    const maxVisible = 5;
+                                                    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                                                    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+                                                    
+                                                    if (endPage - startPage + 1 < maxVisible) {
+                                                        startPage = Math.max(1, endPage - maxVisible + 1);
+                                                    }
+                                                    
+                                                    const pages = [];
+                                                    for (let i = startPage; i <= endPage; i++) {
+                                                        pages.push(i);
+                                                    }
+                                                    
+                                                    return pages.map(page => (
+                                                        <button
+                                                            key={page}
+                                                            onClick={() => setCurrentPage(page)}
+                                                            className={`min-w-8 h-8 px-2 text-xs font-bold rounded-lg transition-colors ${
+                                                                currentPage === page
+                                                                    ? 'bg-[#E51A1A] text-white'
+                                                                    : 'text-gray-600 hover:bg-gray-100'
+                                                            }`}
+                                                        >
+                                                            {page}
+                                                        </button>
+                                                    ));
+                                                })()}
+                                            </div>
+                                            
+                                            <button
+                                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                                disabled={currentPage === totalPages}
+                                                className="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                <AiOutlineRight size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
