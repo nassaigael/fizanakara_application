@@ -138,7 +138,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onEdit, onDelete, onVie
                 <div className="mb-3 text-center">
                     <h3 className="font-black text-base uppercase tracking-tight">
                         {member.lastName}{' '}
-                        <span className={`bg-linear-to-r ${couleursCouverture[estHomme ? 'male' : 'female']} bg-clip-text text-transparent`}>
+                        <span className={`text-black capitalize`}>
                             {member.firstName}
                         </span>
                     </h3>

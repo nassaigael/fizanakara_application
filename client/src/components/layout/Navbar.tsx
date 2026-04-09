@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
-    AiOutlineMenu, 
     AiOutlineBell, 
     AiOutlineUser, 
     AiOutlineSetting,
     AiOutlineCrown,
     AiOutlineDown,
-    AiOutlineLogout,
-    AiOutlineClose
+    AiOutlineLogout
 } from 'react-icons/ai';
 import { getImageUrl } from '../../lib/constant/constant';
 
@@ -20,7 +18,6 @@ interface NavbarProps {
 const Navbar = ({ }: NavbarProps) => {
     const { user, isSuperAdmin, logout } = useAuth();
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
@@ -63,15 +60,6 @@ const Navbar = ({ }: NavbarProps) => {
                 <div className="absolute inset-0 bg-linear-to-r from-brand-primary/5 via-transparent to-orange-500/5 pointer-events-none" />
                 
                 <div className="relative flex items-center gap-3">
-                    {/* Menu mobile button */}
-                    <button
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="md:hidden p-2 rounded-xl transition-all text-brand-muted hover:text-brand-primary hover:bg-white/50 backdrop-blur-sm"
-                        aria-label="Menu"
-                    >
-                        {isMobileMenuOpen ? <AiOutlineClose size={22} /> : <AiOutlineMenu size={22} />}
-                    </button>
-
                     <div className="flex items-center gap-2 md:gap-3">
                         <div className="p-1.5 md:p-2 rounded-xl bg-linear-to-br from-brand-primary/10 to-orange-500/10">
                             <Logo />
@@ -211,96 +199,6 @@ const Navbar = ({ }: NavbarProps) => {
                     </div>
                 </div>
             </header>
-
-            {/* Mobile Sidebar Menu - Glassmorphism */}
-            {isMobileMenuOpen && (
-                <>
-                    <div 
-                        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                    />
-                    <div className="fixed left-0 top-16 bottom-0 w-64 bg-white/90 backdrop-blur-xl border-r border-white/30 shadow-2xl z-50 animate-in slide-in-from-left duration-300">
-                        <div className="absolute inset-0 bg-linear-to-b from-white/40 to-white/10 pointer-events-none" />
-                        
-                        <div className="relative p-4 border-b border-white/30">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-primary to-orange-500 text-white flex items-center justify-center font-bold text-sm overflow-hidden shadow-lg">
-                                    {hasImage ? (
-                                        <img
-                                            src={getImageUrl(user?.imageUrl, 'admin')}
-                                            alt={user?.firstName}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).style.display = 'none';
-                                                (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
-                                            }}
-                                        />
-                                    ) : (
-                                        getInitials()
-                                    )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-gray-800 truncate">{user?.firstName} {user?.lastName}</p>
-                                    <p className="text-[9px] text-gray-500 truncate">{user?.email}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <nav className="relative p-4 space-y-2">
-                            <NavLink
-                                to={isSuperAdmin ? '/superadmin/dashboard' : '/admin/dashboard'}
-                                className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/50 backdrop-blur-sm text-gray-600 hover:text-brand-primary transition-all duration-200"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                                <AiOutlineUser size={18} />
-                                <span className="font-medium text-sm">Dashboard</span>
-                            </NavLink>
-                            
-                            {!isSuperAdmin && (
-                                <>
-                                    <NavLink
-                                        to="/admin/members"
-                                        className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/50 backdrop-blur-sm text-gray-600 hover:text-brand-primary transition-all duration-200"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                    >
-                                        <AiOutlineUser size={18} />
-                                        <span className="font-medium text-sm">Membres</span>
-                                    </NavLink>
-                                    <NavLink
-                                        to="/admin/finance"
-                                        className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/50 backdrop-blur-sm text-gray-600 hover:text-brand-primary transition-all duration-200"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                    >
-                                        <AiOutlineUser size={18} />
-                                        <span className="font-medium text-sm">Finance</span>
-                                    </NavLink>
-                                </>
-                            )}
-
-                            {isSuperAdmin && (
-                                <NavLink
-                                    to="/superadmin/management"
-                                    className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/50 backdrop-blur-sm text-gray-600 hover:text-brand-primary transition-all duration-200"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                    <AiOutlineSetting size={18} />
-                                    <span className="font-medium text-sm">Gestion</span>
-                                </NavLink>
-                            )}
-
-                            <div className="h-px bg-linear-to-r from-transparent via-gray-200 to-transparent my-3" />
-
-                            <button
-                                onClick={() => { logout(); setIsMobileMenuOpen(false); }}
-                                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-red-50/80 backdrop-blur-sm text-red-500 transition-all duration-200"
-                            >
-                                <AiOutlineLogout size={18} />
-                                <span className="font-medium text-sm">Déconnexion</span>
-                            </button>
-                        </nav>
-                    </div>
-                </>
-            )}
         </>
     );
 };
