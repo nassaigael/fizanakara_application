@@ -1,84 +1,54 @@
-import React, { useState, forwardRef, memo } from "react";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label?: string;
-    icon?: React.ReactNode;
     error?: string;
-    containerClassName?: string;
+    icon?: React.ReactNode;
+    className?: string;
+    errorClassName?: string;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(({
+const Input: React.FC<InputProps> = ({
     label,
-    type = "text",
-    icon,
-    name,
     error,
-    containerClassName = "",
-    className = "",
+    icon,
+    className = '',
+    errorClassName = '',
     ...props
-}, ref) => {
-    const [showPassword, setShowPassword] = useState(false);
-    const isPassword = type === "password";
-    const currentType = isPassword && showPassword ? "text" : type;
-
+}) => {
+    const hasError = !!error;
+    
     return (
-        <div className={`flex flex-col gap-2 ${containerClassName}`}>
+        <div className="w-full">
             {label && (
-                <label 
-                    htmlFor={name} 
-                    className="text-[11px] font-black uppercase tracking-[0.15em] text-brand-muted ml-1"
-                >
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                     {label}
                 </label>
             )}
-
-            <div className="relative group">
+            <div className="relative">
                 {icon && (
-                    <div className="absolute inset-y-0 left-4 flex items-center text-brand-muted group-focus-within:text-brand-primary">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                         {icon}
                     </div>
                 )}
-
                 <input
-                    ref={ref}
-                    id={name}
-                    name={name}
-                    type={currentType}
                     className={`
-                        w-full p-4 ${icon ? "pl-12" : "px-5"} 
-                        bg-white border-2 border-b-4 
-                        rounded-2xl font-bold text-sm text-brand-text 
-                        outline-none transition
-                        ${error ? "border-brand-primary" : "border-brand-border"} 
-                        focus:border-brand-primary 
-                        placeholder:text-brand-muted/40
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                        ${className}
+                        w-full px-3 py-2.5 rounded-xl border-2 bg-white text-gray-800
+                        transition-all duration-200 outline-none
+                        ${icon ? 'pl-9' : 'pl-3'}
+                        ${hasError 
+                            ? `border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 ${errorClassName}` 
+                            : `border-gray-200 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 ${className}`
+                        }
                     `}
                     {...props}
                 />
-                
-                {isPassword && (
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-4 text-brand-muted hover:text-brand-primary transition-colors"
-                        aria-label={showPassword ? "Cacher le mot de passe" : "Afficher le mot de passe"}
-                    >
-                        {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
-                    </button>
-                )}
             </div>
-            
-            {error && (
-                <span className="text-[10px] font-black uppercase tracking-wide text-brand-primary ml-2">
+            {hasError && (
+                <p className="text-red-500 text-xs font-medium mt-1.5 ml-1">
                     {error}
-                </span>
+                </p>
             )}
         </div>
     );
-});
+};
 
-Input.displayName = "Input";
-export default memo(Input);
+export default Input;
