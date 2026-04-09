@@ -59,7 +59,7 @@ const AdminFinance: React.FC = () => {
                 setItemsPerPage(6);
             }
         };
-        
+
         checkMobile();
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
@@ -95,7 +95,7 @@ const AdminFinance: React.FC = () => {
                 const rect = filtersRef.current.getBoundingClientRect();
                 const windowHeight = window.innerHeight;
                 const filtersBottom = rect.bottom;
-                
+
                 setIsFiltersSticky(filtersBottom >= windowHeight - 50);
             }
         };
@@ -417,50 +417,30 @@ const AdminFinance: React.FC = () => {
                 </div>
 
                 {/* Cartes statistiques */}
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-2 sm:mt-4">
-                    <div className="bg-blue-50 rounded-xl border border-blue-200 p-3 sm:p-5 shadow-sm">
-                        <div className="flex items-center justify-between mb-2 sm:mb-4">
-                            <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100">
-                                <AiOutlineDollar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                            </div>
-                        </div>
-                        <p className="text-lg sm:text-2xl font-bold text-blue-600 mb-0.5 sm:mb-1">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mt-2 sm:mt-4">
+                    <div className="bg-[#E51A1A]/10 rounded-xl border border-[#E51A1A]/20 p-2 sm:p-3">
+                        <p className="text-lg sm:text-xl font-bold text-[#E51A1A] mb-0.5">
                             {formatCurrency(stats.totalAmount)}
                         </p>
-                        <p className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Total dû</p>
+                        <p className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-wide">Total dû</p>
                     </div>
-                    <div className="bg-green-50 rounded-xl border border-green-200 p-3 sm:p-5 shadow-sm">
-                        <div className="flex items-center justify-between mb-2 sm:mb-4">
-                            <div className="p-1.5 sm:p-2 rounded-lg bg-green-100">
-                                <AiOutlineCheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-                            </div>
-                        </div>
-                        <p className="text-lg sm:text-2xl font-bold text-green-600 mb-0.5 sm:mb-1">
+                    <div className="bg-[#E51A1A]/10 rounded-xl border border-[#E51A1A]/20 p-2 sm:p-3">
+                        <p className="text-lg sm:text-xl font-bold text-[#E51A1A] mb-0.5">
                             {formatCurrency(stats.totalPaid)}
                         </p>
-                        <p className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Total payé</p>
+                        <p className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-wide">Total payé</p>
                     </div>
-                    <div className="bg-red-50 rounded-xl border border-red-200 p-3 sm:p-5 shadow-sm">
-                        <div className="flex items-center justify-between mb-2 sm:mb-4">
-                            <div className="p-1.5 sm:p-2 rounded-lg bg-red-100">
-                                <AiOutlineWarning className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
-                            </div>
-                        </div>
-                        <p className="text-lg sm:text-2xl font-bold text-red-600 mb-0.5 sm:mb-1">
+                    <div className="bg-[#E51A1A]/10 rounded-xl border border-[#E51A1A]/20 p-2 sm:p-3">
+                        <p className="text-lg sm:text-xl font-bold text-[#E51A1A] mb-0.5">
                             {formatCurrency(stats.remaining)}
                         </p>
-                        <p className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Reste à payer</p>
+                        <p className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-wide">Reste à payer</p>
                     </div>
-                    <div className="bg-purple-50 rounded-xl border border-purple-200 p-3 sm:p-5 shadow-sm">
-                        <div className="flex items-center justify-between mb-2 sm:mb-4">
-                            <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100">
-                                <AiOutlineSearch className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                            </div>
-                        </div>
-                        <p className="text-lg sm:text-2xl font-bold text-purple-600 mb-0.5 sm:mb-1">
+                    <div className="bg-[#E51A1A]/10 rounded-xl border border-[#E51A1A]/20 p-2 sm:p-3">
+                        <p className="text-lg sm:text-xl font-bold text-[#E51A1A] mb-0.5">
                             {stats.paymentRate.toFixed(1)}%
                         </p>
-                        <p className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Taux de paiement</p>
+                        <p className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-wide">Taux de paiement</p>
                     </div>
                 </div>
             </div>
@@ -469,11 +449,10 @@ const AdminFinance: React.FC = () => {
                 <>
                     <div
                         ref={filtersRef}
-                        className={`transition-all duration-300 z-20 ${
-                            isFiltersSticky
-                                ? 'fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-100 px-3 sm:px-4 md:px-6 py-3 animate-in slide-in-from-bottom duration-300'
-                                : 'mt-6 sm:mt-8'
-                        }`}
+                        className={`transition-all duration-300 z-20 ${isFiltersSticky
+                            ? 'fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-100 px-3 sm:px-4 md:px-6 py-3 animate-in slide-in-from-bottom duration-300'
+                            : 'mt-6 sm:mt-8'
+                            }`}
                         style={isFiltersSticky ? { marginLeft: 0, marginRight: 0 } : {}}
                     >
                         <div className={`${isFiltersSticky ? 'max-w-7xl mx-auto' : ''}`}>
@@ -581,8 +560,8 @@ const AdminFinance: React.FC = () => {
                                                 const isUnpaid = totalPaid === 0;
 
                                                 // Déterminer la couleur de fond de la ligne
-                                                const rowBgClass = isStudent 
-                                                    ? 'bg-gray-500/10' 
+                                                const rowBgClass = isStudent
+                                                    ? 'bg-gray-500/10'
                                                     : 'bg-white';
 
                                                 return (
@@ -622,13 +601,12 @@ const AdminFinance: React.FC = () => {
                                                             {contribution.year}
                                                         </td>
                                                         <td className="px-3 sm:px-4 py-3 sm:py-4">
-                                                            <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[7px] sm:text-[8px] font-black uppercase whitespace-nowrap ${
-                                                                isPaid
-                                                                    ? 'bg-green-100 text-green-600'
-                                                                    : isUnpaid
-                                                                        ? 'bg-red-100 text-red-600'
-                                                                        : 'bg-orange-100 text-orange-600'
-                                                            }`}>
+                                                            <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[7px] sm:text-[8px] font-black uppercase whitespace-nowrap ${isPaid
+                                                                ? 'bg-green-100 text-green-600'
+                                                                : isUnpaid
+                                                                    ? 'bg-red-100 text-red-600'
+                                                                    : 'bg-orange-100 text-orange-600'
+                                                                }`}>
                                                                 {isPaid ? 'Payé' : isUnpaid ? 'Impayé' : 'Partiel'}
                                                             </span>
                                                         </td>
@@ -670,14 +648,14 @@ const AdminFinance: React.FC = () => {
                                 </table>
                             </div>
                         </div>
-                        
+
                         {filteredContributions.length > 0 && (
                             <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 shrink-0">
                                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                                     <p className="text-[10px] sm:text-xs font-medium text-gray-500 order-2 sm:order-1">
                                         Affichage de {(currentPage - 1) * itemsPerPage + 1} à {Math.min(currentPage * itemsPerPage, filteredContributions.length)}/{filteredContributions.length} cotisations
                                     </p>
-                                    
+
                                     <div className="flex items-center gap-3 order-1 sm:order-2">
                                         <div className="flex items-center gap-1">
                                             <button
@@ -687,38 +665,37 @@ const AdminFinance: React.FC = () => {
                                             >
                                                 <AiOutlineLeft size={14} />
                                             </button>
-                                            
+
                                             <div className="flex items-center gap-1">
                                                 {(() => {
                                                     const maxVisible = isMobile ? 3 : 5;
                                                     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
                                                     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-                                                    
+
                                                     if (endPage - startPage + 1 < maxVisible) {
                                                         startPage = Math.max(1, endPage - maxVisible + 1);
                                                     }
-                                                    
+
                                                     const pages = [];
                                                     for (let i = startPage; i <= endPage; i++) {
                                                         pages.push(i);
                                                     }
-                                                    
+
                                                     return pages.map(page => (
                                                         <button
                                                             key={page}
                                                             onClick={() => setCurrentPage(page)}
-                                                            className={`min-w-8 h-8 px-2 text-xs font-bold rounded-lg transition-colors ${
-                                                                currentPage === page
-                                                                    ? 'bg-[#E51A1A] text-white'
-                                                                    : 'text-gray-600 hover:bg-gray-100'
-                                                            }`}
+                                                            className={`min-w-8 h-8 px-2 text-xs font-bold rounded-lg transition-colors ${currentPage === page
+                                                                ? 'bg-[#E51A1A] text-white'
+                                                                : 'text-gray-600 hover:bg-gray-100'
+                                                                }`}
                                                         >
                                                             {page}
                                                         </button>
                                                     ));
                                                 })()}
                                             </div>
-                                            
+
                                             <button
                                                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                                 disabled={currentPage === totalPages}
