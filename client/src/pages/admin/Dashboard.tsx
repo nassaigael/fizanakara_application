@@ -68,7 +68,6 @@ const AdminDashboard: React.FC = () => {
         const totalDue = contributions.reduce((sum, c) => sum + (c.amount || 0), 0);
         const totalPaid = contributions.reduce((sum, c) => sum + (c.totalPaid || 0), 0);
 
-        // Calcul des membres à risque (retards critiques)
         const today = new Date();
         const currentMonth = today.getMonth();
 
@@ -105,7 +104,6 @@ const AdminDashboard: React.FC = () => {
         };
     }, [members, contributions]);
 
-    // Récupérer les années disponibles depuis les cotisations
     useEffect(() => {
         const fetchYears = async () => {
             try {
@@ -175,10 +173,9 @@ const AdminDashboard: React.FC = () => {
 
     return (
         <div className="space-y-6 md:space-y-8">
-            {/* En-tête */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3 md:gap-4">
-                    <div className="p-3 md:p-4 bg-[#E51A1A] text-white rounded-2xl md:rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="p-3 md:p-4 bg-[#E51A1A] text-white rounded-2xl md:rounded-3xl border-2 border-black shadow-md">
                         <AiOutlineRise size={24} className="md:w-8 md:h-8" />
                     </div>
                     <div>
@@ -222,74 +219,48 @@ const AdminDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Cartes statistiques - Couleurs différentes, centrées, ombre en bas */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                {/* Carte Membres - Bleu */}
-                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 shadow-[0_8px_0_0_#1e3a5f] text-center">
-                    <div className="flex justify-center mb-3">
-                        <div className="p-2 rounded-xl bg-white/20">
-                            <AiOutlineTeam size={20} className="text-white" />
-                        </div>
-                    </div>
-                    <p className="font-black text-white text-2xl sm:text-3xl">{stats.totalMembers}</p>
-                    <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-1">Membres</p>
-                    <div className="mt-2 pt-2 border-t border-white/20">
-                        <p className="text-white/70 text-[11px] font-medium">
-                            <span className="font-black text-base">{stats.activeMembers}</span> actifs
+                <div className="bg-linear-to-br from-blue-600 to-blue-700 rounded-xl p-5 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 text-center border border-blue-400/30">
+                    <p className="font-black text-white text-3xl sm:text-4xl">{stats.totalMembers}</p>
+                    <p className="font-bold text-blue-200 text-[11px] uppercase tracking-wider mt-2">Membres</p>
+                    <div className="mt-3 pt-3 border-t border-blue-400/30">
+                        <p className="text-blue-200 text-xs font-medium">
+                            <span className="font-black text-white text-base">{stats.activeMembers}</span> actifs
                         </p>
                     </div>
                 </div>
 
-                {/* Carte Étudiants - Violet */}
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 shadow-[0_8px_0_0_#4a1d6b] text-center">
-                    <div className="flex justify-center mb-3">
-                        <div className="p-2 rounded-xl bg-white/20">
-                            <AiOutlineFileText size={20} className="text-white" />
-                        </div>
-                    </div>
-                    <p className="font-black text-white text-2xl sm:text-3xl">{stats.students}</p>
-                    <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-1">Étudiants</p>
-                    <div className="mt-2 pt-2 border-t border-white/20">
-                        <p className="text-white/70 text-[11px] font-medium">
-                            <span className="font-black text-base">{stats.totalMembers > 0 ? ((stats.students / stats.totalMembers) * 100).toFixed(1) : 0}%</span> du total
+                <div className="bg-linear-to-br from-pink-600 to-pink-700 rounded-xl p-5 shadow-lg shadow-pink-500/30 hover:shadow-xl hover:shadow-pink-500/40 transition-all duration-300 text-center border border-pink-400/30">
+                    <p className="font-black text-white text-3xl sm:text-4xl">{stats.students}</p>
+                    <p className="font-bold text-pink-200 text-[11px] uppercase tracking-wider mt-2">Étudiants</p>
+                    <div className="mt-3 pt-3 border-t border-pink-400/30">
+                        <p className="text-pink-200 text-xs font-medium">
+                            <span className="font-black text-white text-base">{stats.totalMembers > 0 ? ((stats.students / stats.totalMembers) * 100).toFixed(1) : 0}%</span> du total
                         </p>
                     </div>
                 </div>
 
-                {/* Carte Travailleurs - Orange */}
-                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 shadow-[0_8px_0_0_#8b4513] text-center">
-                    <div className="flex justify-center mb-3">
-                        <div className="p-2 rounded-xl bg-white/20">
-                            <AiOutlineTeam size={20} className="text-white" />
-                        </div>
-                    </div>
-                    <p className="font-black text-white text-2xl sm:text-3xl">{stats.workers}</p>
-                    <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-1">Travailleurs</p>
-                    <div className="mt-2 pt-2 border-t border-white/20">
-                        <p className="text-white/70 text-[11px] font-medium">
-                            <span className="font-black text-base">{stats.totalMembers > 0 ? ((stats.workers / stats.totalMembers) * 100).toFixed(1) : 0}%</span> du total
+                <div className="bg-linear-to-br from-cyan-600 to-cyan-700 rounded-xl p-5 shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 transition-all duration-300 text-center border border-cyan-400/30">
+                    <p className="font-black text-white text-3xl sm:text-4xl">{stats.workers}</p>
+                    <p className="font-bold text-cyan-200 text-[11px] uppercase tracking-wider mt-2">Travailleurs</p>
+                    <div className="mt-3 pt-3 border-t border-cyan-400/30">
+                        <p className="text-cyan-200 text-xs font-medium">
+                            <span className="font-black text-white text-base">{stats.totalMembers > 0 ? ((stats.workers / stats.totalMembers) * 100).toFixed(1) : 0}%</span> du total
                         </p>
                     </div>
                 </div>
 
-                {/* Carte Cotisations - Vert */}
-                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 shadow-[0_8px_0_0_#1b5e20] text-center">
-                    <div className="flex justify-center mb-3">
-                        <div className="p-2 rounded-xl bg-white/20">
-                            <AiOutlineDollar size={20} className="text-white" />
-                        </div>
-                    </div>
+                <div className="bg-linear-to-br from-rose-600 to-rose-700 rounded-xl p-5 shadow-lg shadow-rose-500/30 hover:shadow-xl hover:shadow-rose-500/40 transition-all duration-300 text-center border border-rose-400/30">
                     <p className="font-black text-white text-xl sm:text-2xl">{formatCurrency(stats.totalDue)}</p>
-                    <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-1">Cotisations</p>
-                    <div className="mt-2 pt-2 border-t border-white/20">
-                        <p className="text-white/70 text-[11px] font-medium">
-                            Année <span className="font-black text-base">{selectedYear}</span>
+                    <p className="font-bold text-rose-200 text-[11px] uppercase tracking-wider mt-2">Cotisations</p>
+                    <div className="mt-3 pt-3 border-t border-rose-400/30">
+                        <p className="text-rose-200 text-xs font-medium">
+                            Année <span className="font-black text-white text-base">{selectedYear}</span>
                         </p>
                     </div>
                 </div>
             </div>
 
-            {/* Graphique de collecte annuelle */}
             <AnnualCollectionChart
                 selectedYear={selectedYear}
                 totalPaid={stats.totalPaid}
@@ -298,9 +269,7 @@ const AdminDashboard: React.FC = () => {
                 monthlyData={monthlyData}
             />
 
-            {/* Layout deux colonnes */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                {/* Section Retards Critiques */}
                 <div className="lg:col-span-2 bg-white rounded-2xl md:rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden">
                     <div className="bg-[#E51A1A] px-4 py-3 md:px-6 md:py-4">
                         <div className="flex items-center justify-between">
@@ -350,7 +319,6 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Actions rapides */}
                 <div className="bg-[#E51A1A] rounded-2xl md:rounded-3xl border-2 border-black p-4 md:p-6 text-white">
                     <div className="flex items-center gap-2 mb-4 md:mb-6">
                         <div className="p-1.5 bg-white/20 rounded-lg">
