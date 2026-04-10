@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
-import PasswordModal from '../profile/PasswordModal'; 
+import PasswordModal from '../profile/PasswordModal';
 import { AiOutlineLock } from 'react-icons/ai';
 
 const SecuritySection: React.FC = () => {
@@ -13,15 +13,18 @@ const SecuritySection: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg sm:text-xl font-black uppercase tracking-wider flex items-center gap-2 mb-2">
-            <AiOutlineLock className="text-red-500" size={18} />
+            <AiOutlineLock className="text-[#E51A1A]" size={18} />
             SÉCURITÉ & MOT DE PASSE
           </h2>
           <p className="text-gray-500 text-xs sm:text-sm">
             Gérez votre mot de passe et les paramètres de sécurité de votre compte.
           </p>
         </div>
-        <Button variant="secondary" onClick={() => setIsPasswordModalOpen(true)} className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-black w-full sm:w-auto">
-          <AiOutlineLock size={16} /> CHANGER LE MOT DE PASSE
+        <Button
+          onClick={() => setIsPasswordModalOpen(true)}
+          className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-black w-full sm:w-auto border-2 border-[#E51A1A] text-[#E51A1A] hover:bg-[#E51A1A] hover:text-white transition-all duration-200"
+        >
+          CHANGER LE MOT DE PASSE
         </Button>
       </div>
       <PasswordModal isOpen={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} onSave={async (newPassword) => { await updateProfile({ password: newPassword }); }} />
