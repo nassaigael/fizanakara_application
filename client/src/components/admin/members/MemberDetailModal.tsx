@@ -45,11 +45,12 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     onViewParent
 }) => {
     const [activeTab, setActiveTab] = useState<'info' | 'payments' | 'family'>('info');
+    const [isAnimating, setIsAnimating] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    
+
     const { contributions } = useFinance(member?.id);
     const { members } = useMembers();
-    
+
     const memberContributions = contributions.filter(c => c.memberId === member?.id);
     const parentMember = member?.parentId ? members.find(m => m.id === member.parentId) : null;
 
@@ -89,21 +90,249 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         return id;
     };
 
-    // Obtenir les initiales pour le fallback
     const getMemberInitials = () => {
         return getInitials(member.firstName, member.lastName);
     };
 
+    const handleTabChange = (tab: 'info' | 'payments' | 'family') => {
+        if (tab === activeTab || isAnimating) return;
+
+        setIsAnimating(true);
+        setTimeout(() => {
+            setActiveTab(tab);
+            setTimeout(() => {
+                setIsAnimating(false);
+            }, 150);
+        }, 150);
+    };
+
+    const renderContent = () => {
+        const baseClasses = "transition-all duration-300 transform";
+        const animationClasses = isAnimating
+            ? "opacity-0 scale-95 -translate-y-2"
+            : "opacity-100 scale-100 translate-y-0";
+
+        return (
+            <div className={`${baseClasses} ${animationClasses}`}>
+                {activeTab === 'info' && (
+                    <div className="space-y-6">
+                        <div className="flex items-start gap-6 pb-6 border-b border-gray-100">
+                            <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shadow-sm">
+                                {avatarUrl ? (
+                                    <img
+                                        src={avatarUrl}
+                                        alt={member.firstName}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <span className={`text-3xl font-black ${isMale ? 'text-blue-500' : 'text-pink-500'}`}>
+                                        {getInitials(member.firstName, member.lastName)}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase ${member.status === MemberStatus.WORKER
+                                            ? 'bg-purple-100 text-purple-700'
+                                            : 'bg-amber-100 text-amber-700'
+                                        }`}>
+                                        {member.status === MemberStatus.WORKER ? 'Travailleur' : 'Étudiant'}
+                                    </span>
+                                    <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase ${member.isActiveMember
+                                            ? 'bg-[#E51A1A]/10 text-[#E51A1A]'
+                                            : 'bg-gray-100 text-gray-600'
+                                        }`}>
+                                        {member.isActiveMember ? 'Actif' : 'Inactif'}
+                                    </span>
+                                </div>
+                                <p className="text-gray-500 text-xs">
+                                    <AiOutlineCalendar size={12} className="inline mr-1" />
+                                    Né(e) le {formatDate(member.birthDate)} • {age} ans
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <InfoField label="ID Membre" value={formatMemberId(member.id)} icon={<AiOutlineIdcard size={14} />} />
+                            <InfoField label="Genre" value={isMale ? 'Homme' : 'Femme'} icon={isMale ? <AiOutlineMan size={14} /> : <AiOutlineWoman size={14} />} />
+                            <InfoField label="Téléphone" value={member.phoneNumber || 'Non fourni'} icon={<AiOutlinePhone size={14} />} />
+                            <InfoField label="District" value={member.districtName} icon={<AiOutlineGlobal size={14} />} />
+                            <InfoField label="Tribu" value={member.tributeName} icon={<AiOutlineFlag size={14} />} />
+                            <InfoField
+                                label="Statut"
+                                value={member.status === MemberStatus.WORKER ? 'Travailleur' : 'Étudiant'}
+                                icon={member.status === MemberStatus.WORKER ? <AiOutlineRise size={14} /> : <AiOutlineBook size={14} />}
+                            />
+                            <InfoField label="Enfants" value={`${member.childrenCount || 0} enfant(s)`} icon={<AiOutlineTeam size={14} />} />
+                        </div>
+
+                        {member.parentName && member.parentId && (
+                            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Parent</h4>
+                                <div
+                                    onClick={() => onViewParent?.(member.parentId!)}
+                                    className="flex items-center justify-between cursor-pointer hover:bg-white p-2 rounded-lg transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
+                                            {parentImageUrl ? (
+                                                <img src={parentImageUrl} alt="Parent" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-xs font-bold text-gray-500">
+                                                    {getInitials(member.parentName.split(' ')[0] || '', member.parentName.split(' ')[1] || '')}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-sm">{member.parentName}</p>
+                                            <p className="text-[10px] text-gray-400">{formatMemberId(member.parentId)}</p>
+                                        </div>
+                                    </div>
+                                    <AiOutlineArrowRight size={14} className="text-gray-400" />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'payments' && (
+                    <div>
+                        {memberContributions.length === 0 ? (
+                            <div className="text-center py-12 bg-gray-50 rounded-lg">
+                                <AiOutlineDollar size={40} className="mx-auto text-gray-300 mb-3" />
+                                <p className="text-gray-400 font-medium">Aucune contribution enregistrée</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {memberContributions.map((contribution) => (
+                                    <div key={contribution.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                                        <div className="bg-gray-50 px-4 py-2 flex items-center justify-between border-b border-gray-200">
+                                            <span className="font-bold text-sm">Année {contribution.year}</span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${getContributionStatusColor(contribution.status)}`}>
+                                                {getContributionStatusLabel(contribution.status)}
+                                            </span>
+                                        </div>
+                                        <div className="p-4 space-y-3">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-500">Montant total</span>
+                                                <span className="font-bold">{formatCurrency(contribution.amount)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-500">Total payé</span>
+                                                <span className="font-bold text-[#E51A1A]">{formatCurrency(contribution.totalPaid)}</span>
+                                            </div>
+
+                                            {contribution.payments && contribution.payments.length > 0 && (
+                                                <div className="mt-3 pt-3 border-t border-gray-100">
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historique des paiements</p>
+                                                    <div className="space-y-2">
+                                                        {contribution.payments.map((payment) => (
+                                                            <div key={payment.id} className="flex justify-between items-center text-sm">
+                                                                <span className="text-gray-500">{formatDate(payment.paymentDate)}</span>
+                                                                <span className="font-medium text-[#E51A1A]">{formatCurrency(payment.amountPaid)}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'family' && (
+                    <div>
+                        {member.parentName && member.parentId && (
+                            <div className="mb-6">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Parent</h4>
+                                <div
+                                    onClick={() => onViewParent?.(member.parentId!)}
+                                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                                            {parentImageUrl ? (
+                                                <img src={parentImageUrl} alt="Parent" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <AiOutlineUser size={20} className="text-gray-500" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{member.parentName}</p>
+                                            <p className="text-[10px] text-gray-400">{formatMemberId(member.parentId)}</p>
+                                        </div>
+                                    </div>
+                                    <AiOutlineArrowRight size={14} className="text-gray-400" />
+                                </div>
+                            </div>
+                        )}
+
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Enfants</h4>
+                                {onAddChild && (
+                                    <button
+                                        onClick={onAddChild}
+                                        className="text-[10px] font-bold text-[#E51A1A] hover:underline"
+                                    >
+                                        + Ajouter
+                                    </button>
+                                )}
+                            </div>
+                            {!hasChildren ? (
+                                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                                    <AiOutlineUserAdd size={32} className="mx-auto text-gray-300 mb-2" />
+                                    <p className="text-gray-400 text-sm">Aucun enfant enregistré</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {member.children?.map((child) => {
+                                        const childIsMale = child.gender === Gender.MALE;
+                                        const childAvatarUrl = child.imageUrl ? getImageUrl(child.imageUrl, 'member') : null;
+
+                                        return (
+                                            <div
+                                                key={child.id}
+                                                onClick={() => onViewChild?.(child)}
+                                                className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                            >
+                                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                                                    {childAvatarUrl ? (
+                                                        <img src={childAvatarUrl} alt={child.firstName} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className={`text-sm font-bold ${childIsMale ? 'text-blue-500' : 'text-pink-500'}`}>
+                                                            {getInitials(child.firstName, child.lastName)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="font-medium text-sm">{child.firstName} {child.lastName}</p>
+                                                    <p className="text-[10px] text-gray-400">{formatMemberId(child.id)}</p>
+                                                </div>
+                                                <AiOutlineArrowRight size={12} className="text-gray-400" />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div 
+            <div
                 ref={scrollContainerRef}
                 className="bg-white rounded-xl w-full max-w-3xl h-150 overflow-hidden shadow-2xl flex flex-col animate-in zoom-in duration-300"
             >
-                {/* Header - avec photo de profil du membre */}
                 <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
-                        {/* Photo de profil du membre */}
                         <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#E51A1A]/10 flex items-center justify-center">
                             {avatarUrl ? (
                                 <img
@@ -119,10 +348,10 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-gray-800">
-                                {member.lastName} {member.firstName} 
+                                {member.lastName} {member.firstName}
                             </h2>
                             <p className="text-[10px] text-gray-400 uppercase tracking-wide">
-                                 Membre depuis {formatDate(member.createdAt || new Date().toISOString())}
+                                Membre depuis {formatDate(member.createdAt || new Date().toISOString())}
                             </p>
                         </div>
                     </div>
@@ -134,26 +363,26 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     </button>
                 </div>
 
-                {/* Navigation par onglets - taille fixe */}
                 <div className="border-b border-gray-200 px-6 shrink-0">
                     <div className="flex gap-6">
                         <button
-                            onClick={() => setActiveTab('info')}
-                            className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                                activeTab === 'info'
-                                    ? 'border-[#E51A1A] text-[#E51A1A]'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
+                            onClick={() => handleTabChange('info')}
+                            className={`relative py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'info'
+                                    ? 'text-[#E51A1A]'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`}
                         >
                             Informations
+                            {activeTab === 'info' && (
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E51A1A] animate-in slide-in-from-left duration-200" />
+                            )}
                         </button>
                         <button
-                            onClick={() => setActiveTab('payments')}
-                            className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                                activeTab === 'payments'
-                                    ? 'border-[#E51A1A] text-[#E51A1A]'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
+                            onClick={() => handleTabChange('payments')}
+                            className={`relative py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'payments'
+                                    ? 'text-[#E51A1A]'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`}
                         >
                             Paiements
                             {hasPaymentHistory && (
@@ -161,14 +390,16 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                     {memberContributions.length}
                                 </span>
                             )}
+                            {activeTab === 'payments' && (
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E51A1A] animate-in slide-in-from-left duration-200" />
+                            )}
                         </button>
                         <button
-                            onClick={() => setActiveTab('family')}
-                            className={`py-3 text-sm font-medium border-b-2 transition-colors ${
-                                activeTab === 'family'
-                                    ? 'border-[#E51A1A] text-[#E51A1A]'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                            }`}
+                            onClick={() => handleTabChange('family')}
+                            className={`relative py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'family'
+                                    ? 'text-[#E51A1A]'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`}
                         >
                             Famille
                             {member.childrenCount > 0 && (
@@ -176,232 +407,17 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                     {member.childrenCount}
                                 </span>
                             )}
+                            {activeTab === 'family' && (
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E51A1A] animate-in slide-in-from-left duration-200" />
+                            )}
                         </button>
                     </div>
                 </div>
 
-                {/* Contenu principal - scrollable, seule cette partie change */}
                 <div className="flex-1 overflow-y-auto p-6">
-                    {/* Vue Informations */}
-                    {activeTab === 'info' && (
-                        <div className="space-y-6">
-                            {/* En-tête avec photo et statut */}
-                            <div className="flex items-start gap-6 pb-6 border-b border-gray-100">
-                                <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shadow-sm">
-                                    {avatarUrl ? (
-                                        <img
-                                            src={avatarUrl}
-                                            alt={member.firstName}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <span className={`text-3xl font-black ${isMale ? 'text-blue-500' : 'text-pink-500'}`}>
-                                            {getInitials(member.firstName, member.lastName)}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex flex-wrap gap-2 mb-3">
-                                        <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase ${
-                                            member.status === MemberStatus.WORKER 
-                                                ? 'bg-purple-100 text-purple-700' 
-                                                : 'bg-amber-100 text-amber-700'
-                                        }`}>
-                                            {member.status === MemberStatus.WORKER ? 'Travailleur' : 'Étudiant'}
-                                        </span>
-                                        <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase ${
-                                            member.isActiveMember
-                                                ? 'bg-[#E51A1A]/10 text-[#E51A1A]'
-                                                : 'bg-gray-100 text-gray-600'
-                                        }`}>
-                                            {member.isActiveMember ? 'Actif' : 'Inactif'}
-                                        </span>
-                                    </div>
-                                    <p className="text-gray-500 text-xs">
-                                        <AiOutlineCalendar size={12} className="inline mr-1" />
-                                        Né(e) le {formatDate(member.birthDate)} • {age} ans
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Grille d'informations */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <InfoField label="ID Membre" value={formatMemberId(member.id)} icon={<AiOutlineIdcard size={14} />} />
-                                <InfoField label="Genre" value={isMale ? 'Homme' : 'Femme'} icon={isMale ? <AiOutlineMan size={14} /> : <AiOutlineWoman size={14} />} />
-                                <InfoField label="Téléphone" value={member.phoneNumber || 'Non fourni'} icon={<AiOutlinePhone size={14} />} />
-                                <InfoField label="District" value={member.districtName} icon={<AiOutlineGlobal size={14} />} />
-                                <InfoField label="Tribu" value={member.tributeName} icon={<AiOutlineFlag size={14} />} />
-                                <InfoField 
-                                    label="Statut" 
-                                    value={member.status === MemberStatus.WORKER ? 'Travailleur' : 'Étudiant'} 
-                                    icon={member.status === MemberStatus.WORKER ? <AiOutlineRise size={14} /> : <AiOutlineBook size={14} />} 
-                                />
-                                <InfoField label="Enfants" value={`${member.childrenCount || 0} enfant(s)`} icon={<AiOutlineTeam size={14} />} />
-                            </div>
-
-                            {/* Section Parent */}
-                            {member.parentName && member.parentId && (
-                                <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
-                                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Parent</h4>
-                                    <div 
-                                        onClick={() => onViewParent?.(member.parentId!)}
-                                        className="flex items-center justify-between cursor-pointer hover:bg-white p-2 rounded-lg transition-colors"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                                                {parentImageUrl ? (
-                                                    <img src={parentImageUrl} alt="Parent" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <span className="text-xs font-bold text-gray-500">
-                                                        {getInitials(member.parentName.split(' ')[0] || '', member.parentName.split(' ')[1] || '')}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-sm">{member.parentName}</p>
-                                                <p className="text-[10px] text-gray-400">{formatMemberId(member.parentId)}</p>
-                                            </div>
-                                        </div>
-                                        <AiOutlineArrowRight size={14} className="text-gray-400" />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Vue Paiements - sans vert */}
-                    {activeTab === 'payments' && (
-                        <div>
-                            {memberContributions.length === 0 ? (
-                                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                                    <AiOutlineDollar size={40} className="mx-auto text-gray-300 mb-3" />
-                                    <p className="text-gray-400 font-medium">Aucune contribution enregistrée</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {memberContributions.map((contribution) => (
-                                        <div key={contribution.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                                            <div className="bg-gray-50 px-4 py-2 flex items-center justify-between border-b border-gray-200">
-                                                <span className="font-bold text-sm">Année {contribution.year}</span>
-                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${getContributionStatusColor(contribution.status)}`}>
-                                                    {getContributionStatusLabel(contribution.status)}
-                                                </span>
-                                            </div>
-                                            <div className="p-4 space-y-3">
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-gray-500">Montant total</span>
-                                                    <span className="font-bold">{formatCurrency(contribution.amount)}</span>
-                                                </div>
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-gray-500">Total payé</span>
-                                                    <span className="font-bold text-[#E51A1A]">{formatCurrency(contribution.totalPaid)}</span>
-                                                </div>
-
-                                                {contribution.payments && contribution.payments.length > 0 && (
-                                                    <div className="mt-3 pt-3 border-t border-gray-100">
-                                                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historique des paiements</p>
-                                                        <div className="space-y-2">
-                                                            {contribution.payments.map((payment) => (
-                                                                <div key={payment.id} className="flex justify-between items-center text-sm">
-                                                                    <span className="text-gray-500">{formatDate(payment.paymentDate)}</span>
-                                                                    <span className="font-medium text-[#E51A1A]">{formatCurrency(payment.amountPaid)}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Vue Famille */}
-                    {activeTab === 'family' && (
-                        <div>
-                            {/* Parent */}
-                            {member.parentName && member.parentId && (
-                                <div className="mb-6">
-                                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Parent</h4>
-                                    <div 
-                                        onClick={() => onViewParent?.(member.parentId!)}
-                                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                                                {parentImageUrl ? (
-                                                    <img src={parentImageUrl} alt="Parent" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <AiOutlineUser size={20} className="text-gray-500" />
-                                                )}
-                                            </div>
-                                            <div>
-                                                <p className="font-medium">{member.parentName}</p>
-                                                <p className="text-[10px] text-gray-400">{formatMemberId(member.parentId)}</p>
-                                            </div>
-                                        </div>
-                                        <AiOutlineArrowRight size={14} className="text-gray-400" />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Enfants */}
-                            <div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Enfants</h4>
-                                    {onAddChild && (
-                                        <button
-                                            onClick={onAddChild}
-                                            className="text-[10px] font-bold text-[#E51A1A] hover:underline"
-                                        >
-                                            + Ajouter
-                                        </button>
-                                    )}
-                                </div>
-                                {!hasChildren ? (
-                                    <div className="text-center py-8 bg-gray-50 rounded-lg">
-                                        <AiOutlineUserAdd size={32} className="mx-auto text-gray-300 mb-2" />
-                                        <p className="text-gray-400 text-sm">Aucun enfant enregistré</p>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {member.children?.map((child) => {
-                                            const childIsMale = child.gender === Gender.MALE;
-                                            const childAvatarUrl = child.imageUrl ? getImageUrl(child.imageUrl, 'member') : null;
-                                            
-                                            return (
-                                                <div
-                                                    key={child.id}
-                                                    onClick={() => onViewChild?.(child)}
-                                                    className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                                                >
-                                                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                                                        {childAvatarUrl ? (
-                                                            <img src={childAvatarUrl} alt={child.firstName} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <span className={`text-sm font-bold ${childIsMale ? 'text-blue-500' : 'text-pink-500'}`}>
-                                                                {getInitials(child.firstName, child.lastName)}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-sm">{child.firstName} {child.lastName}</p>
-                                                        <p className="text-[10px] text-gray-400">{formatMemberId(child.id)}</p>
-                                                    </div>
-                                                    <AiOutlineArrowRight size={12} className="text-gray-400" />
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    {renderContent()}
                 </div>
 
-                {/* Footer - taille fixe */}
                 <div className="border-t border-gray-200 px-6 py-4 flex justify-center gap-4 shrink-0">
                     {onDelete && (
                         <button
