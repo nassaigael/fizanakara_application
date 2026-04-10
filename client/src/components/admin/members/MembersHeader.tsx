@@ -15,9 +15,9 @@ const MembersHeader: React.FC<MembersHeaderProps> = ({
 	onAddMember,
 }) => {
 	const { user } = useAuth();
-
+	
 	const hasImage = user?.imageUrl && user.imageUrl.trim() !== '';
-
+	
 	const getAdminInitials = () => {
 		if (!user) return '?';
 		return getInitials(user.firstName, user.lastName);
@@ -26,24 +26,23 @@ const MembersHeader: React.FC<MembersHeaderProps> = ({
 	return (
 		<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
 			<div className="flex items-center gap-3 md:gap-4">
-				<div className="p-3 md:p-4 bg-[#E51A1A] text-white rounded-2xl md:rounded-3xl shadow-md">
+				<div className="p-2 md:p-3 bg-[#E51A1A] text-white rounded-2xl md:rounded-3xl shadow-md">
 					{hasImage ? (
 						<img
 							src={getImageUrl(user?.imageUrl, 'admin')}
 							alt={user?.firstName}
-							className="w-16 h-16 md:w-8 md:h-8 rounded-full object-cover"
+							className="w-10 h-10 md:w-14 md:h-14 rounded-full object-cover"
 							onError={(e) => {
 								const target = e.target as HTMLImageElement;
 								target.style.display = 'none';
-								
 								if (target.parentElement) {
 									target.parentElement.innerHTML = getAdminInitials();
-									target.parentElement.classList.add('flex', 'items-center', 'justify-center', 'text-sm', 'md:text-base', 'font-black');
+									target.parentElement.classList.add('flex', 'items-center', 'justify-center', 'text-base', 'md:text-xl', 'font-black');
 								}
 							}}
 						/>
 					) : (
-						<span className="text-sm md:text-base font-black">
+						<span className="text-base md:text-xl font-black">
 							{getAdminInitials()}
 						</span>
 					)}
