@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { 
-    AiOutlineBell, 
-    AiOutlineUser, 
+import {
+    AiOutlineBell,
+    AiOutlineUser,
     AiOutlineSetting,
     AiOutlineCrown,
     AiOutlineDown,
     AiOutlineLogout
 } from 'react-icons/ai';
 import { getImageUrl } from '../../lib/constant/constant';
+import { getInitials as getInitialsHelper } from '../../lib/helper';
 import logo from "../../../public/logo.png";
 
 interface NavbarProps {
@@ -31,28 +32,26 @@ const Navbar = ({ }: NavbarProps) => {
 
     const getInitials = () => {
         if (!user) return '?';
-        return `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
+        return getInitialsHelper(user.firstName, user.lastName);
     };
 
     const hasImage = user?.imageUrl && user.imageUrl.trim() !== '';
 
-    const navbarStyle = scrolled 
+    const navbarStyle = scrolled
         ? 'bg-white/80 backdrop-blur-xl border-b border-white/30 shadow-lg'
         : 'bg-white/95 backdrop-blur-md border-b-4 border-brand-border';
 
     return (
         <>
             <header className={`sticky top-0 z-50 h-16 md:h-20 flex items-center justify-between px-4 md:px-6 transition-all duration-300 ${navbarStyle}`}>
-                {/* Effet de brillance */}
                 <div className="absolute inset-0 bg-linear-to-r from-brand-primary/5 via-transparent to-orange-500/5 pointer-events-none" />
-                
+
                 <div className="relative flex items-center gap-3">
                     <div className="flex items-center gap-2 md:gap-3">
-                        {/* Logo PNG au lieu du SVG */}
                         <div className="p-1.5 md:p-2 rounded-xl bg-linear-to-br from-brand-primary/10 to-orange-500/10">
-                            <img 
-                                src={logo} 
-                                alt="FIZANAKARA logo" 
+                            <img
+                                src={logo}
+                                alt="FIZANAKARA logo"
                                 className="w-7 h-7 md:w-8 md:h-8 object-contain"
                             />
                         </div>
@@ -75,7 +74,6 @@ const Navbar = ({ }: NavbarProps) => {
                         </button>
                     )}
 
-                    {/* Profile Dropdown */}
                     <div className="relative">
                         <button
                             onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -83,7 +81,7 @@ const Navbar = ({ }: NavbarProps) => {
                             aria-expanded={isProfileMenuOpen}
                         >
                             <div className="relative">
-                                <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-linear-to-br from-brand-primary to-orange-500 text-white flex items-center justify-center font-bold text-xs md:text-sm overflow-hidden shadow-md">
+                                <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-[#E51A1A] text-white flex items-center justify-center font-bold text-xs md:text-sm overflow-hidden shadow-md">
                                     {hasImage ? (
                                         <img
                                             src={getImageUrl(user?.imageUrl, 'admin')}
@@ -91,11 +89,14 @@ const Navbar = ({ }: NavbarProps) => {
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
                                                 (e.target as HTMLImageElement).style.display = 'none';
-                                                (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
+                                                if ((e.target as HTMLImageElement).parentElement) {
+                                                    (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
+                                                    (e.target as HTMLImageElement).parentElement!.classList.add('flex', 'items-center', 'justify-center');
+                                                }
                                             }}
                                         />
                                     ) : (
-                                        getInitials()
+                                        <span className="font-black">{getInitials()}</span>
                                     )}
                                 </div>
                                 {isSuperAdmin && (
@@ -111,20 +112,19 @@ const Navbar = ({ }: NavbarProps) => {
                             </div>
                         </button>
 
-                        {/* Dropdown Glassmorphism */}
                         {isProfileMenuOpen && (
                             <>
-                                <div 
+                                <div
                                     className="fixed inset-0 z-40"
                                     onClick={() => setIsProfileMenuOpen(false)}
                                 />
-                                
+
                                 <div className="absolute right-0 top-12 w-64 bg-white/90 backdrop-blur-xl border border-white/30 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
                                     <div className="absolute inset-0 bg-linear-to-br from-white/40 to-white/10 pointer-events-none" />
-                                    
+
                                     <div className="relative p-4 border-b border-white/30 bg-linear-to-r from-brand-primary/10 to-orange-500/10">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-primary to-orange-500 text-white flex items-center justify-center font-bold text-sm overflow-hidden shadow-lg">
+                                            <div className="w-10 h-10 rounded-xl bg-[#E51A1A] text-white flex items-center justify-center font-bold text-sm overflow-hidden shadow-lg">
                                                 {hasImage ? (
                                                     <img
                                                         src={getImageUrl(user?.imageUrl, 'admin')}
@@ -132,11 +132,14 @@ const Navbar = ({ }: NavbarProps) => {
                                                         className="w-full h-full object-cover"
                                                         onError={(e) => {
                                                             (e.target as HTMLImageElement).style.display = 'none';
-                                                            (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
+                                                            if ((e.target as HTMLImageElement).parentElement) {
+                                                                (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
+                                                                (e.target as HTMLImageElement).parentElement!.classList.add('flex', 'items-center', 'justify-center');
+                                                            }
                                                         }}
                                                     />
                                                 ) : (
-                                                    getInitials()
+                                                    <span className="font-black">{getInitials()}</span>
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
