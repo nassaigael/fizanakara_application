@@ -66,7 +66,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
 
     const getContributionStatusColor = (status: string) => {
         switch (status) {
-            case 'PAID': return 'bg-green-100 text-green-700';
+            case 'PAID': return 'bg-[#E51A1A]/10 text-[#E51A1A]';
             case 'PARTIAL': return 'bg-orange-100 text-orange-700';
             case 'PENDING': return 'bg-red-100 text-red-700';
             default: return 'bg-gray-100 text-gray-600';
@@ -89,29 +89,40 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         return id;
     };
 
-    // Statistiques rapides
-    const totalPaid = memberContributions.reduce((sum, c) => sum + (c.totalPaid || 0), 0);
-    const totalDue = memberContributions.reduce((sum, c) => sum + (c.amount || 0), 0);
-    const paymentRate = totalDue > 0 ? (totalPaid / totalDue) * 100 : 0;
+    // Obtenir les initiales pour le fallback
+    const getMemberInitials = () => {
+        return getInitials(member.firstName, member.lastName);
+    };
 
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div 
                 ref={scrollContainerRef}
-                className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in duration-300"
+                className="bg-white rounded-xl w-full max-w-3xl h-150 overflow-hidden shadow-2xl flex flex-col animate-in zoom-in duration-300"
             >
-                {/* Header style Odoo - Barre d'outils */}
+                {/* Header - avec photo de profil du membre */}
                 <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-[#E51A1A]/10 flex items-center justify-center">
-                            <AiOutlineUser size={20} className="text-[#E51A1A]" />
+                        {/* Photo de profil du membre */}
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#E51A1A]/10 flex items-center justify-center">
+                            {avatarUrl ? (
+                                <img
+                                    src={avatarUrl}
+                                    alt={member.firstName}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <span className="text-sm font-bold text-[#E51A1A]">
+                                    {getMemberInitials()}
+                                </span>
+                            )}
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-gray-800">
-                                {member.lastName} {member.firstName}
+                                {member.lastName} {member.firstName} 
                             </h2>
                             <p className="text-[10px] text-gray-400 uppercase tracking-wide">
-                                {formatMemberId(member.id)} • Membre depuis {formatDate(member.createdAt || new Date().toISOString())}
+                                 Membre depuis {formatDate(member.createdAt || new Date().toISOString())}
                             </p>
                         </div>
                     </div>
@@ -123,7 +134,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     </button>
                 </div>
 
-                {/* Navigation par onglets style Odoo */}
+                {/* Navigation par onglets - taille fixe */}
                 <div className="border-b border-gray-200 px-6 shrink-0">
                     <div className="flex gap-6">
                         <button
@@ -169,7 +180,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     </div>
                 </div>
 
-                {/* Contenu principal */}
+                {/* Contenu principal - scrollable, seule cette partie change */}
                 <div className="flex-1 overflow-y-auto p-6">
                     {/* Vue Informations */}
                     {activeTab === 'info' && (
@@ -200,7 +211,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                         </span>
                                         <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase ${
                                             member.isActiveMember
-                                                ? 'bg-green-100 text-green-700'
+                                                ? 'bg-[#E51A1A]/10 text-[#E51A1A]'
                                                 : 'bg-gray-100 text-gray-600'
                                         }`}>
                                             {member.isActiveMember ? 'Actif' : 'Inactif'}
@@ -213,7 +224,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 </div>
                             </div>
 
-                            {/* Grille d'informations style Odoo */}
+                            {/* Grille d'informations */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <InfoField label="ID Membre" value={formatMemberId(member.id)} icon={<AiOutlineIdcard size={14} />} />
                                 <InfoField label="Genre" value={isMale ? 'Homme' : 'Femme'} icon={isMale ? <AiOutlineMan size={14} /> : <AiOutlineWoman size={14} />} />
@@ -258,25 +269,9 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                         </div>
                     )}
 
-                    {/* Vue Paiements */}
+                    {/* Vue Paiements - sans vert */}
                     {activeTab === 'payments' && (
                         <div>
-                            {/* Résumé des paiements */}
-                            <div className="grid grid-cols-3 gap-4 mb-6">
-                                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                    <p className="text-[10px] text-blue-600 uppercase font-bold">Total dû</p>
-                                    <p className="text-xl font-bold text-blue-700">{formatCurrency(totalDue)}</p>
-                                </div>
-                                <div className="text-center p-3 bg-green-50 rounded-lg">
-                                    <p className="text-[10px] text-green-600 uppercase font-bold">Total payé</p>
-                                    <p className="text-xl font-bold text-green-700">{formatCurrency(totalPaid)}</p>
-                                </div>
-                                <div className="text-center p-3 bg-orange-50 rounded-lg">
-                                    <p className="text-[10px] text-orange-600 uppercase font-bold">Taux</p>
-                                    <p className="text-xl font-bold text-orange-700">{paymentRate.toFixed(1)}%</p>
-                                </div>
-                            </div>
-
                             {memberContributions.length === 0 ? (
                                 <div className="text-center py-12 bg-gray-50 rounded-lg">
                                     <AiOutlineDollar size={40} className="mx-auto text-gray-300 mb-3" />
@@ -299,14 +294,9 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                 </div>
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-gray-500">Total payé</span>
-                                                    <span className="font-bold text-green-600">{formatCurrency(contribution.totalPaid)}</span>
+                                                    <span className="font-bold text-[#E51A1A]">{formatCurrency(contribution.totalPaid)}</span>
                                                 </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                                    <div 
-                                                        className="bg-green-500 rounded-full h-2 transition-all"
-                                                        style={{ width: `${(contribution.totalPaid / contribution.amount) * 100}%` }}
-                                                    />
-                                                </div>
+
                                                 {contribution.payments && contribution.payments.length > 0 && (
                                                     <div className="mt-3 pt-3 border-t border-gray-100">
                                                         <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historique des paiements</p>
@@ -314,7 +304,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                             {contribution.payments.map((payment) => (
                                                                 <div key={payment.id} className="flex justify-between items-center text-sm">
                                                                     <span className="text-gray-500">{formatDate(payment.paymentDate)}</span>
-                                                                    <span className="font-medium">{formatCurrency(payment.amountPaid)}</span>
+                                                                    <span className="font-medium text-[#E51A1A]">{formatCurrency(payment.amountPaid)}</span>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -411,8 +401,8 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                     )}
                 </div>
 
-                {/* Footer avec actions style Odoo */}
-                <div className="border-t border-gray-200 px-6 py-4 flex justify-end gap-3 shrink-0">
+                {/* Footer - taille fixe */}
+                <div className="border-t border-gray-200 px-6 py-4 flex justify-center gap-4 shrink-0">
                     {onDelete && (
                         <button
                             onClick={onDelete}
@@ -442,7 +432,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     );
 };
 
-// Composant InfoField style Odoo
 interface InfoFieldProps {
     label: string;
     value: string;
