@@ -30,3 +30,14 @@ src/
 ## 📂 Description des Dossiers
 
 Voir les `README.md` spécifiques dans chaque sous-dossier pour plus de détails.
+
+
+
+
+Navbar	admin	1 ligne
+ProfileHeader	admin	1 ligne
+ProfileAvatar	admin	1 ligne
+MemberDetailModal	member	~4 lignes
+MembersTableRow	member	1 ligne
+MemberForm	member	1 ligne
+PaymentModal	member	~2 lignes

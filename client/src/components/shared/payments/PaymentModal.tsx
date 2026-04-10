@@ -11,12 +11,12 @@ import {
 import { useForm } from '../../../hooks/useForm';
 import { usePayment } from '../../../hooks/usePayment';
 import { paymentSchema } from '../../../lib/validators/finance.validator';
-import { PaymentStatus } from '../../../lib/types';
+import { PaymentStatus, Gender } from '../../../lib/types';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
 import { formatCurrency, formatDate } from '../../../lib/helper';
-import { getImageUrl } from '../../../lib/constant/constant';
 import { useAuth } from '../../../context/AuthContext';
+import { Avatar } from '../../ui/Avatar';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import toast from 'react-hot-toast';
@@ -30,13 +30,14 @@ interface PaymentModalProps {
     memberPhone?: string;
     memberEmail?: string;
     memberImageUrl?: string;
+    memberGender?: Gender;  // Changé de 'MALE' | 'FEMALE' à Gender
     contributionAmount?: number;
     remainingAmount?: number;
     year?: number;
     onSuccess?: () => void;
 }
 
-export const PaymentModal: React.FC<PaymentModalProps> = ({
+const PaymentModal: React.FC<PaymentModalProps> = ({
     isOpen,
     onClose,
     contributionId,
@@ -45,6 +46,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     memberPhone,
     memberEmail,
     memberImageUrl,
+    memberGender,
     contributionAmount,
     remainingAmount,
     year,
@@ -121,6 +123,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     memberPhone: memberPhone,
                     memberEmail: memberEmail,
                     memberImageUrl: memberImageUrl,
+                    memberGender: memberGender,
                     year: year || new Date().getFullYear(),
                     amount: contributionAmount || 0,
                     paidAmount: formData.amountPaid,
@@ -181,15 +184,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     const isOverPayment = selectedAmount > (remainingAmount || 0);
     const remainingAfterPayment = Math.max(0, (remainingAmount || 0) - selectedAmount);
     const getStatusLabel = () => autoStatus === PaymentStatus.COMPLETED ? 'Complété' : 'En attente';
-
-    const getMemberInitials = () => {
-        if (!memberName) return '?';
-        const parts = memberName.split(' ');
-        if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-        return memberName.substring(0, 2).toUpperCase();
-    };
-
-    const hasMemberImage = memberImageUrl && memberImageUrl.trim() !== '';
 
     // Fonction pour générer le HTML d'un reçu
     const generateReceiptHTML = (data: any, isCompact: boolean = false): string => {
@@ -337,7 +331,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             // Attendre le rendu
             await new Promise(resolve => setTimeout(resolve, 200));
             
-            // Capturer avec html2canvas (plus fiable que domtoimage)
+            // Capturer avec html2canvas
             const canvas = await html2canvas(container, {
                 scale: 3,
                 backgroundColor: '#ffffff',
@@ -469,32 +463,16 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         </button>
 
                         <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/20 flex items-center justify-center mb-3 border-2 border-white shadow-md mx-auto">
-                            {hasMemberImage ? (
-                                <img
-                                    src={getImageUrl(memberImageUrl, 'member')}
-                                    alt={memberName || 'Membre'}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.style.display = 'none';
-                                        if (target.parentElement) {
-                                            target.parentElement.innerHTML = getMemberInitials();
-                                            target.parentElement.classList.add(
-                                                'text-2xl',
-                                                'font-black',
-                                                'text-white',
-                                                'flex',
-                                                'items-center',
-                                                'justify-center'
-                                            );
-                                        }
-                                    }}
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                    <span className="text-2xl font-black text-white">{getMemberInitials()}</span>
-                                </div>
-                            )}
+                            <Avatar
+                                imageUrl={memberImageUrl}
+                                firstName={memberName?.split(' ')[0]}
+                                lastName={memberName?.split(' ')[1]}
+                                gender={memberGender}
+                                category="member"
+                                size="xl"
+                                shape="rounded"
+                                className="w-full h-full"
+                            />
                         </div>
                         <h2 className="text-2xl font-black uppercase text-center">Enregistrement Paiement</h2>
                         {memberName && (
@@ -632,3 +610,5 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         document.body
     );
 };
+
+export default PaymentModal;

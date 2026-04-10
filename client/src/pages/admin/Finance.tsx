@@ -14,7 +14,7 @@ import {
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
-import { PaymentModal } from '../../components/shared/payments/PaymentModal';
+import  PaymentModal from '../../components/shared/payments/PaymentModal';
 import { FinanceFilters } from '../../components/shared/payments/FinanceFilter';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';

@@ -1,4 +1,3 @@
-// client/src/components/admin/members/MembersTableRow.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import { PersonResponse, Gender, MemberStatus } from '../../../lib/types';
 import {
@@ -11,8 +10,7 @@ import {
   AiOutlineStar,
   AiOutlineMore,
 } from 'react-icons/ai';
-import { getInitials } from '../../../lib/helper';
-import { getImageUrl } from '../../../lib/constant/constant';
+import { Avatar } from '../../../components/ui/Avatar';
 
 interface MembersTableRowProps {
   member: PersonResponse;
@@ -30,8 +28,6 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
   const statusIcon = member.status === MemberStatus.WORKER ? <AiOutlineCrown size={12} /> : <AiOutlineStar size={12} />;
   const statusLabel = member.status === MemberStatus.WORKER ? 'Travailleur' : 'Étudiant';
   const statusColor = member.status === MemberStatus.WORKER ? 'text-purple-600 bg-purple-50' : 'text-amber-600 bg-amber-50';
-
-  const avatarUrl = member.imageUrl ? getImageUrl(member.imageUrl, 'member') : null;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -69,15 +65,16 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
           onClick={handleProfileClick}
           className="flex items-center gap-3 w-full text-left cursor-pointer group/profile"
         >
-          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center text-xs font-black transition-transform group-hover/profile:scale-105">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={member.firstName} className="w-full h-full object-cover" />
-            ) : (
-              <span className={isMale ? 'text-blue-500' : 'text-pink-500'}>
-                {getInitials(member.firstName, member.lastName)}
-              </span>
-            )}
-          </div>
+          <Avatar
+            imageUrl={member.imageUrl}
+            firstName={member.firstName}
+            lastName={member.lastName}
+            gender={member.gender}
+            category="member"
+            size="sm"
+            shape="circle"
+            className="transition-transform group-hover/profile:scale-105"
+          />
           <div>
             <div className="font-bold text-sm uppercase group-hover/profile:text-[#E51A1A] transition-colors">
               {member.lastName}{' '}

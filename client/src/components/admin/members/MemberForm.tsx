@@ -21,6 +21,7 @@ import { getImageUrl } from '../../../lib/constant/constant';
 import { getErrorMessage } from '../../../lib/helper';
 import toast from 'react-hot-toast';
 import ParentSearchInput from '../../ui/ParentSearchInput';
+import { Avatar } from '../../../components/ui/Avatar';
 
 interface MemberFormProps {
   isOpen: boolean;
@@ -33,11 +34,6 @@ interface MemberFormProps {
 type FormType = 'independent' | 'child';
 
 const VALID_OPERATORS = ['32', '33', '34', '38', '37', '39'];
-
-const DEFAULT_IMAGES = {
-  [Gender.MALE]: '../../../../public/default-avatar-man.png',
-  [Gender.FEMALE]: '../../../../default-avatar-woman.png',
-};
 
 const formatPhoneNumber = (value: string, isDeleting: boolean = false): string => {
   if (isDeleting) {
@@ -136,18 +132,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
     tributeId: tributes[0]?.id || 0,
   });
 
-  // Fonction pour obtenir l'image par défaut selon le genre
-  const getDefaultImageByGender = (gender: Gender) => {
-    return DEFAULT_IMAGES[gender] || DEFAULT_IMAGES[Gender.MALE];
-  };
-
-  // Fonction pour obtenir l'URL de l'image à afficher (priorité: image téléchargée > URL > image par défaut)
-  const getDisplayImageUrl = (gender: Gender, imageUrl?: string | null, preview?: string | null) => {
-    if (preview) return preview;
-    if (imageUrl) return getImageUrl(imageUrl, 'member');
-    return getDefaultImageByGender(gender);
-  };
-
   useEffect(() => {
     if (!isOpen) return;
 
@@ -227,14 +211,11 @@ export const MemberForm: React.FC<MemberFormProps> = ({
         [name]: formatted
       }));
     } else if (name === 'gender') {
-      // Quand le genre change, mettre à jour l'image par défaut
       const newGender = value as Gender;
       setIndependentData(prev => ({
         ...prev,
         [name]: newGender,
-        // Ne pas modifier imageUrl si elle existe déjà
       }));
-      // Réinitialiser l'aperçu si l'utilisateur change de genre
       if (!independentData.imageUrl && !imagePreview) {
         setImagePreview(null);
       }
@@ -486,10 +467,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
 
   const currentData = formType === 'independent' ? independentData : childData;
   const handleChange = formType === 'independent' ? handleIndependentChange : handleChildChange;
-  const currentGender = currentData.gender || Gender.MALE;
-
-  // Déterminer l'image à afficher
-  const displayImage = getDisplayImageUrl(currentGender, currentData.imageUrl, imagePreview);
 
   if (!isOpen) return null;
 
@@ -566,9 +543,14 @@ export const MemberForm: React.FC<MemberFormProps> = ({
             <div className="lg:col-span-4 space-y-6">
               <div className="bg-gray-50 p-6 rounded-[2.5rem] border-2 border-gray-200 border-b-8 flex flex-col items-center">
                 <div className="w-36 h-44 bg-gray-100 rounded-3xl border-4 border-white shadow-xl overflow-hidden mb-6 group relative flex items-center justify-center">
-                  <img
-                    src={displayImage}
-                    alt="Avatar"
+                  <Avatar
+                    imageUrl={currentData.imageUrl}
+                    firstName={currentData.firstName}
+                    lastName={currentData.lastName}
+                    gender={currentData.gender}
+                    category="member"
+                    size="xl"
+                    shape="rounded"
                     className="w-full h-full object-cover transition-transform group-hover:scale-110"
                   />
                 </div>

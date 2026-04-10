@@ -4,7 +4,7 @@ import {
     AiOutlineInfoCircle,
     AiOutlineWarning,
 } from 'react-icons/ai';
-import { MemberStatus } from '../types';
+import { MemberStatus, Gender } from '../types';
 
 const GITHUB_ACCOUNT = 'nassaigael';
 const REPO_NAME = 'image_membre_fizanakara';
@@ -17,21 +17,59 @@ export const GITHUB_URLS = {
     ASSETS: `${BASE_RAW_URL}/assets/images`,
 } as const;
 
+// Images par défaut locales (dans le dossier public)
+export const DEFAULT_IMAGES = {
+    [Gender.MALE]: '/default-avatar-man.png',      // Chemin depuis public
+    [Gender.FEMALE]: '/default-avatar-woman.png',  // Chemin depuis public
+    ADMIN: '/default-avatar-admin.png',            // Chemin depuis public
+    DEFAULT: '/default-avatar.png',                // Chemin depuis public
+} as const;
+
+// Fonction pour obtenir l'image par défaut selon le genre ou le type
+export const getDefaultImage = (
+    gender?: Gender,
+    type: 'admin' | 'member' = 'member'
+): string => {
+    if (type === 'admin') {
+        return DEFAULT_IMAGES.ADMIN;
+    }
+    if (gender === Gender.MALE) {
+        return DEFAULT_IMAGES[Gender.MALE];
+    }
+    if (gender === Gender.FEMALE) {
+        return DEFAULT_IMAGES[Gender.FEMALE];
+    }
+    return DEFAULT_IMAGES.DEFAULT;
+};
+
 export const getImageUrl = (
     imagePath: string | null | undefined,
     category: 'admin' | 'member' | 'assets' = 'member',
+    gender?: Gender,
 ): string => {
+    // Si pas d'image, retourner l'image par défaut selon le genre
     if (!imagePath) {
-        return '';
+        return getDefaultImage(gender, category === 'admin' ? 'admin' : 'member');
     }
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+
+    // Si c'est déjà une URL complète (http, https, data, ou fichier local)
+    if (imagePath.startsWith('http://') ||
+        imagePath.startsWith('https://') ||
+        imagePath.startsWith('data:') ||
+        imagePath.startsWith('/')) {
         return imagePath;
     }
+
+    // Nettoyer le chemin
     let cleanPath = imagePath.trim().replace(/\s+/g, '_');
+
+    // Ajouter l'extension si nécessaire
     const hasExtension = IMAGE_EXTENSIONS.some((ext) => cleanPath.toLowerCase().endsWith(ext));
     if (!hasExtension) {
         cleanPath += '.jpg';
     }
+
+    // Construire l'URL GitHub
     const base =
         category === 'admin'
             ? GITHUB_URLS.ADMIN
@@ -39,7 +77,35 @@ export const getImageUrl = (
                 ? GITHUB_URLS.ASSETS
                 : GITHUB_URLS.MEMBER;
     const fullUrl = `${base}/${cleanPath}`;
+
     return fullUrl;
+};
+
+// Fonction pour vérifier si une image est valide (avec fallback)
+export const getValidImageUrl = async (
+    imagePath: string | null | undefined,
+    category: 'admin' | 'member' | 'assets' = 'member',
+    gender?: Gender,
+): Promise<string> => {
+    const url = getImageUrl(imagePath, category, gender);
+
+    // Si c'est une image par défaut locale, la retourner directement
+    if (url.startsWith('/')) {
+        return url;
+    }
+
+    try {
+        // Vérifier si l'image existe
+        const response = await fetch(url, { method: 'HEAD' });
+        if (response.ok) {
+            return url;
+        }
+    } catch (error) {
+        console.warn(`Image not found: ${url}`, error);
+    }
+
+    // Fallback vers l'image par défaut
+    return getDefaultImage(gender, category === 'admin' ? 'admin' : 'member');
 };
 
 export const FONT = {
@@ -56,7 +122,7 @@ export const CARD = {
 
 export const THEME = {
     colors: {
-        primary: '#FF4B4B',
+        primary: '#E51A1A',
         secondary: '#1A1A1A',
         accent: '#F5F5F7',
         text: '#2D2D2D',
@@ -76,28 +142,28 @@ export const THEME = {
 
 export const CONTRIBUTION_STATUS_UI = {
     PAID: {
-        label: 'Paid',
+        label: 'Payé',
         color: 'text-green-600',
         bg: 'bg-green-50',
         border: 'border-green-200',
         icon: AiOutlineCheckCircle,
     },
     PENDING: {
-        label: 'Pending',
+        label: 'En attente',
         color: 'text-amber-600',
         bg: 'bg-amber-50',
         border: 'border-amber-200',
         icon: AiOutlineClockCircle,
     },
     PARTIAL: {
-        label: 'Partial',
+        label: 'Partiel',
         color: 'text-blue-600',
         bg: 'bg-blue-50',
         border: 'border-blue-200',
         icon: AiOutlineInfoCircle,
     },
     OVERDUE: {
-        label: 'Overdue',
+        label: 'En retard',
         color: 'text-red-600',
         bg: 'bg-red-50',
         border: 'border-red-200',
@@ -108,14 +174,14 @@ export const CONTRIBUTION_STATUS_UI = {
 export const COTISATION_UI = CONTRIBUTION_STATUS_UI;
 
 export const SITUATIONS = [
-    { label: 'Student', value: MemberStatus.STUDENT },
-    { label: 'Worker', value: MemberStatus.WORKER },
+    { label: 'Étudiant', value: MemberStatus.STUDENT },
+    { label: 'Travailleur', value: MemberStatus.WORKER },
 ] as const;
 
 export const UI_CLASSES = {
     container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
     card: `bg-white rounded-2xl ${THEME.shadows.card} ${THEME.animations.transition}`,
-    input: 'w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF4B4B] focus:border-transparent outline-none transition-all',
-    buttonPrimary: `bg-[#FF4B4B] text-white px-6 py-2 rounded-lg font-medium ${THEME.animations.hoverScale} ${THEME.animations.transition} disabled:bg-gray-400 disabled:cursor-not-allowed`,
-    buttonOutline: `border-2 border-[#FF4B4B] text-[#FF4B4B] px-6 py-2 rounded-lg font-medium hover:bg-red-50 ${THEME.animations.transition}`,
+    input: 'w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#E51A1A] focus:border-transparent outline-none transition-all',
+    buttonPrimary: `bg-[#E51A1A] text-white px-6 py-2 rounded-lg font-medium ${THEME.animations.hoverScale} ${THEME.animations.transition} disabled:bg-gray-400 disabled:cursor-not-allowed`,
+    buttonOutline: `border-2 border-[#E51A1A] text-[#E51A1A] px-6 py-2 rounded-lg font-medium hover:bg-red-50 ${THEME.animations.transition}`,
 } as const;

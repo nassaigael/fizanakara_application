@@ -9,8 +9,7 @@ import {
     AiOutlineDown,
     AiOutlineLogout
 } from 'react-icons/ai';
-import { getImageUrl } from '../../lib/constant/constant';
-import { getInitials as getInitialsHelper } from '../../lib/helper';
+import { Avatar } from '../../components/ui/Avatar';
 import logo from "../../../public/logo.png";
 
 interface NavbarProps {
@@ -29,13 +28,6 @@ const Navbar = ({ }: NavbarProps) => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    const getInitials = () => {
-        if (!user) return '?';
-        return getInitialsHelper(user.firstName, user.lastName);
-    };
-
-    const hasImage = user?.imageUrl && user.imageUrl.trim() !== '';
 
     const navbarStyle = scrolled
         ? 'bg-white/80 backdrop-blur-xl border-b border-white/30 shadow-lg'
@@ -81,24 +73,15 @@ const Navbar = ({ }: NavbarProps) => {
                             aria-expanded={isProfileMenuOpen}
                         >
                             <div className="relative">
-                                <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-[#E51A1A] text-white flex items-center justify-center font-bold text-xs md:text-sm overflow-hidden shadow-md">
-                                    {hasImage ? (
-                                        <img
-                                            src={getImageUrl(user?.imageUrl, 'admin')}
-                                            alt={user?.firstName}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).style.display = 'none';
-                                                if ((e.target as HTMLImageElement).parentElement) {
-                                                    (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
-                                                    (e.target as HTMLImageElement).parentElement!.classList.add('flex', 'items-center', 'justify-center');
-                                                }
-                                            }}
-                                        />
-                                    ) : (
-                                        <span className="font-black">{getInitials()}</span>
-                                    )}
-                                </div>
+                                {/* Avatar avec composant Avatar */}
+                                <Avatar
+                                    imageUrl={user?.imageUrl}
+                                    firstName={user?.firstName}
+                                    lastName={user?.lastName}
+                                    category="admin"
+                                    size="md"
+                                    shape="rounded"
+                                />
                                 {isSuperAdmin && (
                                     <div className="absolute -top-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-yellow-400 rounded-full border-2 border-white/80 flex items-center justify-center">
                                         <AiOutlineCrown size={7} className="md:w-2 md:h-2 text-yellow-900" />
@@ -124,24 +107,15 @@ const Navbar = ({ }: NavbarProps) => {
 
                                     <div className="relative p-4 border-b border-white/30 bg-linear-to-r from-brand-primary/10 to-orange-500/10">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-[#E51A1A] text-white flex items-center justify-center font-bold text-sm overflow-hidden shadow-lg">
-                                                {hasImage ? (
-                                                    <img
-                                                        src={getImageUrl(user?.imageUrl, 'admin')}
-                                                        alt={user?.firstName}
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).style.display = 'none';
-                                                            if ((e.target as HTMLImageElement).parentElement) {
-                                                                (e.target as HTMLImageElement).parentElement!.innerHTML = getInitials();
-                                                                (e.target as HTMLImageElement).parentElement!.classList.add('flex', 'items-center', 'justify-center');
-                                                            }
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <span className="font-black">{getInitials()}</span>
-                                                )}
-                                            </div>
+                                            {/* Avatar dans le dropdown */}
+                                            <Avatar
+                                                imageUrl={user?.imageUrl}
+                                                firstName={user?.firstName}
+                                                lastName={user?.lastName}
+                                                category="admin"
+                                                size="lg"
+                                                shape="rounded"
+                                            />
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-bold text-sm text-gray-800 truncate">{user?.firstName} {user?.lastName}</p>
                                                 <p className="text-[9px] text-gray-500 truncate">{user?.email}</p>
