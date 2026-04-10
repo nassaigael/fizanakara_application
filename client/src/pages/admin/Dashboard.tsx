@@ -9,11 +9,11 @@ import {
     AiOutlineCalendar,
     AiOutlineFileText,
     AiOutlineCheckCircle,
-    AiOutlineDown
+    AiOutlineDown,
+    AiOutlineClockCircle
 } from 'react-icons/ai';
 import { useMembers } from '../../hooks/useMembers';
 import { useFinance } from '../../hooks/useFinance';
-import { Card } from '../../components/ui/Card';
 import { AnnualCollectionChart } from '../../components/ui/AnnualCollectionChart';
 import { RiskMemberCard } from '../../components/ui/RiskMemberCard';
 import Button from '../../components/ui/Button';
@@ -67,7 +67,6 @@ const AdminDashboard: React.FC = () => {
 
         const totalDue = contributions.reduce((sum, c) => sum + (c.amount || 0), 0);
         const totalPaid = contributions.reduce((sum, c) => sum + (c.totalPaid || 0), 0);
-        const progressPercent = totalDue > 0 ? (totalPaid / totalDue) * 100 : 0;
 
         // Calcul des membres à risque (retards critiques)
         const today = new Date();
@@ -102,7 +101,6 @@ const AdminDashboard: React.FC = () => {
             totalPaid,
             totalDue,
             totalRemaining: totalDue - totalPaid,
-            progressPercent,
             atRisk
         };
     }, [members, contributions]);
@@ -132,13 +130,12 @@ const AdminDashboard: React.FC = () => {
 
     const handleGenerateReport = async () => {
         try {
-            // Récupérer toutes les contributions pour l'année sélectionnée
             const allContributions = await import('../../services/contribution.services').then(
                 module => module.ContributionService.getAll()
             );
-            
+
             const filteredContributions = allContributions.filter(c => c.year === selectedYear);
-            
+
             const reportData = filteredContributions.map(c => ({
                 memberName: c.memberName,
                 year: c.year,
@@ -147,7 +144,7 @@ const AdminDashboard: React.FC = () => {
                 remaining: c.remaining,
                 status: c.status === 'PAID' ? 'Payé' : c.status === 'PARTIAL' ? 'Partiel' : 'En attente'
             }));
-            
+
             generateContributionReport({
                 title: 'Rapport des Cotisations',
                 year: selectedYear,
@@ -157,7 +154,7 @@ const AdminDashboard: React.FC = () => {
                 totalRemaining: stats.totalRemaining,
                 generatedBy: `${user?.firstName} ${user?.lastName} (${user?.email})`
             });
-            
+
             toast.success(`Rapport ${selectedYear} généré avec succès`);
         } catch (error) {
             console.error('Erreur lors de la génération du rapport:', error);
@@ -217,7 +214,7 @@ const AdminDashboard: React.FC = () => {
                     <Button
                         variant="primary"
                         onClick={() => navigate('/admin/members')}
-                        className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm w-full sm:w-auto bg-[#E51A1A] hover:bg-[#C41515]"
+                        className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm w-full sm:w-auto bg-[#E51A1A] hover:bg-[#C41515] text-white"
                     >
                         <AiOutlineUserAdd size={16} className="sm:w-5 sm:h-5" />
                         <span className="font-black">NOUVEAU MEMBRE</span>
@@ -225,36 +222,55 @@ const AdminDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Cartes statistiques */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-                <Card
-                    title="Membres"
-                    value={stats.totalMembers}
-                    subtitle={`${stats.activeMembers} actifs`}
-                    icon={<AiOutlineTeam size={20} className="sm:w-6 sm:h-6" />}
-                    gradient="from-blue-500 to-cyan-500"
-                />
-                <Card
-                    title="Étudiants"
-                    value={stats.students}
-                    subtitle={`${stats.totalMembers > 0 ? ((stats.students / stats.totalMembers) * 100).toFixed(1) : 0}%`}
-                    icon={<AiOutlineFileText size={20} className="sm:w-6 sm:h-6" />}
-                    gradient="from-purple-500 to-pink-500"
-                />
-                <Card
-                    title="Travailleurs"
-                    value={stats.workers}
-                    subtitle={`${stats.totalMembers > 0 ? ((stats.workers / stats.totalMembers) * 100).toFixed(1) : 0}%`}
-                    icon={<AiOutlineTeam size={20} className="sm:w-6 sm:h-6" />}
-                    gradient="from-orange-500 to-red-500"
-                />
-                <Card
-                    title="Cotisations"
-                    value={formatCurrency(stats.totalDue)}
-                    subtitle={`Année ${selectedYear}`}
-                    icon={<AiOutlineDollar size={20} className="sm:w-6 sm:h-6" />}
-                    gradient="from-green-500 to-emerald-500"
-                />
+            {/* Cartes statistiques - Couleurs unies sans gradient */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                {/* Carte Membres */}
+                <div className="bg-blue-600 rounded-xl p-3 shadow-md">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="p-1.5 rounded-lg bg-white/20">
+                            <AiOutlineTeam size={16} className="text-white" />
+                        </div>
+                    </div>
+                    <p className="font-black text-white text-lg sm:text-xl">{stats.totalMembers}</p>
+                    <p className="font-bold text-white/80 text-[9px] uppercase tracking-wider">Membres</p>
+                    <p className="text-white/60 text-[7px] mt-1">{stats.activeMembers} actifs</p>
+                </div>
+
+                {/* Carte Étudiants */}
+                <div className="bg-purple-600 rounded-xl p-3 shadow-md">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="p-1.5 rounded-lg bg-white/20">
+                            <AiOutlineFileText size={16} className="text-white" />
+                        </div>
+                    </div>
+                    <p className="font-black text-white text-lg sm:text-xl">{stats.students}</p>
+                    <p className="font-bold text-white/80 text-[9px] uppercase tracking-wider">Étudiants</p>
+                    <p className="text-white/60 text-[7px] mt-1">{stats.totalMembers > 0 ? ((stats.students / stats.totalMembers) * 100).toFixed(1) : 0}%</p>
+                </div>
+
+                {/* Carte Travailleurs */}
+                <div className="bg-orange-600 rounded-xl p-3 shadow-md">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="p-1.5 rounded-lg bg-white/20">
+                            <AiOutlineTeam size={16} className="text-white" />
+                        </div>
+                    </div>
+                    <p className="font-black text-white text-lg sm:text-xl">{stats.workers}</p>
+                    <p className="font-bold text-white/80 text-[9px] uppercase tracking-wider">Travailleurs</p>
+                    <p className="text-white/60 text-[7px] mt-1">{stats.totalMembers > 0 ? ((stats.workers / stats.totalMembers) * 100).toFixed(1) : 0}%</p>
+                </div>
+
+                {/* Carte Cotisations */}
+                <div className="bg-green-600 rounded-xl p-3 shadow-md">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="p-1.5 rounded-lg bg-white/20">
+                            <AiOutlineDollar size={16} className="text-white" />
+                        </div>
+                    </div>
+                    <p className="font-black text-white text-sm sm:text-base">{formatCurrency(stats.totalDue)}</p>
+                    <p className="font-bold text-white/80 text-[9px] uppercase tracking-wider">Cotisations</p>
+                    <p className="text-white/60 text-[7px] mt-1">Année {selectedYear}</p>
+                </div>
             </div>
 
             {/* Graphique de collecte annuelle */}
@@ -268,45 +284,66 @@ const AdminDashboard: React.FC = () => {
 
             {/* Layout deux colonnes */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                <div className="lg:col-span-2 bg-white rounded-2xl md:rounded-3xl border-2 border-b-8 border-gray-200 p-4 md:p-6">
-                    <div className="flex items-center justify-between mb-4 md:mb-6">
-                        <h2 className={`${THEME.font.h2} text-base md:text-xl flex items-center gap-2`}>
-                            <AiOutlineWarning className="text-red-500 text-base md:text-xl" />
-                            RETARDS CRITIQUES
-                        </h2>
-                        <span className="text-[10px] md:text-sm font-black text-gray-400">
-                            {stats.atRisk.length} membre(s)
-                        </span>
+                {/* Section Retards Critiques */}
+                <div className="lg:col-span-2 bg-white rounded-2xl md:rounded-3xl border-2 border-b-8 border-gray-200 overflow-hidden">
+                    <div className="bg-[#E51A1A] px-4 py-3 md:px-6 md:py-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="p-1.5 bg-white/20 rounded-lg">
+                                    <AiOutlineWarning className="text-white text-base md:text-xl" />
+                                </div>
+                                <h2 className="font-black text-white text-sm md:text-lg uppercase tracking-wider">
+                                    Retards Critiques
+                                </h2>
+                            </div>
+                            <div className="bg-white/20 px-2 py-1 rounded-lg">
+                                <span className="text-white font-black text-[10px] md:text-xs">
+                                    {stats.atRisk.length} membre(s)
+                                </span>
+                            </div>
+                        </div>
+                        <p className="text-white/80 text-[8px] md:text-[10px] mt-1 ml-8">
+                            Membres avec paiements en retard ou partiels
+                        </p>
                     </div>
 
-                    {stats.atRisk.length === 0 ? (
-                        <div className="text-center py-8 md:py-12 opacity-50">
-                            <AiOutlineCheckCircle size={32} className="sm:w-12 sm:h-12 mx-auto mb-3 md:mb-4 text-green-500" />
-                            <p className="font-black text-xs sm:text-sm">Aucun retard de paiement</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-3 md:space-y-4">
-                            {stats.atRisk.map((item, index) => (
-                                <RiskMemberCard
-                                    key={item.id}
-                                    index={index}
-                                    name={item.memberName}
-                                    amount={item.amount}
-                                    remaining={item.remaining}
-                                    isOverdue={item.isOverdue}
-                                    onClick={() => navigate(`/admin/finance?member=${item.memberId}&year=${selectedYear}`)}
-                                />
-                            ))}
-                        </div>
-                    )}
+                    <div className="p-4 md:p-6">
+                        {stats.atRisk.length === 0 ? (
+                            <div className="text-center py-8 md:py-12">
+                                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                                    <AiOutlineCheckCircle size={32} className="text-green-500" />
+                                </div>
+                                <p className="font-black text-gray-600 text-sm">✅ Aucun retard de paiement</p>
+                                <p className="text-gray-400 text-[10px] mt-1">Toutes les cotisations sont à jour</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {stats.atRisk.map((item, index) => (
+                                    <RiskMemberCard
+                                        key={item.id}
+                                        index={index}
+                                        name={item.memberName}
+                                        amount={item.amount}
+                                        remaining={item.remaining}
+                                        isOverdue={item.isOverdue}
+                                        onClick={() => navigate(`/admin/finance?member=${item.memberId}&year=${selectedYear}`)}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Actions rapides - Version avec couleur rouge unie */}
+                {/* Actions rapides */}
                 <div className="bg-[#E51A1A] rounded-2xl md:rounded-3xl border-2 border-black p-4 md:p-6 text-white">
-                    <h2 className={`${THEME.font.h2} text-base md:text-xl mb-4 md:mb-6 flex items-center gap-2`}>
-                        <AiOutlineCalendar size={16} className="md:w-5 md:h-5" />
-                        ACTIONS RAPIDES
-                    </h2>
+                    <div className="flex items-center gap-2 mb-4 md:mb-6">
+                        <div className="p-1.5 bg-white/20 rounded-lg">
+                            <AiOutlineCalendar size={16} className="md:w-5 md:h-5" />
+                        </div>
+                        <h2 className={`${THEME.font.h2} text-base md:text-xl font-black uppercase tracking-wider`}>
+                            Actions Rapides
+                        </h2>
+                    </div>
 
                     <div className="space-y-3 md:space-y-4">
                         <QuickActionButton
@@ -326,9 +363,12 @@ const AdminDashboard: React.FC = () => {
                         />
                     </div>
 
-                    <div className="mt-6 md:mt-8 p-3 md:p-4 bg-white/10 rounded-xl md:rounded-2xl border-2 border-white/20">
-                        <p className="text-[8px] md:text-[10px] font-black uppercase mb-1">État du système</p>
-                        <p className="text-[10px] md:text-xs font-medium">
+                    <div className="mt-6 md:mt-8 p-3 md:p-4 bg-white/10 rounded-xl md:rounded-2xl border border-white/20">
+                        <div className="flex items-center gap-2 mb-1">
+                            <AiOutlineClockCircle size={12} className="text-white/70" />
+                            <p className="text-[8px] md:text-[10px] font-black uppercase text-white/70">État du système</p>
+                        </div>
+                        <p className="text-[9px] md:text-[11px] font-medium text-white">
                             ✓ Synchronisé • {new Date().toLocaleTimeString('fr-FR')}
                         </p>
                     </div>
@@ -343,10 +383,10 @@ const QuickActionButton: React.FC<{ title: string; onClick: () => void; icon: Re
 }) => (
     <button
         onClick={onClick}
-        className="w-full flex items-center justify-between p-3 md:p-4 bg-white/10 hover:bg-white/20 rounded-xl md:rounded-2xl border-2 border-white/20 transition-all group"
+        className="w-full flex items-center justify-between p-3 md:p-4 bg-white/10 hover:bg-white/20 rounded-xl md:rounded-2xl border border-white/20 transition-all group"
     >
-        <span className="font-black uppercase text-xs md:text-sm">{title}</span>
-        <div className="group-hover:translate-x-1 transition-transform">
+        <span className="font-black uppercase text-[11px] md:text-sm">{title}</span>
+        <div className="group-hover:translate-x-1 transition-transform text-white">
             {icon}
         </div>
     </button>
