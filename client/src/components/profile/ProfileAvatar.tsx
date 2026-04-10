@@ -9,7 +9,7 @@ const ProfileAvatar: React.FC = () => {
 	if (!user) return null;
 	return (
 		<div className="relative group shrink-0">
-			<div className="w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-2xl md:rounded-3xl overflow-hidden border-4 border-white shadow-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+			<div className="w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-2xl md:rounded-3xl overflow-hidden border-4 border-white shadow-xl bg-[#E51A1A] flex items-center justify-center">
 				{user.imageUrl ? (
 					<img
 						src={getImageUrl(user.imageUrl, 'admin')}
@@ -27,7 +27,7 @@ const ProfileAvatar: React.FC = () => {
 					</span>
 				)}
 			</div>
-			<div className={`absolute -bottom-2 -right-2 p-1.5 sm:p-2 rounded-xl border-2 border-white ${user.verified ? 'bg-green-500' : 'bg-red-500'}`}>
+			<div className={`absolute -bottom-2 -right-2 p-1.5 sm:p-2 rounded-xl border-2 border-white ${user.verified ? 'bg-green-500' : 'bg-[#E51A1A]'}`}>
 				{user.verified ? <AiOutlineCheckCircle className="text-white" size={16} /> : <AiOutlineCloseCircle className="text-white" size={16} />}
 			</div>
 		</div>
