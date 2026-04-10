@@ -169,7 +169,7 @@ const AdminDashboard: React.FC = () => {
         return (
             <div className="flex items-center justify-center h-96">
                 <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <div className="w-16 h-16 border-4 border-[#E51A1A] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                     <p className="font-black text-gray-500">Chargement du tableau de bord...</p>
                 </div>
             </div>
@@ -181,7 +181,7 @@ const AdminDashboard: React.FC = () => {
             {/* En-tête */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3 md:gap-4">
-                    <div className="p-3 md:p-4 bg-brand-primary text-white rounded-2xl md:rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="p-3 md:p-4 bg-[#E51A1A] text-white rounded-2xl md:rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <AiOutlineRise size={24} className="md:w-8 md:h-8" />
                     </div>
                     <div>
@@ -202,7 +202,7 @@ const AdminDashboard: React.FC = () => {
                             <select
                                 value={selectedYear}
                                 onChange={handleYearChange}
-                                className="appearance-none bg-white border-2 border-gray-200 rounded-xl py-2.5 pl-10 pr-8 text-sm font-black uppercase tracking-wider cursor-pointer hover:border-brand-primary transition-all focus:outline-none focus:border-brand-primary w-full sm:w-auto"
+                                className="appearance-none bg-white border-2 border-gray-200 rounded-xl py-2.5 pl-10 pr-8 text-sm font-black uppercase tracking-wider cursor-pointer hover:border-[#E51A1A] transition-all focus:outline-none focus:border-[#E51A1A] w-full sm:w-auto"
                             >
                                 {availableYears.map(year => (
                                     <option key={year} value={year}>
@@ -217,7 +217,7 @@ const AdminDashboard: React.FC = () => {
                     <Button
                         variant="primary"
                         onClick={() => navigate('/admin/members')}
-                        className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm w-full sm:w-auto"
+                        className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm w-full sm:w-auto bg-[#E51A1A] hover:bg-[#C41515]"
                     >
                         <AiOutlineUserAdd size={16} className="sm:w-5 sm:h-5" />
                         <span className="font-black">NOUVEAU MEMBRE</span>
@@ -301,8 +301,8 @@ const AdminDashboard: React.FC = () => {
                     )}
                 </div>
 
-                {/* Actions rapides */}
-                <div className="bg-linear-to-br from-brand-primary to-orange-600 rounded-2xl md:rounded-3xl border-2 border-black p-4 md:p-6 text-white">
+                {/* Actions rapides - Version avec couleur rouge unie */}
+                <div className="bg-[#E51A1A] rounded-2xl md:rounded-3xl border-2 border-black p-4 md:p-6 text-white">
                     <h2 className={`${THEME.font.h2} text-base md:text-xl mb-4 md:mb-6 flex items-center gap-2`}>
                         <AiOutlineCalendar size={16} className="md:w-5 md:h-5" />
                         ACTIONS RAPIDES
