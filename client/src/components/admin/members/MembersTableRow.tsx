@@ -74,7 +74,7 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
           <div>
             <div className="font-bold text-sm uppercase">
               {member.lastName}{' '}
-              <span className="font-black text-brand-primary">{member.firstName}</span>
+              <span className="font-black capitalize">{member.firstName}</span>
             </div>
             {!member.isActiveMember && (
               <span className="text-[8px] font-black text-gray-400 uppercase">Inactif</span>
@@ -125,27 +125,41 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-36 bg-white rounded-xl shadow-lg border border-gray-200 z-10 overflow-hidden animate-in fade-in zoom-in duration-150">
+            <div className="absolute right-0 mt-2 w-48 bg-white/90 backdrop-blur-md rounded-xl shadow-2xl border border-white/30 z-10 overflow-hidden animate-in fade-in zoom-in duration-150">
+              {/* Bouton Voir */}
               <button
                 onClick={handleView}
-                className="w-full px-4 py-2 text-left text-xs font-bold flex items-center gap-2 hover:bg-blue-50 text-gray-700 transition-colors"
+                className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-blue-50/50 transition-all duration-200 group"
               >
-                <AiOutlineEye size={14} className="text-blue-500" />
-                Voir
+                <div className="w-7 h-7 rounded-lg bg-blue-100/50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                  <AiOutlineEye size={14} className="text-blue-600" />
+                </div>
+                <span className="text-gray-700 group-hover:text-blue-700">Voir</span>
               </button>
+
+              {/* Bouton Modifier */}
               <button
                 onClick={handleEdit}
-                className="w-full px-4 py-2 text-left text-xs font-bold flex items-center gap-2 hover:bg-brand-primary/10 text-gray-700 transition-colors"
+                className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-amber-50/50 transition-all duration-200 group"
               >
-                <AiOutlineEdit size={14} className="text-brand-primary" />
-                Modifier
+                <div className="w-7 h-7 rounded-lg bg-amber-100/50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+                  <AiOutlineEdit size={14} className="text-amber-600" />
+                </div>
+                <span className="text-gray-700 group-hover:text-amber-700">Modifier</span>
               </button>
+
+              {/* Séparateur */}
+              <div className="mx-3 h-px bg-gray-100" />
+
+              {/* Bouton Supprimer */}
               <button
                 onClick={handleDelete}
-                className="w-full px-4 py-2 text-left text-xs font-bold flex items-center gap-2 hover:bg-red-50 text-gray-700 transition-colors"
+                className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-red-50/50 transition-all duration-200 group"
               >
-                <AiOutlineDelete size={14} className="text-red-500" />
-                Supprimer
+                <div className="w-7 h-7 rounded-lg bg-red-100/50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
+                  <AiOutlineDelete size={14} className="text-red-600" />
+                </div>
+                <span className="text-red-600 group-hover:text-red-700">Supprimer</span>
               </button>
             </div>
           )}
