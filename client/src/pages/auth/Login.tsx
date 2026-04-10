@@ -37,7 +37,7 @@ const Login: React.FC = () => {
 
             <div className="relative w-full max-w-md z-10">
                 {/* Card avec ombre */}
-                <div className="bg-white rounded-2xl shadow-2xl shadow-black/10 border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-2xl shadow-gray-400 border border-gray-100 overflow-hidden">
                     <div className="p-6 sm:p-8">
                         {/* Logo et titre */}
                         <div className="text-center mb-6">
