@@ -14,14 +14,14 @@ import {
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
-import  PaymentModal from '../../components/shared/payments/PaymentModal';
+import PaymentModal from '../../components/shared/payments/PaymentModal';
 import { FinanceFilters } from '../../components/shared/payments/FinanceFilter';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import { formatCurrency, getInitials } from '../../lib/helper';
-import { getImageUrl } from '../../lib/constant/constant';
+import { formatCurrency } from '../../lib/helper';
 import { THEME } from '../../styles/theme';
 import toast from 'react-hot-toast';
+import Avatar from '../../components/ui/Avatar';
 
 const AdminFinance: React.FC = () => {
     const currentYear = new Date().getFullYear();
@@ -290,6 +290,9 @@ const AdminFinance: React.FC = () => {
         );
     }
 
+    const newLocal = "px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25";
+    const newLocal_1 = "px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-[100px]";
+    const newLocal_2 = "px-3 sm:px-4 py-3 sm:py-4 text-right text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-[80px]";
     return (
         <div className="h-full flex flex-col px-3 sm:px-4 md:px-6 py-4 sm:py-6">
             <div className="shrink-0 space-y-4 sm:space-y-6">
@@ -519,10 +522,10 @@ const AdminFinance: React.FC = () => {
                                             <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-50">Membre</th>
                                             <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-20">Année</th>
                                             <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25">Statut</th>
-                                            <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25">Montant</th>
+                                            <th className={newLocal}>Montant</th>
                                             <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25">Payé</th>
-                                            <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25">Reste</th>
-                                            <th className="px-3 sm:px-4 py-3 sm:py-4 text-right text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-20">Actions</th>
+                                            <th className={newLocal_1}>Reste</th>
+                                            <th className={newLocal_2}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -561,34 +564,22 @@ const AdminFinance: React.FC = () => {
 
                                                 // Déterminer la couleur de fond de la ligne
                                                 const rowBgClass = isStudent
-                                                    ? 'bg-gray-500/10'
+                                                    ? 'bg-gray-50'
                                                     : 'bg-white';
 
                                                 return (
                                                     <tr key={contribution.id} className={`${rowBgClass} hover:bg-gray-100 transition-colors`}>
                                                         <td className="px-3 sm:px-4 py-3 sm:py-4">
                                                             <div className="flex items-center gap-2 sm:gap-3">
-                                                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
-                                                                    {member?.imageUrl ? (
-                                                                        <img
-                                                                            src={getImageUrl(member.imageUrl, 'member')}
-                                                                            alt={member.firstName}
-                                                                            className="w-full h-full object-cover"
-                                                                            onError={(e) => {
-                                                                                const target = e.target as HTMLImageElement;
-                                                                                target.style.display = 'none';
-                                                                                if (target.parentElement) {
-                                                                                    target.parentElement.innerHTML = getInitials(member.firstName, member.lastName);
-                                                                                    target.parentElement.classList.add('text-xs', 'sm:text-sm', 'font-black', 'text-gray-500');
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                    ) : (
-                                                                        <span className="text-xs sm:text-sm font-black text-gray-500">
-                                                                            {getInitials(contribution.memberName.split(' ')[0] || '', contribution.memberName.split(' ')[1] || '')}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
+                                                                <Avatar
+                                                                    imageUrl={member?.imageUrl}
+                                                                    firstName={member?.firstName}
+                                                                    lastName={member?.lastName}
+                                                                    gender={member?.gender}
+                                                                    category="member"
+                                                                    size="sm"
+                                                                    shape="rounded"
+                                                                />
                                                                 <div>
                                                                     <p className="font-black text-xs sm:text-sm">{contribution.memberName}</p>
                                                                     <p className="text-[8px] sm:text-[10px] text-gray-500 uppercase">
@@ -724,6 +715,7 @@ const AdminFinance: React.FC = () => {
                     memberId={selectedContribution.memberId}
                     memberPhone={members.find(m => m.id === selectedContribution.memberId)?.phoneNumber}
                     memberImageUrl={members.find(m => m.id === selectedContribution.memberId)?.imageUrl}
+                    memberGender={members.find(m => m.id === selectedContribution.memberId)?.gender}
                     contributionAmount={selectedContribution.amount}
                     remainingAmount={selectedContribution.remaining}
                     year={selectedContribution.year}

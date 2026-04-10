@@ -17,11 +17,10 @@ import { personSchema } from '../../../lib/validators/member.validator';
 import Button from '../../ui/Button';
 import Input from '../../ui/Input';
 import Select from '../../ui/Select';
-import { getImageUrl } from '../../../lib/constant/constant';
 import { getErrorMessage } from '../../../lib/helper';
 import toast from 'react-hot-toast';
 import ParentSearchInput from '../../ui/ParentSearchInput';
-import { Avatar } from '../../../components/ui/Avatar';
+import Avatar from '../../ui/Avatar';
 
 interface MemberFormProps {
   isOpen: boolean;
@@ -91,7 +90,7 @@ const getRawPhoneNumber = (formatted: string): string => {
   return formatted.replace(/\D/g, '');
 };
 
-export const MemberForm: React.FC<MemberFormProps> = ({
+const MemberForm: React.FC<MemberFormProps> = ({
   isOpen,
   onClose,
   memberToEdit,

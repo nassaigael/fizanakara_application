@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
     AiOutlineClose,
@@ -14,7 +14,7 @@ import { paymentSchema } from '../../../lib/validators/finance.validator';
 import { PaymentStatus, Gender } from '../../../lib/types';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
-import { formatCurrency, formatDate } from '../../../lib/helper';
+import { formatCurrency } from '../../../lib/helper';
 import { useAuth } from '../../../context/AuthContext';
 import { Avatar } from '../../ui/Avatar';
 import html2canvas from 'html2canvas';
@@ -30,7 +30,7 @@ interface PaymentModalProps {
     memberPhone?: string;
     memberEmail?: string;
     memberImageUrl?: string;
-    memberGender?: Gender;  // Changé de 'MALE' | 'FEMALE' à Gender
+    memberGender?: Gender;
     contributionAmount?: number;
     remainingAmount?: number;
     year?: number;
@@ -185,7 +185,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const remainingAfterPayment = Math.max(0, (remainingAmount || 0) - selectedAmount);
     const getStatusLabel = () => autoStatus === PaymentStatus.COMPLETED ? 'Complété' : 'En attente';
 
-    // Fonction pour générer le HTML d'un reçu
     const generateReceiptHTML = (data: any, isCompact: boolean = false): string => {
         const paymentDateObj = new Date(data.paymentDate);
         const formattedDate = paymentDateObj.toLocaleDateString('fr-FR');
@@ -289,7 +288,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         `;
     };
 
-    // Fonction de téléchargement du PDF
     const downloadPDF = async (data: any) => {
         if (!data) {
             toast.error('Aucune donnée de reçu disponible');
@@ -299,7 +297,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         setIsDownloading(true);
         
         try {
-            // Créer un conteneur temporaire
             const container = document.createElement('div');
             container.style.position = 'fixed';
             container.style.left = '0';

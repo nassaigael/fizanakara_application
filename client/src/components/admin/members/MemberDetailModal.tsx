@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
     AiOutlineClose,
-    AiOutlineUser,
     AiOutlinePhone,
     AiOutlineFlag,
     AiOutlineIdcard,
@@ -18,10 +17,10 @@ import {
     AiOutlineRise
 } from 'react-icons/ai';
 import { PersonResponse, MemberStatus, Gender } from '../../../lib/types';
-import { formatDate, calculateAge, getInitials, formatCurrency } from '../../../lib/helper';
-import { getImageUrl } from '../../../lib/constant/constant';
+import { formatDate, calculateAge, formatCurrency } from '../../../lib/helper';
 import { useFinance } from '../../../hooks/useFinance';
 import { useMembers } from '../../../hooks/useMembers';
+import Avatar from '../../../components/ui/Avatar';
 
 interface MemberDetailModalProps {
     isOpen: boolean;
@@ -58,12 +57,8 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
 
     const isMale = member.gender === Gender.MALE;
     const age = calculateAge(member.birthDate);
-    const hasImage = member.imageUrl && member.imageUrl.trim() !== '';
-    const avatarUrl = hasImage ? getImageUrl(member.imageUrl, 'member') : null;
     const hasChildren = member.children && member.children.length > 0;
     const hasPaymentHistory = memberContributions.length > 0;
-
-    const parentImageUrl = parentMember?.imageUrl ? getImageUrl(parentMember.imageUrl, 'member') : null;
 
     const isFullyPaid = (contribution: any) => {
         return contribution.totalPaid >= contribution.amount;
@@ -104,10 +99,6 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         return id;
     };
 
-    const getMemberInitials = () => {
-        return getInitials(member.firstName, member.lastName);
-    };
-
     const handleTabChange = (tab: 'info' | 'payments' | 'family') => {
         if (tab === activeTab || isAnimating) return;
 
@@ -131,19 +122,16 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                 {activeTab === 'info' && (
                     <div className="space-y-6">
                         <div className="flex items-start gap-6 pb-6 border-b border-gray-100">
-                            <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shadow-sm">
-                                {avatarUrl ? (
-                                    <img
-                                        src={avatarUrl}
-                                        alt={member.firstName}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <span className={`text-3xl font-black ${isMale ? 'text-blue-500' : 'text-pink-500'}`}>
-                                        {getInitials(member.firstName, member.lastName)}
-                                    </span>
-                                )}
-                            </div>
+                            <Avatar
+                                imageUrl={member.imageUrl}
+                                firstName={member.firstName}
+                                lastName={member.lastName}
+                                gender={member.gender}
+                                category="member"
+                                size="xl"
+                                shape="rounded"
+                                className="shadow-sm"
+                            />
                             <div className="flex-1">
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase ${member.status === MemberStatus.WORKER
@@ -188,15 +176,15 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                     className="flex items-center justify-between cursor-pointer hover:bg-white p-2 rounded-lg transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                                            {parentImageUrl ? (
-                                                <img src={parentImageUrl} alt="Parent" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <span className="text-xs font-bold text-gray-500">
-                                                    {getInitials(member.parentName.split(' ')[0] || '', member.parentName.split(' ')[1] || '')}
-                                                </span>
-                                            )}
-                                        </div>
+                                        <Avatar
+                                            imageUrl={parentMember?.imageUrl}
+                                            firstName={member.parentName?.split(' ')[0]}
+                                            lastName={member.parentName?.split(' ')[1]}
+                                            gender={parentMember?.gender}
+                                            category="member"
+                                            size="sm"
+                                            shape="rounded"
+                                        />
                                         <div>
                                             <p className="font-medium text-sm">{member.parentName}</p>
                                             <p className="text-[10px] text-gray-400">{formatMemberId(member.parentId)}</p>
@@ -274,13 +262,15 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                                            {parentImageUrl ? (
-                                                <img src={parentImageUrl} alt="Parent" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <AiOutlineUser size={20} className="text-gray-500" />
-                                            )}
-                                        </div>
+                                        <Avatar
+                                            imageUrl={parentMember?.imageUrl}
+                                            firstName={member.parentName?.split(' ')[0]}
+                                            lastName={member.parentName?.split(' ')[1]}
+                                            gender={parentMember?.gender}
+                                            category="member"
+                                            size="sm"
+                                            shape="rounded"
+                                        />
                                         <div>
                                             <p className="font-medium">{member.parentName}</p>
                                             <p className="text-[10px] text-gray-400">{formatMemberId(member.parentId)}</p>
@@ -310,33 +300,28 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {member.children?.map((child) => {
-                                        const childIsMale = child.gender === Gender.MALE;
-                                        const childAvatarUrl = child.imageUrl ? getImageUrl(child.imageUrl, 'member') : null;
-
-                                        return (
-                                            <div
-                                                key={child.id}
-                                                onClick={() => onViewChild?.(child)}
-                                                className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                                            >
-                                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                                                    {childAvatarUrl ? (
-                                                        <img src={childAvatarUrl} alt={child.firstName} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <span className={`text-sm font-bold ${childIsMale ? 'text-blue-500' : 'text-pink-500'}`}>
-                                                            {getInitials(child.firstName, child.lastName)}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="font-medium text-sm">{child.firstName} {child.lastName}</p>
-                                                    <p className="text-[10px] text-gray-400">{formatMemberId(child.id)}</p>
-                                                </div>
-                                                <AiOutlineArrowRight size={12} className="text-gray-400" />
+                                    {member.children?.map((child) => (
+                                        <div
+                                            key={child.id}
+                                            onClick={() => onViewChild?.(child)}
+                                            className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                        >
+                                            <Avatar
+                                                imageUrl={child.imageUrl}
+                                                firstName={child.firstName}
+                                                lastName={child.lastName}
+                                                gender={child.gender}
+                                                category="member"
+                                                size="sm"
+                                                shape="rounded"
+                                            />
+                                            <div className="flex-1">
+                                                <p className="font-medium text-sm">{child.firstName} {child.lastName}</p>
+                                                <p className="text-[10px] text-gray-400">{formatMemberId(child.id)}</p>
                                             </div>
-                                        );
-                                    })}
+                                            <AiOutlineArrowRight size={12} className="text-gray-400" />
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -354,19 +339,15 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
             >
                 <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#E51A1A]/10 flex items-center justify-center">
-                            {avatarUrl ? (
-                                <img
-                                    src={avatarUrl}
-                                    alt={member.firstName}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <span className="text-sm font-bold text-[#E51A1A]">
-                                    {getMemberInitials()}
-                                </span>
-                            )}
-                        </div>
+                        <Avatar
+                            imageUrl={member.imageUrl}
+                            firstName={member.firstName}
+                            lastName={member.lastName}
+                            gender={member.gender}
+                            category="member"
+                            size="md"
+                            shape="rounded"
+                        />
                         <div>
                             <h2 className="text-lg font-bold text-gray-800">
                                 {member.lastName} {member.firstName}

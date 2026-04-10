@@ -1,3 +1,4 @@
+// client/src/components/admin/members/MembersTableRow.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import { PersonResponse, Gender, MemberStatus } from '../../../lib/types';
 import {
@@ -10,7 +11,7 @@ import {
   AiOutlineStar,
   AiOutlineMore,
 } from 'react-icons/ai';
-import { Avatar } from '../../../components/ui/Avatar';
+import Avatar from '../../ui/Avatar';
 
 interface MembersTableRowProps {
   member: PersonResponse;

@@ -1,3 +1,4 @@
+// client/src/components/ui/Avatar.tsx
 import React, { useState, useEffect } from 'react';
 import { getImageUrl, getDefaultImage } from '../../lib/constant/constant';
 import { Gender } from '../../lib/types';
@@ -38,37 +39,36 @@ export const Avatar: React.FC<AvatarProps> = ({
     className = '',
     onClick,
 }) => {
-    const [imgSrc, setImgSrc] = useState<string>('');
-    const [hasError, setHasError] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [imgError, setImgError] = useState(false);
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [useDefaultImage, setUseDefaultImage] = useState(false);
 
     useEffect(() => {
-        // Réinitialiser les états quand l'URL change
-        setHasError(false);
-        setIsLoading(true);
-        
-        // Obtenir l'URL de l'image (avec fallback si pas d'image)
-        const url = getImageUrl(imageUrl, category, gender);
-        setImgSrc(url);
-        
-        // Si c'est une image locale, on peut considérer qu'elle est déjà chargée
-        if (url.startsWith('/') || url.startsWith('data:')) {
-            setIsLoading(false);
+        if (imageUrl) {
+            const url = getImageUrl(imageUrl, category, gender);
+            setImageSrc(url);
+            setImgError(false);
+            setUseDefaultImage(false);
+        } else {
+            // Pas d'image URL, utiliser l'image par défaut selon le genre
+            const defaultImg = getDefaultImage(gender, category === 'admin' ? 'admin' : 'member');
+            setImageSrc(defaultImg);
+            setUseDefaultImage(true);
+            setImgError(false);
         }
     }, [imageUrl, category, gender]);
 
-    const handleError = () => {
-        if (!hasError) {
-            setHasError(true);
-            // Fallback vers l'image par défaut
+    const handleImageError = () => {
+        if (!useDefaultImage) {
+            // En cas d'erreur de chargement, passer à l'image par défaut
             const defaultImg = getDefaultImage(gender, category === 'admin' ? 'admin' : 'member');
-            setImgSrc(defaultImg);
-            setIsLoading(false);
+            setImageSrc(defaultImg);
+            setUseDefaultImage(true);
+            setImgError(false);
+        } else {
+            // Si même l'image par défaut a une erreur, afficher les initiales
+            setImgError(true);
         }
-    };
-
-    const handleLoad = () => {
-        setIsLoading(false);
     };
 
     const getInitials = () => {
@@ -80,8 +80,8 @@ export const Avatar: React.FC<AvatarProps> = ({
         return '?';
     };
 
-    // Si erreur ou pas d'image valide, afficher les initiales
-    if (hasError || (!imgSrc && !imageUrl)) {
+    // Afficher les initiales si erreur ou pas d'image
+    if (imgError || !imageSrc) {
         return (
             <div
                 onClick={onClick}
@@ -115,19 +115,11 @@ export const Avatar: React.FC<AvatarProps> = ({
                 ${className}
             `}
         >
-            {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                    <div className="w-4 h-4 border-2 border-gray-300 border-t-[#E51A1A] rounded-full animate-spin" />
-                </div>
-            )}
-            
             <img
-                src={imgSrc}
+                src={imageSrc}
                 alt={`${firstName || ''} ${lastName || ''}`}
                 className="w-full h-full object-cover"
-                onLoad={handleLoad}
-                onError={handleError}
-                style={{ display: isLoading ? 'none' : 'block' }}
+                onError={handleImageError}
             />
         </div>
     );
