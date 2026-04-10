@@ -11,7 +11,7 @@ import {
   AiOutlineStar,
   AiOutlineMore,
 } from 'react-icons/ai';
-import { getInitials, } from '../../../lib/helper';
+import { getInitials } from '../../../lib/helper';
 import { getImageUrl } from '../../../lib/constant/constant';
 
 interface MembersTableRowProps {
@@ -58,11 +58,18 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
     onDelete(member.id);
   };
 
+  const handleProfileClick = () => {
+    onView(member);
+  };
+
   return (
-    <tr className="hover:bg-gray-50 transition-colors">
+    <tr className="hover:bg-gray-50 transition-colors group">
       <td className="px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center text-xs font-black">
+        <button
+          onClick={handleProfileClick}
+          className="flex items-center gap-3 w-full text-left cursor-pointer group/profile"
+        >
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center text-xs font-black transition-transform group-hover/profile:scale-105">
             {avatarUrl ? (
               <img src={avatarUrl} alt={member.firstName} className="w-full h-full object-cover" />
             ) : (
@@ -72,7 +79,7 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
             )}
           </div>
           <div>
-            <div className="font-bold text-sm uppercase">
+            <div className="font-bold text-sm uppercase group-hover/profile:text-[#E51A1A] transition-colors">
               {member.lastName}{' '}
               <span className="font-black capitalize">{member.firstName}</span>
             </div>
@@ -80,7 +87,7 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
               <span className="text-[8px] font-black text-gray-400 uppercase">Inactif</span>
             )}
           </div>
-        </div>
+        </button>
       </td>
 
       <td className="px-4 py-3 hidden sm:table-cell">
@@ -114,6 +121,7 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
           <span className="text-xs text-gray-400">—</span>
         )}
       </td>
+
       <td className="px-4 py-3 text-right">
         <div className="relative" ref={menuRef}>
           <button
@@ -126,7 +134,6 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
 
           {menuOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white/90 backdrop-blur-md rounded-xl shadow-2xl border border-white/30 z-10 overflow-hidden animate-in fade-in zoom-in duration-150">
-              {/* Bouton Voir */}
               <button
                 onClick={handleView}
                 className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-blue-50/50 transition-all duration-200 group"
@@ -137,7 +144,6 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
                 <span className="text-gray-700 group-hover:text-blue-700">Voir</span>
               </button>
 
-              {/* Bouton Modifier */}
               <button
                 onClick={handleEdit}
                 className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-amber-50/50 transition-all duration-200 group"
@@ -148,10 +154,8 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
                 <span className="text-gray-700 group-hover:text-amber-700">Modifier</span>
               </button>
 
-              {/* Séparateur */}
               <div className="mx-3 h-px bg-gray-100" />
 
-              {/* Bouton Supprimer */}
               <button
                 onClick={handleDelete}
                 className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-red-50/50 transition-all duration-200 group"
