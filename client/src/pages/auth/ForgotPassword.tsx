@@ -10,6 +10,7 @@ import { useForm } from '../../hooks/useForm';
 import { forgotPasswordSchema } from '../../lib/validators/admin.validator';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import logo from "../../../public/logo.png";
 
 const ForgotPassword: React.FC = () => {
     const { forgotPassword } = useAuth();
@@ -81,21 +82,16 @@ const ForgotPassword: React.FC = () => {
 
             <div className="relative w-full max-w-md z-10">
                 {/* Card principal */}
-                <div className="bg-white rounded-2xl shadow-2xl shadow-black/10 border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-2xl shadow-gray-400 border border-gray-100 overflow-hidden">
                     <div className="p-6 sm:p-8">
-                        {/* Logo et titre */}
-                        <div className="text-center mb-6">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-[#E51A1A] rounded-2xl shadow-lg mb-3">
-                                <svg
-                                    width="32"
-                                    height="32"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    className="text-white"
-                                >
-                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                                    <path d="M11 5l1 1-1 1-1-1 1-1zM15 3l1 1-1 1-1-1 1-1zM18 6l1 1-1 1-1-1 1-1z" />
-                                </svg>
+                        {/* Logo et titre avec image PNG */}
+                        <div className="flex flex-col items-center justify-center mb-6">
+                            <div className="w-20 h-20 rounded-full bg-[#E51A1A]/10 flex items-center justify-center mb-4 shadow-sm">
+                                <img 
+                                    src={logo} 
+                                    alt="FIZANAKARA logo" 
+                                    className="w-14 h-14 object-contain"
+                                />
                             </div>
                             <h1 className="text-2xl font-black text-gray-900 tracking-tight">
                                 FIZANAKARA
@@ -103,6 +99,13 @@ const ForgotPassword: React.FC = () => {
                             <p className="text-gray-500 text-xs mt-1 font-medium">
                                 Gestion des cotisations
                             </p>
+                        </div>
+
+                        {/* Séparateur élégant */}
+                        <div className="relative mb-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-100"></div>
+                            </div>
                         </div>
 
                         {/* Titre centré */}
