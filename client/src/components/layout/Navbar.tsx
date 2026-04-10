@@ -10,6 +10,7 @@ import {
     AiOutlineLogout
 } from 'react-icons/ai';
 import { getImageUrl } from '../../lib/constant/constant';
+import logo from "../../../public/logo.png";
 
 interface NavbarProps {
     toggleSidebar: () => void;
@@ -27,20 +28,6 @@ const Navbar = ({ }: NavbarProps) => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    const Logo = () => (
-        <svg 
-            width="28" 
-            height="28" 
-            viewBox="0 0 24 24" 
-            fill="currentColor" 
-            className="text-brand-primary"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            <path d="M11 5l1 1-1 1-1-1 1-1zM15 3l1 1-1 1-1-1 1-1zM18 6l1 1-1 1-1-1 1-1z" />
-        </svg>
-    );
 
     const getInitials = () => {
         if (!user) return '?';
@@ -61,8 +48,13 @@ const Navbar = ({ }: NavbarProps) => {
                 
                 <div className="relative flex items-center gap-3">
                     <div className="flex items-center gap-2 md:gap-3">
+                        {/* Logo PNG au lieu du SVG */}
                         <div className="p-1.5 md:p-2 rounded-xl bg-linear-to-br from-brand-primary/10 to-orange-500/10">
-                            <Logo />
+                            <img 
+                                src={logo} 
+                                alt="FIZANAKARA logo" 
+                                className="w-7 h-7 md:w-8 md:h-8 object-contain"
+                            />
                         </div>
                         <div>
                             <h1 className="font-black text-base md:text-lg tracking-tight text-brand-primary leading-tight">
