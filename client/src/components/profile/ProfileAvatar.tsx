@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getInitials } from '../../lib/helper';
-import { AiOutlineCheckCircle, AiOutlineCloseCircle } from 'react-icons/ai';
+import { AiOutlineCheckCircle } from 'react-icons/ai';
 import { getImageUrl } from '../../lib/constant/constant';
 
 const ProfileAvatar: React.FC = () => {
@@ -27,8 +27,8 @@ const ProfileAvatar: React.FC = () => {
 					</span>
 				)}
 			</div>
-			<div className={`absolute -bottom-2 -right-2 p-1.5 sm:p-2 rounded-xl border-2 border-white ${user.verified ? 'bg-green-500' : 'bg-[#E51A1A]'}`}>
-				{user.verified ? <AiOutlineCheckCircle className="text-white" size={16} /> : <AiOutlineCloseCircle className="text-white" size={16} />}
+			<div className="absolute -bottom-2 -right-2 p-1.5 sm:p-2 rounded-xl border-2 border-white bg-[#E51A1A]">
+				<AiOutlineCheckCircle className="text-white" size={16} />
 			</div>
 		</div>
 	);
