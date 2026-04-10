@@ -18,7 +18,7 @@ import Button from '../../ui/Button';
 import Input from '../../ui/Input';
 import Select from '../../ui/Select';
 import { getImageUrl } from '../../../lib/constant/constant';
-import { getErrorMessage, getInitials } from '../../../lib/helper';
+import { getErrorMessage } from '../../../lib/helper';
 import toast from 'react-hot-toast';
 import ParentSearchInput from '../../ui/ParentSearchInput';
 
@@ -33,6 +33,11 @@ interface MemberFormProps {
 type FormType = 'independent' | 'child';
 
 const VALID_OPERATORS = ['32', '33', '34', '38', '37', '39'];
+
+const DEFAULT_IMAGES = {
+  [Gender.MALE]: '../../../../public/default-avatar-man.png',
+  [Gender.FEMALE]: '../../../../default-avatar-woman.png',
+};
 
 const formatPhoneNumber = (value: string, isDeleting: boolean = false): string => {
   if (isDeleting) {
@@ -131,6 +136,17 @@ export const MemberForm: React.FC<MemberFormProps> = ({
     tributeId: tributes[0]?.id || 0,
   });
 
+  // Fonction pour obtenir l'image par défaut selon le genre
+  const getDefaultImageByGender = (gender: Gender) => {
+    return DEFAULT_IMAGES[gender] || DEFAULT_IMAGES[Gender.MALE];
+  };
+
+  // Fonction pour obtenir l'URL de l'image à afficher (priorité: image téléchargée > URL > image par défaut)
+  const getDisplayImageUrl = (gender: Gender, imageUrl?: string | null, preview?: string | null) => {
+    if (preview) return preview;
+    if (imageUrl) return getImageUrl(imageUrl, 'member');
+    return getDefaultImageByGender(gender);
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -150,7 +166,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({
       };
       setIndependentData(commonData);
       setChildData(commonData);
-      setImagePreview(memberToEdit.imageUrl || null);
+      setImagePreview(null);
       setFormType(memberToEdit.parentId ? 'child' : 'independent');
       if (memberToEdit.parentId) {
         setSelectedParentId(memberToEdit.parentId);
@@ -196,15 +212,12 @@ export const MemberForm: React.FC<MemberFormProps> = ({
       const currentPhone = independentData.phoneNumber || '';
       const isDeleting = value.length < currentPhone.length;
 
-      // Appliquer le formatage automatique pour le numéro de téléphone
       const formatted = formatPhoneNumber(value, isDeleting);
 
-      // Vérifier si l'opérateur est valide
       const rawAfterFormat = getRawPhoneNumber(formatted);
       if (rawAfterFormat.length >= 5 && !isDeleting) {
         const operator = rawAfterFormat.substring(3, 5);
         if (!VALID_OPERATORS.includes(operator)) {
-          // Si l'opérateur n'est pas valide et qu'on n'est pas en train de supprimer, on ne met pas à jour
           return;
         }
       }
@@ -213,6 +226,18 @@ export const MemberForm: React.FC<MemberFormProps> = ({
         ...prev,
         [name]: formatted
       }));
+    } else if (name === 'gender') {
+      // Quand le genre change, mettre à jour l'image par défaut
+      const newGender = value as Gender;
+      setIndependentData(prev => ({
+        ...prev,
+        [name]: newGender,
+        // Ne pas modifier imageUrl si elle existe déjà
+      }));
+      // Réinitialiser l'aperçu si l'utilisateur change de genre
+      if (!independentData.imageUrl && !imagePreview) {
+        setImagePreview(null);
+      }
     } else {
       setIndependentData(prev => ({
         ...prev,
@@ -237,15 +262,12 @@ export const MemberForm: React.FC<MemberFormProps> = ({
       const currentPhone = childData.phoneNumber || '';
       const isDeleting = value.length < currentPhone.length;
 
-      // Appliquer le formatage automatique pour le numéro de téléphone
       const formatted = formatPhoneNumber(value, isDeleting);
 
-      // Vérifier si l'opérateur est valide
       const rawAfterFormat = getRawPhoneNumber(formatted);
       if (rawAfterFormat.length >= 5 && !isDeleting) {
         const operator = rawAfterFormat.substring(3, 5);
         if (!VALID_OPERATORS.includes(operator)) {
-          // Si l'opérateur n'est pas valide et qu'on n'est pas en train de supprimer, on ne met pas à jour
           return;
         }
       }
@@ -254,6 +276,15 @@ export const MemberForm: React.FC<MemberFormProps> = ({
         ...prev,
         [name]: formatted
       }));
+    } else if (name === 'gender') {
+      const newGender = value as Gender;
+      setChildData(prev => ({
+        ...prev,
+        [name]: newGender,
+      }));
+      if (!childData.imageUrl && !imagePreview) {
+        setImagePreview(null);
+      }
     } else {
       setChildData(prev => ({
         ...prev,
@@ -288,14 +319,11 @@ export const MemberForm: React.FC<MemberFormProps> = ({
 
   const validateIndependent = (): boolean => {
     try {
-      // Nettoyer le numéro de téléphone pour la validation (enlever les espaces)
       const rawPhone = getRawPhoneNumber(independentData.phoneNumber || '');
 
-      // Vérifier si l'opérateur est valide
       if (rawPhone && rawPhone.length >= 5) {
         const operator = rawPhone.substring(3, 5);
         if (!VALID_OPERATORS.includes(operator)) {
-          // Ne pas afficher d'erreur, juste empêcher la soumission
           return false;
         }
       }
@@ -311,13 +339,11 @@ export const MemberForm: React.FC<MemberFormProps> = ({
       if (error.errors) {
         for (const err of error.errors) {
           if (err.path && err.path[0]) {
-            // Ne pas ajouter d'erreur pour phoneNumber si c'est un problème d'opérateur
             if (err.path[0] === 'phoneNumber' && independentData.phoneNumber) {
               const raw = getRawPhoneNumber(independentData.phoneNumber);
               if (raw.length >= 5) {
                 const operator = raw.substring(3, 5);
                 if (!VALID_OPERATORS.includes(operator)) {
-                  // Ignorer cette erreur, ne pas l'afficher
                   continue;
                 }
               }
@@ -338,14 +364,11 @@ export const MemberForm: React.FC<MemberFormProps> = ({
         return false;
       }
 
-      // Nettoyer le numéro de téléphone pour la validation (enlever les espaces)
       const rawPhone = getRawPhoneNumber(childData.phoneNumber || '');
 
-      // Vérifier si l'opérateur est valide
       if (rawPhone && rawPhone.length >= 5) {
         const operator = rawPhone.substring(3, 5);
         if (!VALID_OPERATORS.includes(operator)) {
-          // Ne pas afficher d'erreur, juste empêcher la soumission
           return false;
         }
       }
@@ -361,13 +384,11 @@ export const MemberForm: React.FC<MemberFormProps> = ({
       if (error.errors) {
         for (const err of error.errors) {
           if (err.path && err.path[0]) {
-            // Ne pas ajouter d'erreur pour phoneNumber si c'est un problème d'opérateur
             if (err.path[0] === 'phoneNumber' && childData.phoneNumber) {
               const raw = getRawPhoneNumber(childData.phoneNumber);
               if (raw.length >= 5) {
                 const operator = raw.substring(3, 5);
                 if (!VALID_OPERATORS.includes(operator)) {
-                  // Ignorer cette erreur, ne pas l'afficher
                   continue;
                 }
               }
@@ -397,7 +418,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
     try {
       if (memberToEdit) {
         const dataToUpdate = formType === 'independent' ? independentData : childData;
-        // Nettoyer le numéro de téléphone avant l'envoi
         const cleanedData = {
           ...dataToUpdate,
           phoneNumber: getRawPhoneNumber(dataToUpdate.phoneNumber || '')
@@ -406,7 +426,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
         toast.success('Membre modifié');
       } else {
         if (formType === 'child') {
-          // Nettoyer le numéro de téléphone avant l'envoi
           const cleanedData = {
             ...childData,
             phoneNumber: getRawPhoneNumber(childData.phoneNumber || '')
@@ -414,7 +433,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({
           await addChild.mutateAsync({ parentId: selectedParentId, childData: cleanedData as PersonDto });
           toast.success('Enfant ajouté avec succès');
         } else {
-          // Nettoyer le numéro de téléphone avant l'envoi
           const cleanedData = {
             ...independentData,
             phoneNumber: getRawPhoneNumber(independentData.phoneNumber || '')
@@ -468,6 +486,10 @@ export const MemberForm: React.FC<MemberFormProps> = ({
 
   const currentData = formType === 'independent' ? independentData : childData;
   const handleChange = formType === 'independent' ? handleIndependentChange : handleChildChange;
+  const currentGender = currentData.gender || Gender.MALE;
+
+  // Déterminer l'image à afficher
+  const displayImage = getDisplayImageUrl(currentGender, currentData.imageUrl, imagePreview);
 
   if (!isOpen) return null;
 
@@ -544,17 +566,11 @@ export const MemberForm: React.FC<MemberFormProps> = ({
             <div className="lg:col-span-4 space-y-6">
               <div className="bg-gray-50 p-6 rounded-[2.5rem] border-2 border-gray-200 border-b-8 flex flex-col items-center">
                 <div className="w-36 h-44 bg-gray-100 rounded-3xl border-4 border-white shadow-xl overflow-hidden mb-6 group relative flex items-center justify-center">
-                  {imagePreview || currentData.imageUrl ? (
-                    <img
-                      src={imagePreview || getImageUrl(currentData.imageUrl, 'member')}
-                      alt="Avatar"
-                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                    />
-                  ) : (
-                    <span className="text-4xl font-black text-gray-400">
-                      {getInitials(currentData.firstName || '', currentData.lastName || '')}
-                    </span>
-                  )}
+                  <img
+                    src={displayImage}
+                    alt="Avatar"
+                    className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                  />
                 </div>
                 <Input
                   label="URL de l'image"
@@ -575,6 +591,9 @@ export const MemberForm: React.FC<MemberFormProps> = ({
                     onChange={(e) => handleImageChange(e, formType === 'independent')}
                   />
                 </label>
+                <p className="text-[7px] text-gray-400 mt-2 text-center">
+                  Image par défaut selon le genre
+                </p>
               </div>
 
               {/* Parent Selection - Only for child type */}

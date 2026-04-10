@@ -6,14 +6,14 @@ import {
 } from 'react-icons/ai';
 import { MemberStatus } from '../types';
 
-const GITHUB_ACCOUNT = 'mekill404';
-const REPO_NAME = 'image_membre_fizankara';
+const GITHUB_ACCOUNT = 'nassaigael';
+const REPO_NAME = 'image_membre_fizanakara';
 const BASE_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_ACCOUNT}/${REPO_NAME}/main`;
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
 
 export const GITHUB_URLS = {
     ADMIN: `${BASE_RAW_URL}/admin`,
-    MEMBER: `${BASE_RAW_URL}/membre`,
+    MEMBER: `${BASE_RAW_URL}/member`,
     ASSETS: `${BASE_RAW_URL}/assets/images`,
 } as const;
 
