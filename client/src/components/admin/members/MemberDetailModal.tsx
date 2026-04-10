@@ -65,22 +65,36 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
 
     const parentImageUrl = parentMember?.imageUrl ? getImageUrl(parentMember.imageUrl, 'member') : null;
 
-    const getContributionStatusColor = (status: string) => {
+    const isFullyPaid = (contribution: any) => {
+        return contribution.totalPaid >= contribution.amount;
+    };
+
+    const getContributionStatusColor = (status: string, contribution?: any) => {
+        if (contribution && isFullyPaid(contribution)) {
+            return 'bg-green-100 text-green-700';
+        }
         switch (status) {
-            case 'PAID': return 'bg-[#E51A1A]/10 text-[#E51A1A]';
+            case 'PAID': return 'bg-green-100 text-green-700';
             case 'PARTIAL': return 'bg-orange-100 text-orange-700';
             case 'PENDING': return 'bg-red-100 text-red-700';
             default: return 'bg-gray-100 text-gray-600';
         }
     };
 
-    const getContributionStatusLabel = (status: string) => {
+    const getContributionStatusLabel = (status: string, contribution?: any) => {
+        if (contribution && isFullyPaid(contribution)) {
+            return 'Payé ✓';
+        }
         switch (status) {
-            case 'PAID': return 'Payé';
+            case 'PAID': return 'Payé ✓';
             case 'PARTIAL': return 'Partiel';
             case 'PENDING': return 'En attente';
             default: return status;
         }
+    };
+
+    const getTotalPaidColor = (contribution: any) => {
+        return isFullyPaid(contribution) ? 'text-green-600' : 'text-[#E51A1A]';
     };
 
     const formatMemberId = (id: string) => {
@@ -204,40 +218,47 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {memberContributions.map((contribution) => (
-                                    <div key={contribution.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                                        <div className="bg-gray-50 px-4 py-2 flex items-center justify-between border-b border-gray-200">
-                                            <span className="font-bold text-sm">Année {contribution.year}</span>
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${getContributionStatusColor(contribution.status)}`}>
-                                                {getContributionStatusLabel(contribution.status)}
-                                            </span>
-                                        </div>
-                                        <div className="p-4 space-y-3">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500">Montant total</span>
-                                                <span className="font-bold">{formatCurrency(contribution.amount)}</span>
+                                {memberContributions.map((contribution) => {
+                                    const fullyPaid = isFullyPaid(contribution);
+                                    return (
+                                        <div key={contribution.id} className={`border rounded-lg overflow-hidden transition-all ${fullyPaid ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
+                                            <div className={`px-4 py-2 flex items-center justify-between border-b ${fullyPaid ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                                                <span className="font-bold text-sm">Année {contribution.year}</span>
+                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${getContributionStatusColor(contribution.status, contribution)}`}>
+                                                    {getContributionStatusLabel(contribution.status, contribution)}
+                                                </span>
                                             </div>
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500">Total payé</span>
-                                                <span className="font-bold text-[#E51A1A]">{formatCurrency(contribution.totalPaid)}</span>
-                                            </div>
-
-                                            {contribution.payments && contribution.payments.length > 0 && (
-                                                <div className="mt-3 pt-3 border-t border-gray-100">
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historique des paiements</p>
-                                                    <div className="space-y-2">
-                                                        {contribution.payments.map((payment) => (
-                                                            <div key={payment.id} className="flex justify-between items-center text-sm">
-                                                                <span className="text-gray-500">{formatDate(payment.paymentDate)}</span>
-                                                                <span className="font-medium text-[#E51A1A]">{formatCurrency(payment.amountPaid)}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
+                                            <div className="p-4 space-y-3">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-gray-500">Montant total</span>
+                                                    <span className="font-bold">{formatCurrency(contribution.amount)}</span>
                                                 </div>
-                                            )}
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-gray-500">Total payé</span>
+                                                    <span className={`font-bold ${getTotalPaidColor(contribution)}`}>
+                                                        {formatCurrency(contribution.totalPaid)}
+                                                    </span>
+                                                </div>
+
+                                                {contribution.payments && contribution.payments.length > 0 && (
+                                                    <div className="mt-3 pt-3 border-t border-gray-100">
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historique des paiements</p>
+                                                        <div className="space-y-2">
+                                                            {contribution.payments.map((payment) => (
+                                                                <div key={payment.id} className="flex justify-between items-center text-sm">
+                                                                    <span className="text-gray-500">{formatDate(payment.paymentDate)}</span>
+                                                                    <span className={`font-medium ${fullyPaid ? 'text-green-600' : 'text-[#E51A1A]'}`}>
+                                                                        {formatCurrency(payment.amountPaid)}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
