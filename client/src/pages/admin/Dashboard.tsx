@@ -133,9 +133,9 @@ const AdminDashboard: React.FC = () => {
             const allContributions = await import('../../services/contribution.services').then(
                 module => module.ContributionService.getAll()
             );
-
+            
             const filteredContributions = allContributions.filter(c => c.year === selectedYear);
-
+            
             const reportData = filteredContributions.map(c => ({
                 memberName: c.memberName,
                 year: c.year,
@@ -144,7 +144,7 @@ const AdminDashboard: React.FC = () => {
                 remaining: c.remaining,
                 status: c.status === 'PAID' ? 'Payé' : c.status === 'PARTIAL' ? 'Partiel' : 'En attente'
             }));
-
+            
             generateContributionReport({
                 title: 'Rapport des Cotisations',
                 year: selectedYear,
@@ -154,7 +154,7 @@ const AdminDashboard: React.FC = () => {
                 totalRemaining: stats.totalRemaining,
                 generatedBy: `${user?.firstName} ${user?.lastName} (${user?.email})`
             });
-
+            
             toast.success(`Rapport ${selectedYear} généré avec succès`);
         } catch (error) {
             console.error('Erreur lors de la génération du rapport:', error);
@@ -222,54 +222,70 @@ const AdminDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Cartes statistiques - Couleurs unies sans gradient */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                {/* Carte Membres */}
-                <div className="bg-blue-600 rounded-xl p-3 shadow-md">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-1.5 rounded-lg bg-white/20">
-                            <AiOutlineTeam size={16} className="text-white" />
+            {/* Cartes statistiques - Couleurs différentes, centrées, ombre en bas */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                {/* Carte Membres - Bleu */}
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 shadow-[0_8px_0_0_#1e3a5f] text-center">
+                    <div className="flex justify-center mb-3">
+                        <div className="p-2 rounded-xl bg-white/20">
+                            <AiOutlineTeam size={20} className="text-white" />
                         </div>
                     </div>
-                    <p className="font-black text-white text-lg sm:text-xl">{stats.totalMembers}</p>
-                    <p className="font-bold text-white/80 text-[9px] uppercase tracking-wider">Membres</p>
-                    <p className="text-white/60 text-[7px] mt-1">{stats.activeMembers} actifs</p>
+                    <p className="font-black text-white text-2xl sm:text-3xl">{stats.totalMembers}</p>
+                    <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-1">Membres</p>
+                    <div className="mt-2 pt-2 border-t border-white/20">
+                        <p className="text-white/70 text-[11px] font-medium">
+                            <span className="font-black text-base">{stats.activeMembers}</span> actifs
+                        </p>
+                    </div>
                 </div>
 
-                {/* Carte Étudiants */}
-                <div className="bg-purple-600 rounded-xl p-3 shadow-md">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-1.5 rounded-lg bg-white/20">
-                            <AiOutlineFileText size={16} className="text-white" />
+                {/* Carte Étudiants - Violet */}
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 shadow-[0_8px_0_0_#4a1d6b] text-center">
+                    <div className="flex justify-center mb-3">
+                        <div className="p-2 rounded-xl bg-white/20">
+                            <AiOutlineFileText size={20} className="text-white" />
                         </div>
                     </div>
-                    <p className="font-black text-white text-lg sm:text-xl">{stats.students}</p>
-                    <p className="font-bold text-white/80 text-[9px] uppercase tracking-wider">Étudiants</p>
-                    <p className="text-white/60 text-[7px] mt-1">{stats.totalMembers > 0 ? ((stats.students / stats.totalMembers) * 100).toFixed(1) : 0}%</p>
+                    <p className="font-black text-white text-2xl sm:text-3xl">{stats.students}</p>
+                    <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-1">Étudiants</p>
+                    <div className="mt-2 pt-2 border-t border-white/20">
+                        <p className="text-white/70 text-[11px] font-medium">
+                            <span className="font-black text-base">{stats.totalMembers > 0 ? ((stats.students / stats.totalMembers) * 100).toFixed(1) : 0}%</span> du total
+                        </p>
+                    </div>
                 </div>
 
-                {/* Carte Travailleurs */}
-                <div className="bg-orange-600 rounded-xl p-3 shadow-md">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-1.5 rounded-lg bg-white/20">
-                            <AiOutlineTeam size={16} className="text-white" />
+                {/* Carte Travailleurs - Orange */}
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 shadow-[0_8px_0_0_#8b4513] text-center">
+                    <div className="flex justify-center mb-3">
+                        <div className="p-2 rounded-xl bg-white/20">
+                            <AiOutlineTeam size={20} className="text-white" />
                         </div>
                     </div>
-                    <p className="font-black text-white text-lg sm:text-xl">{stats.workers}</p>
-                    <p className="font-bold text-white/80 text-[9px] uppercase tracking-wider">Travailleurs</p>
-                    <p className="text-white/60 text-[7px] mt-1">{stats.totalMembers > 0 ? ((stats.workers / stats.totalMembers) * 100).toFixed(1) : 0}%</p>
+                    <p className="font-black text-white text-2xl sm:text-3xl">{stats.workers}</p>
+                    <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-1">Travailleurs</p>
+                    <div className="mt-2 pt-2 border-t border-white/20">
+                        <p className="text-white/70 text-[11px] font-medium">
+                            <span className="font-black text-base">{stats.totalMembers > 0 ? ((stats.workers / stats.totalMembers) * 100).toFixed(1) : 0}%</span> du total
+                        </p>
+                    </div>
                 </div>
 
-                {/* Carte Cotisations */}
-                <div className="bg-green-600 rounded-xl p-3 shadow-md">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-1.5 rounded-lg bg-white/20">
-                            <AiOutlineDollar size={16} className="text-white" />
+                {/* Carte Cotisations - Vert */}
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 shadow-[0_8px_0_0_#1b5e20] text-center">
+                    <div className="flex justify-center mb-3">
+                        <div className="p-2 rounded-xl bg-white/20">
+                            <AiOutlineDollar size={20} className="text-white" />
                         </div>
                     </div>
-                    <p className="font-black text-white text-sm sm:text-base">{formatCurrency(stats.totalDue)}</p>
-                    <p className="font-bold text-white/80 text-[9px] uppercase tracking-wider">Cotisations</p>
-                    <p className="text-white/60 text-[7px] mt-1">Année {selectedYear}</p>
+                    <p className="font-black text-white text-xl sm:text-2xl">{formatCurrency(stats.totalDue)}</p>
+                    <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-1">Cotisations</p>
+                    <div className="mt-2 pt-2 border-t border-white/20">
+                        <p className="text-white/70 text-[11px] font-medium">
+                            Année <span className="font-black text-base">{selectedYear}</span>
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -310,10 +326,10 @@ const AdminDashboard: React.FC = () => {
                     <div className="p-4 md:p-6">
                         {stats.atRisk.length === 0 ? (
                             <div className="text-center py-8 md:py-12">
-                                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-                                    <AiOutlineCheckCircle size={32} className="text-green-500" />
+                                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#E51A1A]/10 flex items-center justify-center">
+                                    <AiOutlineCheckCircle size={32} className="text-[#E51A1A]" />
                                 </div>
-                                <p className="font-black text-gray-600 text-sm">✅ Aucun retard de paiement</p>
+                                <p className="font-black text-gray-600 text-sm">Aucun retard de paiement</p>
                                 <p className="text-gray-400 text-[10px] mt-1">Toutes les cotisations sont à jour</p>
                             </div>
                         ) : (
