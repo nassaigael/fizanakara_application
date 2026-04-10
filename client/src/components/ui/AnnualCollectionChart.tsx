@@ -15,7 +15,7 @@ interface AnnualCollectionChartProps {
 }
 
 const COLORS = {
-    paid: '#10B981',
+    paid: '#E51A1A',
     remaining: '#F59E0B',
     target: '#9CA3AF'
 };
@@ -34,7 +34,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
         return (
             <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-200">
                 <p className="text-xs font-black text-gray-600 mb-1">{label}</p>
-                <p className="text-sm font-bold text-emerald-600">
+                <p className="text-sm font-bold text-[#E51A1A]">
                     Collecté: {formatCurrency(collectedValue)}
                 </p>
                 <p className="text-xs font-medium text-gray-500">
@@ -61,19 +61,17 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
         { name: 'Restant', value: remaining, percentage: remainingPercentage, color: COLORS.remaining }
     ].filter(item => item.value > 0);
 
-    // Vérifier si toutes les données sont à zéro
     const hasNoData = monthlyData.every(item => item.collected === 0 && item.target === 0);
 
     return (
         <div className="bg-white rounded-3xl border-2 border-b-8 border-gray-200 p-4 md:p-6 shadow-sm">
-            {/* Titre */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <h3 className="text-base md:text-lg font-black uppercase tracking-wider text-gray-800">
                     Collecte Annuelle {selectedYear}
                 </h3>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                        <div className="w-3 h-3 rounded-full bg-[#E51A1A]" />
                         <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase">Payé</span>
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -87,9 +85,7 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                 </div>
             </div>
 
-            {/* Donut + Bar Chart - Layout responsive */}
             <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-                {/* Graphique en donut */}
                 <div className="lg:w-2/5 flex flex-col items-center justify-center">
                     <div className="relative w-48 h-48 md:w-56 md:h-56">
                         {totalDue > 0 ? (
@@ -119,7 +115,6 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                                 </div>
                             </div>
                         )}
-                        {/* Centre du donut avec pourcentage */}
                         {totalDue > 0 && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                                 <span className="text-2xl md:text-3xl font-black text-gray-800">
@@ -132,10 +127,9 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                         )}
                     </div>
 
-                    {/* Légende du donut */}
                     <div className="flex gap-4 mt-4">
                         <div className="text-center">
-                            <p className="text-sm md:text-base font-black text-emerald-600">
+                            <p className="text-sm md:text-base font-black text-[#E51A1A]">
                                 {formatCurrency(totalPaid)}
                             </p>
                             <p className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">
@@ -154,7 +148,6 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                     </div>
                 </div>
 
-                {/* Graphique en barres */}
                 <div className="lg:w-3/5">
                     {hasNoData ? (
                         <div className="h-62.5 flex items-center justify-center bg-gray-50 rounded-xl">
@@ -216,7 +209,6 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                 </div>
             </div>
 
-            {/* Résumé des totaux */}
             <div className="grid grid-cols-3 gap-3 mt-6 pt-4 border-t-2 border-gray-100">
                 <div className="text-center">
                     <p className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-wider">Total dû</p>
@@ -224,7 +216,7 @@ export const AnnualCollectionChart: React.FC<AnnualCollectionChartProps> = ({
                 </div>
                 <div className="text-center border-x-2 border-gray-100">
                     <p className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-wider">Total payé</p>
-                    <p className="text-sm md:text-base font-black text-emerald-600">{formatCurrency(totalPaid)}</p>
+                    <p className="text-sm md:text-base font-black text-[#E51A1A]">{formatCurrency(totalPaid)}</p>
                 </div>
                 <div className="text-center">
                     <p className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-wider">Restant</p>
