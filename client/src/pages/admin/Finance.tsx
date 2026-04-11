@@ -11,7 +11,6 @@ import {
     AiOutlineLeft,
     AiOutlineRight,
     AiOutlineDollar,
-
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
@@ -62,7 +61,6 @@ const AdminFinance: React.FC = () => {
                 setItemsPerPage(6);
             }
         };
-
         checkMobile();
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
@@ -98,15 +96,12 @@ const AdminFinance: React.FC = () => {
                 const rect = filtersRef.current.getBoundingClientRect();
                 const windowHeight = window.innerHeight;
                 const filtersBottom = rect.bottom;
-
                 setIsFiltersSticky(filtersBottom >= windowHeight - 50);
             }
         };
-
         if (filtersRef.current) {
             setFiltersHeight(filtersRef.current.offsetHeight);
         }
-
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
@@ -127,6 +122,7 @@ const AdminFinance: React.FC = () => {
         }
     }, [isAddingYear]);
 
+    // Définition de yearOptions
     const yearOptions = useMemo(() => {
         return availableYears.map(year => ({
             value: year,
@@ -134,6 +130,7 @@ const AdminFinance: React.FC = () => {
         }));
     }, [availableYears]);
 
+    // Contributions filtrées pour l'affichage du tableau
     const filteredContributions = useMemo(() => {
         if (!selectedYear) return [];
 
@@ -169,6 +166,21 @@ const AdminFinance: React.FC = () => {
         });
     }, [contributions, members, searchTerm, statusFilter, typeFilter, selectedYear]);
 
+    // Statistiques basées sur TOUTES les contributions de l'année
+    const stats = useMemo(() => {
+        const totalAmount = contributions.reduce((sum, c) => sum + (c.amount || 0), 0);
+        const totalPaid = contributions.reduce((sum, c) => sum + (c.totalPaid || 0), 0);
+        const paymentRate = totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0;
+        return {
+            totalAmount,
+            totalPaid,
+            remaining: totalAmount - totalPaid,
+            count: contributions.length,
+            paidCount: contributions.filter(c => (c.totalPaid ?? 0) >= (c.amount ?? 0)).length,
+            paymentRate
+        };
+    }, [contributions]);
+
     const totalPages = Math.ceil(filteredContributions.length / itemsPerPage);
     const paginatedContributions = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -176,19 +188,26 @@ const AdminFinance: React.FC = () => {
         return filteredContributions.slice(startIndex, endIndex);
     }, [filteredContributions, currentPage, itemsPerPage]);
 
-    const stats = useMemo(() => {
-        const totalAmount = filteredContributions.reduce((sum, c) => sum + (c.amount || 0), 0);
-        const totalPaid = filteredContributions.reduce((sum, c) => sum + (c.totalPaid || 0), 0);
-        const paymentRate = totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0;
-        return {
-            totalAmount,
-            totalPaid,
-            remaining: totalAmount - totalPaid,
-            count: filteredContributions.length,
-            paidCount: filteredContributions.filter(c => (c.totalPaid ?? 0) >= (c.amount ?? 0)).length,
-            paymentRate
-        };
-    }, [filteredContributions]);
+    // Fonctions de pagination
+    const goToPreviousPage = () => setCurrentPage(prev => Math.max(1, prev - 1));
+    const goToNextPage = () => setCurrentPage(prev => Math.min(totalPages, prev + 1));
+    const goToPage = (page: number) => setCurrentPage(page);
+
+    const getPageNumbers = () => {
+        const maxVisible = isMobile ? 3 : 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+        if (endPage - startPage + 1 < maxVisible) {
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        const pages = [];
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+        return pages;
+    };
 
     const handleGenerateAnnual = async () => {
         if (!selectedYear) {
@@ -293,10 +312,6 @@ const AdminFinance: React.FC = () => {
         );
     }
 
-    const newLocal = "px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25";
-    const newLocal_1 = "px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-[100px]";
-    const newLocal_2 = "px-3 sm:px-4 py-3 sm:py-4 text-right text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-[80px]";
-
     return (
         <div className="h-full flex flex-col px-3 sm:px-4 md:px-6 py-4 sm:py-6">
             <div className="shrink-0 space-y-4 sm:space-y-6">
@@ -330,7 +345,7 @@ const AdminFinance: React.FC = () => {
                                 {yearOptions.length === 0 ? (
                                     <option value="" disabled>Aucune année disponible</option>
                                 ) : (
-                                    yearOptions.map(option => (
+                                    yearOptions.map((option: { value: number; label: string }) => (
                                         <option key={option.value} value={option.value}>
                                             Année {option.label}
                                         </option>
@@ -429,6 +444,7 @@ const AdminFinance: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Cartes statistiques */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                     <div className="bg-blue-600 rounded-xl p-4 shadow-md text-center">
                         <p className="font-black text-white text-xl sm:text-2xl">
@@ -437,7 +453,7 @@ const AdminFinance: React.FC = () => {
                         <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
                             Total dû
                         </p>
-                        <p className="text-white text-[8px] mt-1">
+                        <p className="text-white/60 text-[8px] mt-1">
                             Année {selectedYear}
                         </p>
                     </div>
@@ -449,7 +465,7 @@ const AdminFinance: React.FC = () => {
                         <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
                             Total payé
                         </p>
-                        <p className="text-white text-[8px] mt-1">
+                        <p className="text-white/60 text-[8px] mt-1">
                             {stats.totalAmount > 0 ? ((stats.totalPaid / stats.totalAmount) * 100).toFixed(1) : 0}% du total
                         </p>
                     </div>
@@ -461,7 +477,7 @@ const AdminFinance: React.FC = () => {
                         <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
                             Reste à payer
                         </p>
-                        <p className="text-white text-[8px] mt-1">
+                        <p className="text-white/60 text-[8px] mt-1">
                             {stats.totalAmount > 0 ? ((stats.remaining / stats.totalAmount) * 100).toFixed(1) : 0}% du total
                         </p>
                     </div>
@@ -473,8 +489,8 @@ const AdminFinance: React.FC = () => {
                         <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
                             Taux de paiement
                         </p>
-                        <p className="text-white text-[8px] mt-1">
-                            Objectif en pourcentage
+                        <p className="text-white/60 text-[8px] mt-1">
+                            Objectif: 100%
                         </p>
                     </div>
                 </div>
@@ -554,10 +570,10 @@ const AdminFinance: React.FC = () => {
                                             <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-50">Membre</th>
                                             <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-20">Année</th>
                                             <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25">Statut</th>
-                                            <th className={newLocal}>Montant</th>
+                                            <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25">Montant</th>
                                             <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25">Payé</th>
-                                            <th className={newLocal_1}>Reste</th>
-                                            <th className={newLocal_2}>Actions</th>
+                                            <th className="px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25">Reste</th>
+                                            <th className="px-3 sm:px-4 py-3 sm:py-4 text-right text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-20">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -594,9 +610,7 @@ const AdminFinance: React.FC = () => {
                                                 const isPaid = totalPaid >= amount;
                                                 const isUnpaid = totalPaid === 0;
 
-                                                const rowBgClass = isStudent
-                                                    ? 'bg-gray-100'
-                                                    : 'bg-white';
+                                                const rowBgClass = isStudent ? 'bg-gray-50' : 'bg-white';
 
                                                 return (
                                                     <tr key={contribution.id} className={`${rowBgClass} hover:bg-gray-100 transition-colors`}>
@@ -623,12 +637,13 @@ const AdminFinance: React.FC = () => {
                                                             {contribution.year}
                                                         </td>
                                                         <td className="px-3 sm:px-4 py-3 sm:py-4">
-                                                            <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[7px] sm:text-[8px] font-black uppercase whitespace-nowrap ${isPaid
-                                                                ? 'bg-green-100 text-green-600'
-                                                                : isUnpaid
-                                                                    ? 'bg-red-100 text-red-600'
-                                                                    : 'bg-orange-100 text-orange-600'
-                                                                }`}>
+                                                            <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[7px] sm:text-[8px] font-black uppercase whitespace-nowrap ${
+                                                                isPaid
+                                                                    ? 'bg-green-100 text-green-600'
+                                                                    : isUnpaid
+                                                                        ? 'bg-red-100 text-red-600'
+                                                                        : 'bg-orange-100 text-orange-600'
+                                                            }`}>
                                                                 {isPaid ? 'Payé' : isUnpaid ? 'Impayé' : 'Partiel'}
                                                             </span>
                                                         </td>
@@ -675,13 +690,13 @@ const AdminFinance: React.FC = () => {
                             <div className="px-3 sm:px-4 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 shrink-0">
                                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                                     <p className="text-[10px] sm:text-xs font-medium text-gray-500 order-2 sm:order-1">
-                                        Affichage de {(currentPage - 1) * itemsPerPage + 1} à {Math.min(currentPage * itemsPerPage, filteredContributions.length)}/{filteredContributions.length} cotisations
+                                        Affichage de {(currentPage - 1) * itemsPerPage + 1} à {Math.min(currentPage * itemsPerPage, filteredContributions.length)} / {filteredContributions.length} cotisations
                                     </p>
 
                                     <div className="flex items-center gap-3 order-1 sm:order-2">
                                         <div className="flex items-center gap-1">
                                             <button
-                                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                                onClick={goToPreviousPage}
                                                 disabled={currentPage === 1}
                                                 className="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
@@ -689,37 +704,23 @@ const AdminFinance: React.FC = () => {
                                             </button>
 
                                             <div className="flex items-center gap-1">
-                                                {(() => {
-                                                    const maxVisible = isMobile ? 3 : 5;
-                                                    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-                                                    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-
-                                                    if (endPage - startPage + 1 < maxVisible) {
-                                                        startPage = Math.max(1, endPage - maxVisible + 1);
-                                                    }
-
-                                                    const pages = [];
-                                                    for (let i = startPage; i <= endPage; i++) {
-                                                        pages.push(i);
-                                                    }
-
-                                                    return pages.map(page => (
-                                                        <button
-                                                            key={page}
-                                                            onClick={() => setCurrentPage(page)}
-                                                            className={`min-w-8 h-8 px-2 text-xs font-bold rounded-lg transition-colors ${currentPage === page
+                                                {getPageNumbers().map(page => (
+                                                    <button
+                                                        key={page}
+                                                        onClick={() => goToPage(page)}
+                                                        className={`min-w-8 h-8 px-2 text-xs font-bold rounded-lg transition-colors ${
+                                                            currentPage === page
                                                                 ? 'bg-[#E51A1A] text-white'
                                                                 : 'text-gray-600 hover:bg-gray-100'
-                                                                }`}
-                                                        >
-                                                            {page}
-                                                        </button>
-                                                    ));
-                                                })()}
+                                                        }`}
+                                                    >
+                                                        {page}
+                                                    </button>
+                                                ))}
                                             </div>
 
                                             <button
-                                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                                onClick={goToNextPage}
                                                 disabled={currentPage === totalPages}
                                                 className="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
