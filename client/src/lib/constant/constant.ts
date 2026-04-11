@@ -17,15 +17,13 @@ export const GITHUB_URLS = {
     ASSETS: `${BASE_RAW_URL}/assets/images`,
 } as const;
 
-// Images par défaut locales (dans le dossier public)
 export const DEFAULT_IMAGES = {
-    [Gender.MALE]: '/default-avatar-man.png',      // Chemin depuis public
-    [Gender.FEMALE]: '/default-avatar-woman.png',  // Chemin depuis public
-    ADMIN: '/default-avatar-admin.png',            // Chemin depuis public
-    DEFAULT: '/default-avatar.png',                // Chemin depuis public
+    [Gender.MALE]: '/default-avatar-man.png',
+    [Gender.FEMALE]: '/default-avatar-woman.png',
+    ADMIN: '/default-avatar-admin.png',
+    DEFAULT: '/default-avatar.png',
 } as const;
 
-// Fonction pour obtenir l'image par défaut selon le genre ou le type
 export const getDefaultImage = (
     gender?: Gender,
     type: 'admin' | 'member' = 'member'
@@ -47,12 +45,10 @@ export const getImageUrl = (
     category: 'admin' | 'member' | 'assets' = 'member',
     gender?: Gender,
 ): string => {
-    // Si pas d'image, retourner l'image par défaut selon le genre
     if (!imagePath) {
         return getDefaultImage(gender, category === 'admin' ? 'admin' : 'member');
     }
 
-    // Si c'est déjà une URL complète (http, https, data, ou fichier local)
     if (imagePath.startsWith('http://') ||
         imagePath.startsWith('https://') ||
         imagePath.startsWith('data:') ||
@@ -60,16 +56,13 @@ export const getImageUrl = (
         return imagePath;
     }
 
-    // Nettoyer le chemin
     let cleanPath = imagePath.trim().replace(/\s+/g, '_');
 
-    // Ajouter l'extension si nécessaire
     const hasExtension = IMAGE_EXTENSIONS.some((ext) => cleanPath.toLowerCase().endsWith(ext));
     if (!hasExtension) {
         cleanPath += '.jpg';
     }
 
-    // Construire l'URL GitHub
     const base =
         category === 'admin'
             ? GITHUB_URLS.ADMIN
@@ -81,7 +74,6 @@ export const getImageUrl = (
     return fullUrl;
 };
 
-// Fonction pour vérifier si une image est valide (avec fallback)
 export const getValidImageUrl = async (
     imagePath: string | null | undefined,
     category: 'admin' | 'member' | 'assets' = 'member',
@@ -89,13 +81,11 @@ export const getValidImageUrl = async (
 ): Promise<string> => {
     const url = getImageUrl(imagePath, category, gender);
 
-    // Si c'est une image par défaut locale, la retourner directement
     if (url.startsWith('/')) {
         return url;
     }
 
     try {
-        // Vérifier si l'image existe
         const response = await fetch(url, { method: 'HEAD' });
         if (response.ok) {
             return url;
@@ -104,7 +94,6 @@ export const getValidImageUrl = async (
         console.warn(`Image not found: ${url}`, error);
     }
 
-    // Fallback vers l'image par défaut
     return getDefaultImage(gender, category === 'admin' ? 'admin' : 'member');
 };
 
