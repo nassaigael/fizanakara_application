@@ -6,14 +6,12 @@ import {
     AiOutlineRise,
     AiOutlineTeam,
     AiOutlineCrown,
-    AiOutlineBarChart,
     AiOutlineThunderbolt,
     AiOutlineArrowRight
 } from 'react-icons/ai';
 import { useAdmin } from '../../hooks/useAdmin';
 import { useDistrict } from '../../hooks/useDistrict';
 import { useTribute } from '../../hooks/useTribute';
-import { THEME } from '../../styles/theme';
 
 interface StatCardProps {
     title: string;
@@ -28,7 +26,7 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, color, trend, onClick }) => (
     <div
         onClick={onClick}
-        className="bg-white border-2 border-brand-border rounded-2xl p-6 transition-all hover:translate-y-[-2px] hover:shadow-[0_8px_0_0_#E5E5E5] cursor-pointer shadow-[0_6px_0_0_#E5E5E5] group"
+        className="bg-white border-2 border-brand-border rounded-2xl p-6 transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_0_0_#E5E5E5] cursor-pointer shadow-[0_6px_0_0_#E5E5E5] group"
     >
         <div className="flex items-start justify-between mb-4">
             <div className={`p-3 rounded-xl ${color} text-white border-b-4 border-black/20 shadow-sm`}>
@@ -61,7 +59,7 @@ interface QuickActionProps {
 const QuickActionCard: React.FC<QuickActionProps> = ({ title, icon, href, color, description }) => (
     <a
         href={href}
-        className="bg-white border-2 border-brand-border rounded-xl p-5 transition-all hover:translate-y-[-2px] hover:shadow-[0_6px_0_0_#E5E5E5] shadow-[0_4px_0_0_#E5E5E5] flex items-start gap-4 group"
+        className="bg-white border-2 border-brand-border rounded-xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#E5E5E5] shadow-[0_4px_0_0_#E5E5E5] flex items-start gap-4 group"
     >
         <div className={`p-2.5 rounded-lg ${color} text-white border-b-4 border-black/20 shadow-sm`}>
             {icon}
@@ -108,7 +106,7 @@ const SuperAdminDashboard: React.FC = () => {
             <div className="bg-white border-2 border-brand-border rounded-2xl shadow-[0_8px_0_0_#E5E5E5] p-6 md:p-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-gradient-to-br from-brand-primary to-brand-primary-dark text-white rounded-xl shadow-md">
+                        <div className="p-3 bg-linear-to-br from-brand-primary to-brand-primary-dark text-white rounded-xl shadow-md">
                             <AiOutlineCrown size={28} />
                         </div>
                         <div>

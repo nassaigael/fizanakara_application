@@ -7,7 +7,8 @@ import {
     AiOutlineWallet,
     AiOutlineUser,
     AiOutlineSetting,
-    AiOutlineLogout
+    AiOutlineLogout,
+    AiOutlineHistory,
 } from 'react-icons/ai';
 
 interface SidebarProps {
@@ -31,6 +32,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         { path: '/admin/dashboard', label: 'Tableau de bord', icon: AiOutlineDashboard },
         { path: '/admin/members', label: 'Membres', icon: AiOutlineTeam },
         { path: '/admin/finance', label: 'Finances', icon: AiOutlineWallet },
+        { path: '/admin/payment-history', label: 'Historique', icon: AiOutlineHistory },
         { path: '/admin/profile', label: 'Profil', icon: AiOutlineUser },
     ];
 
@@ -42,14 +44,12 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
 
     const liens = isSuperAdmin ? liensSuperAdmin : liensAdmin;
 
-    // Style glassmorphism pour la barre latérale desktop
     const styleBarreLaterale = aDefile
         ? 'bg-white/80 backdrop-blur-xl border-r border-white/30 shadow-lg'
         : 'bg-white/95 backdrop-blur-md border-r-2 border-brand-border';
 
     return (
         <>
-            {/* Barre latérale Desktop - Glassmorphism */}
             <aside className={`
                 hidden md:flex flex-col fixed left-0 h-full transition-all duration-300 z-40
                 ${styleBarreLaterale}
@@ -94,7 +94,6 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                 <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-white/50 to-transparent" />
             </aside>
 
-            {/* Navigation inférieure Mobile - Glassmorphism */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-white/30 px-2 py-2 z-50 flex items-center justify-around shadow-2xl">
                 {liens.slice(0, 4).map((lien) => (
                     <NavLink
