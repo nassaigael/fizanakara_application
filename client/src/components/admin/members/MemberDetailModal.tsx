@@ -78,13 +78,13 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
 
     const getContributionStatusLabel = (status: string, contribution?: any) => {
         if (contribution && isFullyPaid(contribution)) {
-            return 'Payé ✓';
+            return 'Payé'.toUpperCase();
         }
         switch (status) {
-            case 'PAID': return 'Payé ✓';
-            case 'PARTIAL': return 'Partiel';
-            case 'PENDING': return 'En attente';
-            default: return status;
+            case 'PAID': return 'Payé'.toUpperCase();
+            case 'PARTIAL': return 'Partiel'.toUpperCase();
+            case 'PENDING': return 'En attente'.toUpperCase();
+            default: return status.toUpperCase();
         }
     };
 
