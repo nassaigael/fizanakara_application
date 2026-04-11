@@ -11,7 +11,6 @@ import {
     AiOutlineLeft,
     AiOutlineRight,
     AiOutlineDollar,
-    AiOutlineClose,
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
@@ -24,17 +23,6 @@ import { THEME } from '../../styles/theme';
 import toast from 'react-hot-toast';
 import Avatar from '../../components/ui/Avatar';
 import { useAuth } from '../../context/AuthContext';
-
-interface DailyPayment {
-    id: string;
-    memberName: string;
-    memberId: string;
-    amount: number;
-    date: string;
-    time: string;
-    contributionYear: number;
-    receivedBy: string;
-}
 
 const AdminFinance: React.FC = () => {
     const { user } = useAuth();
@@ -54,11 +42,6 @@ const AdminFinance: React.FC = () => {
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [isMobile, setIsMobile] = useState(false);
 
-    // États pour les paiements du jour
-    const [showDailyPayments, setShowDailyPayments] = useState(false);
-    const [dailyPayments, setDailyPayments] = useState<DailyPayment[]>([]);
-    const [isLoadingDaily, setIsLoadingDaily] = useState(false);
-
     const actionMenuRef = useRef<HTMLDivElement>(null);
     const addYearInputRef = useRef<HTMLInputElement>(null);
     const filtersRef = useRef<HTMLDivElement>(null);
@@ -67,51 +50,6 @@ const AdminFinance: React.FC = () => {
 
     const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear || undefined);
     const { members } = useMembers();
-
-    // Fonction pour récupérer les paiements du jour
-    const fetchTodayPayments = async () => {
-        setIsLoadingDaily(true);
-        try {
-            const today = new Date().toISOString().split('T')[0];
-            const todayPayments: DailyPayment[] = [];
-
-            contributions.forEach(contribution => {
-                if (contribution.payments && contribution.payments.length > 0) {
-                    contribution.payments.forEach((payment: any) => {
-                        const paymentDate = new Date(payment.paymentDate).toISOString().split('T')[0];
-                        if (paymentDate === today) {
-                            const member = members.find(m => m.id === contribution.memberId);
-                            todayPayments.push({
-                                id: payment.id,
-                                memberName: member ? `${member.firstName} ${member.lastName}` : contribution.memberName,
-                                memberId: contribution.memberId,
-                                amount: payment.amountPaid,
-                                date: payment.paymentDate,
-                                time: new Date(payment.paymentDate).toLocaleTimeString('fr-FR'),
-                                contributionYear: contribution.year,
-                                receivedBy: payment.receivedBy || user?.firstName || 'Admin'
-                            });
-                        }
-                    });
-                }
-            });
-
-            todayPayments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            setDailyPayments(todayPayments);
-        } catch (error) {
-            console.error('Erreur lors du chargement des paiements du jour:', error);
-            toast.error('Erreur lors du chargement des paiements');
-        } finally {
-            setIsLoadingDaily(false);
-        }
-    };
-
-    // Rafraîchir les paiements du jour quand les contributions changent ou que le modal est ouvert
-    useEffect(() => {
-        if (showDailyPayments) {
-            fetchTodayPayments();
-        }
-    }, [contributions, showDailyPayments]);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -393,25 +331,6 @@ const AdminFinance: React.FC = () => {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                        {/* Bouton Paiements du jour */}
-                        <div className="relative flex-1 sm:flex-none">
-                            <button
-                                onClick={() => {
-                                    setShowDailyPayments(true);
-                                    fetchTodayPayments();
-                                }}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all bg-white border-2 border-gray-200 text-gray-600 hover:border-[#E51A1A] hover:text-[#E51A1A] w-full sm:w-auto justify-center"
-                            >
-                                <AiOutlineCalendar size={16} />
-                                Paiements du jour
-                                {dailyPayments.length > 0 && (
-                                    <span className="ml-1 px-1.5 py-0.5 bg-[#E51A1A]/10 text-[#E51A1A] rounded-full text-[10px]">
-                                        {dailyPayments.length}
-                                    </span>
-                                )}
-                            </button>
-                        </div>
-
                         <div className="relative flex-1 sm:flex-none">
                             <AiOutlineCalendar className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             <select
@@ -833,98 +752,6 @@ const AdminFinance: React.FC = () => {
                         setSelectedContribution(null);
                     }}
                 />
-            )}
-
-            {/* Modal Paiements du jour */}
-            {showDailyPayments && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
-                        {/* En-tête */}
-                        <div className="bg-linear-to-r from-[#E51A1A] to-[#C41515] px-6 py-4 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                                    <AiOutlineCalendar size={20} className="text-white" />
-                                </div>
-                                <div>
-                                    <h2 className="text-white font-bold text-lg">Paiements du jour</h2>
-                                    <p className="text-white/80 text-xs">{new Date().toLocaleDateString('fr-FR')}</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setShowDailyPayments(false)}
-                                className="text-white/70 hover:text-white transition-colors"
-                            >
-                                <AiOutlineClose size={20} />
-                            </button>
-                        </div>
-
-                        {/* Contenu */}
-                        <div className="flex-1 overflow-y-auto p-4">
-                            {isLoadingDaily ? (
-                                <div className="flex items-center justify-center py-12">
-                                    <div className="w-8 h-8 border-2 border-[#E51A1A] border-t-transparent rounded-full animate-spin" />
-                                </div>
-                            ) : dailyPayments.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                                        <AiOutlineCalendar size={32} className="text-gray-400" />
-                                    </div>
-                                    <p className="text-gray-500 font-medium">Aucun paiement enregistré aujourd'hui</p>
-                                    <p className="text-gray-400 text-sm mt-1">Les paiements du jour apparaîtront ici</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {/* Résumé du jour */}
-                                    <div className="bg-green-50 rounded-lg p-4 mb-4">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-sm font-bold text-gray-600">Total encaissé</span>
-                                            <span className="text-2xl font-bold text-green-600">
-                                                {formatCurrency(dailyPayments.reduce((sum, p) => sum + p.amount, 0))}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between items-center mt-2">
-                                            <span className="text-sm font-bold text-gray-600">Nombre de transactions</span>
-                                            <span className="text-xl font-bold text-gray-800">{dailyPayments.length}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Liste des paiements */}
-                                    {dailyPayments.map((payment) => (
-                                        <div key={payment.id} className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                                                        <AiOutlineCheckCircle size={14} className="text-green-600" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-sm">{payment.memberName}</p>
-                                                        <p className="text-[10px] text-gray-400">ID: {payment.memberId?.slice(-8)}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="font-bold text-green-600">{formatCurrency(payment.amount)}</p>
-                                                    <p className="text-[9px] text-gray-400">{payment.time}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-between text-[10px] text-gray-400 pt-2 border-t border-gray-50">
-                                                <span>Cotisation {payment.contributionYear}</span>
-                                                <span>Reçu par: {payment.receivedBy}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Footer */}
-                        <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
-                            <div className="flex justify-between text-[10px] text-gray-400">
-                                <span>Total transactions: {dailyPayments.length}</span>
-                                <span>{new Date().toLocaleDateString('fr-FR')}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             )}
         </div>
     );
