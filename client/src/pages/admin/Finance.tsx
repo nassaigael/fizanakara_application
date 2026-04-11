@@ -420,10 +420,10 @@ const AdminFinance: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Cartes statistiques - Design centré, couleur rouge unie */}
+                {/* Cartes statistiques - Mêmes couleurs que le Dashboard */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                    {/* Total dû */}
-                    <div className="bg-[#E51A1A] rounded-xl p-4 shadow-md text-center">
+                    {/* Total dû - Bleu */}
+                    <div className="bg-blue-600 rounded-xl p-4 shadow-md text-center">
                         <p className="font-black text-white text-xl sm:text-2xl">
                             {formatCurrency(stats.totalAmount)}
                         </p>
@@ -435,8 +435,8 @@ const AdminFinance: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* Total payé */}
-                    <div className="bg-[#E51A1A] rounded-xl p-4 shadow-md text-center">
+                    {/* Total payé - Vert */}
+                    <div className="bg-green-600 rounded-xl p-4 shadow-md text-center">
                         <p className="font-black text-white text-xl sm:text-2xl">
                             {formatCurrency(stats.totalPaid)}
                         </p>
@@ -448,8 +448,8 @@ const AdminFinance: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* Reste à payer */}
-                    <div className="bg-[#E51A1A] rounded-xl p-4 shadow-md text-center">
+                    {/* Reste à payer - Orange */}
+                    <div className="bg-orange-600 rounded-xl p-4 shadow-md text-center">
                         <p className="font-black text-white text-xl sm:text-2xl">
                             {formatCurrency(stats.remaining)}
                         </p>
@@ -461,8 +461,8 @@ const AdminFinance: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* Taux de paiement */}
-                    <div className="bg-[#E51A1A] rounded-xl p-4 shadow-md text-center">
+                    {/* Taux de paiement - Violet */}
+                    <div className="bg-purple-600 rounded-xl p-4 shadow-md text-center">
                         <p className="font-black text-white text-2xl sm:text-3xl">
                             {stats.paymentRate.toFixed(1)}%
                         </p>
