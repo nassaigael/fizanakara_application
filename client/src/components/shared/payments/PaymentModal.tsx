@@ -7,8 +7,6 @@ import {
     AiOutlineCheckCircle,
     AiOutlineInfoCircle,
     AiOutlineDownload,
-    AiOutlineCreditCard,
-    AiOutlineUser
 } from 'react-icons/ai';
 import { useForm } from '../../../hooks/useForm';
 import { usePayment } from '../../../hooks/usePayment';
@@ -187,95 +185,114 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const remainingAfterPayment = Math.max(0, (remainingAmount || 0) - selectedAmount);
     const getStatusLabel = () => autoStatus === PaymentStatus.COMPLETED ? 'Payé' : 'Partiel';
 
+    // Style ticket bancaire (ATM style)
     const generateReceiptHTML = (data: any, isCompact: boolean = false): string => {
         const paymentDateObj = new Date(data.paymentDate);
         const formattedDate = paymentDateObj.toLocaleDateString('fr-FR');
         const formattedTime = paymentDateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         
-        const padding = isCompact ? '6px 8px' : '10px 12px';
-        const fontSizeTitle = isCompact ? '13px' : '16px';
-        const fontSizeNormal = isCompact ? '8px' : '9px';
+        // Taille réduite pour 4 par page
+        const padding = isCompact ? '4px 6px' : '8px 10px';
+        const fontSizeTitle = isCompact ? '11px' : '14px';
+        const fontSizeNormal = isCompact ? '7px' : '9px';
+        const fontSizeSmall = isCompact ? '6px' : '7px';
         
         return `
-            <div style="width: 95mm; margin: 0 auto; background: white; font-family: 'Inter', system-ui, sans-serif; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-                <div style="padding: ${padding}; text-align: center; border-bottom: 1px solid #f0f0f0; background: linear-gradient(135deg, #E51A1A 0%, #C41515 100%);">
-                    <h1 style="font-size: ${fontSizeTitle}; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0; color: white;">FIZANAKARA</h1>
-                    <p style="font-size: ${parseInt(fontSizeNormal) - 2}px; color: rgba(255,255,255,0.8); margin: 4px 0 0;">Gestion des cotisations</p>
+            <div style="width: 95mm; margin: 0 auto; background: white; font-family: 'Courier New', 'Fira Code', monospace; border: 1px solid #ddd; border-radius: 0; overflow: hidden;">
+                <!-- En-tête -->
+                <div style="padding: ${padding}; text-align: center; border-bottom: 1px dashed #ccc;">
+                    <h1 style="font-size: ${fontSizeTitle}; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; margin: 0;">FIZANAKARA</h1>
+                    <p style="font-size: ${fontSizeSmall}; color: #666; margin: 2px 0 0;">Gestion des cotisations</p>
+                    <p style="font-size: ${parseInt(fontSizeSmall) - 1}px; color: #999; margin: 2px 0 0;">Antananarivo, Madagascar</p>
+                    <p style="font-size: ${parseInt(fontSizeSmall) - 1}px; color: #999; margin: 0;">Tel: +261 34 00 000 00</p>
                 </div>
-                <div style="padding: ${padding}; background: #f9fafb;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
-                        <span style="font-weight: 600;">Date:</span>
+                
+                <!-- Infos transaction -->
+                <div style="padding: ${padding}; border-bottom: 1px dashed #ccc;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
+                        <span style="font-weight: bold;">Date:</span>
                         <span>${formattedDate}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
-                        <span style="font-weight: 600;">Heure:</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
+                        <span style="font-weight: bold;">Heure:</span>
                         <span>${formattedTime}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
-                        <span style="font-weight: 600;">Opérateur:</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
+                        <span style="font-weight: bold;">Opérateur:</span>
                         <span>${data.generatedBy.split(' ')[0]}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal};">
-                        <span style="font-weight: 600;">N° Ticket:</span>
-                        <span style="font-family: monospace;">${data.receiptNumber}</span>
+                        <span style="font-weight: bold;">Ticket N°:</span>
+                        <span style="font-size: ${parseInt(fontSizeNormal) - 1}px;">${data.receiptNumber}</span>
                     </div>
                 </div>
-                <div style="padding: ${padding}; border-bottom: 1px solid #f0f0f0;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: 600; color: #6b7280; margin-bottom: 8px;">
+                
+                <!-- Membre -->
+                <div style="padding: ${padding}; border-bottom: 1px dashed #ccc;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: bold; margin-bottom: 4px;">
                         <span>Membre</span>
                         <span>ID</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) + 1}px; margin-bottom: 4px;">
-                        <span style="font-weight: 500;">${data.memberName}</span>
-                        <span style="color: #6b7280; font-family: monospace;">${data.memberId.slice(-8)}</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) + 1}px; margin-bottom: 2px;">
+                        <span style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">${data.memberName}</span>
+                        <span style="font-size: ${parseInt(fontSizeNormal) - 1}px; color: #666;">${data.memberId.slice(-8)}</span>
                     </div>
-                    ${data.memberPhone ? `<div style="font-size: ${parseInt(fontSizeNormal) - 1}px; color: #9ca3af; margin-top: 4px;">📞 ${data.memberPhone}</div>` : ''}
+                    ${data.memberPhone ? `<div style="font-size: ${parseInt(fontSizeNormal) - 1}px; color: #888; margin-top: 2px;">📞 ${data.memberPhone}</div>` : ''}
                 </div>
-                <div style="padding: ${padding}; border-bottom: 1px solid #f0f0f0;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: 600; color: #6b7280; margin-bottom: 8px;">
+                
+                <!-- Détails paiement -->
+                <div style="padding: ${padding}; border-bottom: 1px dashed #ccc;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: bold; margin-bottom: 4px;">
                         <span>Désignation</span>
                         <span>Montant</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) + 1}px;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) + 1}px; margin-bottom: 2px;">
                         <span>Cotisation ${data.year}</span>
-                        <span style="font-weight: 600;">${formatCurrency(data.amount)}</span>
-                    </div>
-                </div>
-                <div style="padding: ${padding}; border-bottom: 1px solid #f0f0f0; background: #fefce8;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
-                        <span>Sous-total</span>
                         <span>${formatCurrency(data.amount)}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: 700; border-top: 1px dashed #e5e7eb; padding-top: 6px; margin-top: 4px;">
-                        <span>TOTAL</span>
-                        <span style="color: #E51A1A;">${formatCurrency(data.amount)}</span>
+                </div>
+                
+                <!-- Totaux -->
+                <div style="padding: ${padding}; border-bottom: 1px dashed #ccc;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 2px;">
+                        <span>Sous-total :</span>
+                        <span>${formatCurrency(data.amount)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 3px; margin-top: 2px;">
+                        <span>TOTAL :</span>
+                        <span>${formatCurrency(data.amount)}</span>
                     </div>
                 </div>
-                <div style="padding: ${padding}; border-bottom: 1px solid #f0f0f0;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
-                        <span>Paiement</span>
+                
+                <!-- Paiement -->
+                <div style="padding: ${padding}; border-bottom: 1px dashed #ccc;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 2px;">
+                        <span>Paiement :</span>
                         <span>Espèces</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
-                        <span>Montant reçu</span>
-                        <span style="font-weight: 600;">${formatCurrency(data.paidAmount)}</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 2px;">
+                        <span>Montant reçu :</span>
+                        <span>${formatCurrency(data.paidAmount)}</span>
                     </div>
                     ${data.remaining > 0 ? `
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; color: #ea580c; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #f0f0f0;">
-                        <span>Reste à payer</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; color: #ea580c; margin-top: 2px; padding-top: 2px; border-top: 1px dashed #ccc;">
+                        <span>Reste à payer :</span>
                         <span>${formatCurrency(data.remaining)}</span>
                     </div>
                     ` : ''}
                     ${data.paidAmount > data.amount ? `
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; color: #16a34a; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #f0f0f0;">
-                        <span>Monnaie</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; color: #16a34a; margin-top: 2px; padding-top: 2px; border-top: 1px dashed #ccc;">
+                        <span>Monnaie :</span>
                         <span>${formatCurrency(data.paidAmount - data.amount)}</span>
                     </div>
                     ` : ''}
                 </div>
+                
+                <!-- Footer -->
                 <div style="padding: ${padding}; text-align: center;">
-                    <p style="font-size: ${parseInt(fontSizeNormal) - 1}px; font-weight: 600; color: #E51A1A; margin: 0;">✓ Paiement enregistré</p>
-                    <p style="font-size: ${parseInt(fontSizeNormal) - 2}px; color: #9ca3af; margin: 6px 0 0;">Merci pour votre confiance</p>
+                    <p style="font-size: ${parseInt(fontSizeNormal) - 1}px; font-weight: bold; margin: 0;">✓ Paiement enregistré</p>
+                    <p style="font-size: ${parseInt(fontSizeSmall) - 1}px; color: #999; margin: 3px 0 0;">Merci pour votre confiance !</p>
+                    <p style="font-size: ${parseInt(fontSizeSmall) - 2}px; color: #ccc; margin: 2px 0 0;">Fizanakara - Gestion des cotisations</p>
                 </div>
             </div>
         `;
@@ -296,15 +313,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             container.style.top = '0';
             container.style.width = '210mm';
             container.style.backgroundColor = 'white';
-            container.style.padding = '8mm';
+            container.style.padding = '5mm';
             container.style.boxSizing = 'border-box';
             
             const grid = document.createElement('div');
             grid.style.display = 'grid';
             grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-            grid.style.gap = '12px';
+            grid.style.gap = '8px';
             grid.style.width = '100%';
             
+            // 4 reçus par page
             for (let i = 0; i < 4; i++) {
                 const receiptDiv = document.createElement('div');
                 receiptDiv.innerHTML = generateReceiptHTML(data, true);
@@ -336,7 +354,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
             const xPosition = (210 - imgWidth) / 2;
             
-            pdf.addImage(imgData, 'PNG', xPosition, 15, imgWidth, imgHeight);
+            pdf.addImage(imgData, 'PNG', xPosition, 10, imgWidth, imgHeight);
             
             const fileName = `recu_${data.memberId}_${data.year}.pdf`;
             pdf.save(fileName);
@@ -401,7 +419,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 </div>
                             </div>
                             
-                            <p className="text-center text-[11px] text-gray-400 mb-4">4 reçus par page A4 • Économie de papier</p>
+                            <p className="text-center text-[11px] text-gray-400 mb-4">4 reçus par page A4 • Format ticket bancaire</p>
                             
                             <div className="flex gap-3">
                                 <Button
@@ -445,7 +463,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="relative w-full max-w-md">
                 <div className="bg-white rounded-xl shadow-xl overflow-hidden">
-                    {/* Header */}
                     <div className="bg-[#E51A1A] px-6 py-5 relative">
                         <button
                             onClick={onClose}
@@ -470,9 +487,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Form */}
                     <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                        {/* Montant summary */}
                         <div className="bg-gray-50 rounded-lg p-4">
                             <div className="flex justify-between mb-2">
                                 <span className="text-sm text-gray-500">Total dû</span>
@@ -492,7 +507,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             )}
                         </div>
 
-                        {/* Montant input */}
                         <div>
                             <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Montant à payer</label>
                             <div className="relative">
@@ -539,7 +553,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             )}
                         </div>
 
-                        {/* Date */}
                         <Input
                             label="Date"
                             name="paymentDate"
@@ -551,7 +564,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             icon={<AiOutlineCalendar />}
                         />
 
-                        {/* Status */}
                         <div>
                             <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Statut</label>
                             <div className={`flex items-center justify-between p-3 rounded-lg border ${autoStatus === PaymentStatus.COMPLETED ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
@@ -562,7 +574,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex gap-3 pt-3">
                             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
                                 Annuler
