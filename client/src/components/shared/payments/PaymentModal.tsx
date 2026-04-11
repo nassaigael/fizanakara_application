@@ -463,7 +463,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 category="member"
                                 size="xl"
                                 shape="rounded"
-                                className="w-20 h-20 rounded-xl  shadow-lg mb-3"
+                                className="w-20 h-20 rounded-xl bg-white! shadow-lg mb-3"
                             />
                             <h2 className="text-xl font-bold text-white">Encaissement</h2>
                             <p className="text-white/80 text-sm mt-1">{memberName}</p>
