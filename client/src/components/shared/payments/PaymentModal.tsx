@@ -6,7 +6,9 @@ import {
     AiOutlineCalendar,
     AiOutlineCheckCircle,
     AiOutlineInfoCircle,
-    AiOutlineDownload
+    AiOutlineDownload,
+    AiOutlineCreditCard,
+    AiOutlineUser
 } from 'react-icons/ai';
 import { useForm } from '../../../hooks/useForm';
 import { usePayment } from '../../../hooks/usePayment';
@@ -183,106 +185,97 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const isFullPayment = selectedAmount >= (remainingAmount || 0);
     const isOverPayment = selectedAmount > (remainingAmount || 0);
     const remainingAfterPayment = Math.max(0, (remainingAmount || 0) - selectedAmount);
-    const getStatusLabel = () => autoStatus === PaymentStatus.COMPLETED ? 'Complété' : 'En attente';
+    const getStatusLabel = () => autoStatus === PaymentStatus.COMPLETED ? 'Payé' : 'Partiel';
 
     const generateReceiptHTML = (data: any, isCompact: boolean = false): string => {
         const paymentDateObj = new Date(data.paymentDate);
         const formattedDate = paymentDateObj.toLocaleDateString('fr-FR');
         const formattedTime = paymentDateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         
-        const padding = isCompact ? '4px 6px' : '8px 10px';
-        const fontSizeTitle = isCompact ? '12px' : '14px';
-        const fontSizeNormal = isCompact ? '7px' : '8px';
-        const fontSizeSmall = isCompact ? '5px' : '6px';
+        const padding = isCompact ? '6px 8px' : '10px 12px';
+        const fontSizeTitle = isCompact ? '13px' : '16px';
+        const fontSizeNormal = isCompact ? '8px' : '9px';
         
         return `
-            <div style="width: 95mm; margin: 0 auto; background: white; font-family: 'Courier New', monospace; border: 1px solid #e5e7eb; border-radius: 0; overflow: hidden;">
-                <div style="padding: ${padding}; text-align: center; border-bottom: 1px dashed #d1d5db;">
-                    <h1 style="font-size: ${fontSizeTitle}; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; margin: 0;">FIZANAKARA</h1>
-                    <p style="font-size: ${fontSizeSmall}; color: #6b7280; margin: 2px 0 0;">Gestion des cotisations</p>
-                    <p style="font-size: ${fontSizeSmall === '5px' ? '4px' : '5px'}; color: #9ca3af; margin: 3px 0 0;">Antananarivo, Madagascar</p>
-                    <p style="font-size: ${fontSizeSmall === '5px' ? '4px' : '5px'}; color: #9ca3af; margin: 0;">Tel: +261 34 00 000 00</p>
+            <div style="width: 95mm; margin: 0 auto; background: white; font-family: 'Inter', system-ui, sans-serif; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                <div style="padding: ${padding}; text-align: center; border-bottom: 1px solid #f0f0f0; background: linear-gradient(135deg, #E51A1A 0%, #C41515 100%);">
+                    <h1 style="font-size: ${fontSizeTitle}; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0; color: white;">FIZANAKARA</h1>
+                    <p style="font-size: ${parseInt(fontSizeNormal) - 2}px; color: rgba(255,255,255,0.8); margin: 4px 0 0;">Gestion des cotisations</p>
                 </div>
-                <div style="padding: ${padding}; border-bottom: 1px dashed #d1d5db;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
-                        <span style="font-weight: bold;">Date:</span>
+                <div style="padding: ${padding}; background: #f9fafb;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
+                        <span style="font-weight: 600;">Date:</span>
                         <span>${formattedDate}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
-                        <span style="font-weight: bold;">Heure:</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
+                        <span style="font-weight: 600;">Heure:</span>
                         <span>${formattedTime}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
-                        <span style="font-weight: bold;">Caissier:</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
+                        <span style="font-weight: 600;">Opérateur:</span>
                         <span>${data.generatedBy.split(' ')[0]}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal};">
-                        <span style="font-weight: bold;">Ticket N°:</span>
-                        <span style="font-size: ${parseInt(fontSizeNormal) - 1}px;">${data.receiptNumber}</span>
+                        <span style="font-weight: 600;">N° Ticket:</span>
+                        <span style="font-family: monospace;">${data.receiptNumber}</span>
                     </div>
                 </div>
-                <div style="padding: ${padding}; border-bottom: 1px dashed #d1d5db;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: bold; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px; margin-bottom: 4px;">
+                <div style="padding: ${padding}; border-bottom: 1px solid #f0f0f0;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: 600; color: #6b7280; margin-bottom: 8px;">
                         <span>Membre</span>
                         <span>ID</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) + 1}px; margin-bottom: 3px;">
-                        <span style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">${data.memberName}</span>
-                        <span style="font-size: ${parseInt(fontSizeNormal) - 1}px; color: #6b7280;">${data.memberId.slice(-8)}</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) + 1}px; margin-bottom: 4px;">
+                        <span style="font-weight: 500;">${data.memberName}</span>
+                        <span style="color: #6b7280; font-family: monospace;">${data.memberId.slice(-8)}</span>
                     </div>
-                    ${data.memberPhone ? `
-                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) - 1}px; color: #6b7280; margin-top: 3px;">
-                        <span>Tel:</span>
-                        <span>${data.memberPhone}</span>
-                    </div>
-                    ` : ''}
+                    ${data.memberPhone ? `<div style="font-size: ${parseInt(fontSizeNormal) - 1}px; color: #9ca3af; margin-top: 4px;">📞 ${data.memberPhone}</div>` : ''}
                 </div>
-                <div style="padding: ${padding}; border-bottom: 1px dashed #d1d5db;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: bold; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px; margin-bottom: 4px;">
+                <div style="padding: ${padding}; border-bottom: 1px solid #f0f0f0;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: 600; color: #6b7280; margin-bottom: 8px;">
                         <span>Désignation</span>
                         <span>Montant</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) + 1}px; padding: 3px 0;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) + 1}px;">
                         <span>Cotisation ${data.year}</span>
-                        <span>${formatCurrency(data.amount)}</span>
+                        <span style="font-weight: 600;">${formatCurrency(data.amount)}</span>
                     </div>
                 </div>
-                <div style="padding: ${padding}; border-bottom: 1px dashed #d1d5db;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
-                        <span>Sous-total :</span>
+                <div style="padding: ${padding}; border-bottom: 1px solid #f0f0f0; background: #fefce8;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
+                        <span>Sous-total</span>
                         <span>${formatCurrency(data.amount)}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: bold; border-top: 1px solid #e5e7eb; padding-top: 3px; margin-top: 2px;">
-                        <span>TOTAL :</span>
-                        <span>${formatCurrency(data.amount)}</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: 700; border-top: 1px dashed #e5e7eb; padding-top: 6px; margin-top: 4px;">
+                        <span>TOTAL</span>
+                        <span style="color: #E51A1A;">${formatCurrency(data.amount)}</span>
                     </div>
                 </div>
-                <div style="padding: ${padding}; border-bottom: 1px dashed #d1d5db;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
-                        <span>Paiement :</span>
+                <div style="padding: ${padding}; border-bottom: 1px solid #f0f0f0;">
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
+                        <span>Paiement</span>
                         <span>Espèces</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
-                        <span>Montant reçu :</span>
-                        <span>${formatCurrency(data.paidAmount)}</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 6px;">
+                        <span>Montant reçu</span>
+                        <span style="font-weight: 600;">${formatCurrency(data.paidAmount)}</span>
                     </div>
                     ${data.remaining > 0 ? `
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; color: #ea580c; margin-bottom: 3px;">
-                        <span>Reste à payer :</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; color: #ea580c; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #f0f0f0;">
+                        <span>Reste à payer</span>
                         <span>${formatCurrency(data.remaining)}</span>
                     </div>
                     ` : ''}
                     ${data.paidAmount > data.amount ? `
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; color: #16a34a;">
-                        <span>Monnaie :</span>
+                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; color: #16a34a; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #f0f0f0;">
+                        <span>Monnaie</span>
                         <span>${formatCurrency(data.paidAmount - data.amount)}</span>
                     </div>
                     ` : ''}
                 </div>
-                <div style="padding: ${padding}; text-align: center; border-top: 1px dashed #d1d5db;">
-                    <p style="font-size: ${parseInt(fontSizeNormal) - 1}px; font-weight: bold; margin: 0;">✓ Paiement enregistré</p>
-                    <p style="font-size: ${parseInt(fontSizeSmall) - 1}px; color: #9ca3af; margin: 3px 0 0;">Merci pour votre confiance !</p>
-                    <p style="font-size: ${parseInt(fontSizeSmall) - 2}px; color: #d1d5db; margin: 3px 0 0;">Fizanakara - Gestion des cotisations</p>
+                <div style="padding: ${padding}; text-align: center;">
+                    <p style="font-size: ${parseInt(fontSizeNormal) - 1}px; font-weight: 600; color: #E51A1A; margin: 0;">✓ Paiement enregistré</p>
+                    <p style="font-size: ${parseInt(fontSizeNormal) - 2}px; color: #9ca3af; margin: 6px 0 0;">Merci pour votre confiance</p>
                 </div>
             </div>
         `;
@@ -299,23 +292,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         try {
             const container = document.createElement('div');
             container.style.position = 'fixed';
-            container.style.left = '0';
+            container.style.left = '-9999px';
             container.style.top = '0';
             container.style.width = '210mm';
             container.style.backgroundColor = 'white';
-            container.style.padding = '10mm';
-            container.style.zIndex = '-1';
-            container.style.opacity = '0';
-            container.style.pointerEvents = 'none';
+            container.style.padding = '8mm';
+            container.style.boxSizing = 'border-box';
             
-            // Créer la grille 2x2
             const grid = document.createElement('div');
             grid.style.display = 'grid';
             grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-            grid.style.gap = '8px';
+            grid.style.gap = '12px';
             grid.style.width = '100%';
             
-            // Ajouter 4 reçus
             for (let i = 0; i < 4; i++) {
                 const receiptDiv = document.createElement('div');
                 receiptDiv.innerHTML = generateReceiptHTML(data, true);
@@ -325,21 +314,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             container.appendChild(grid);
             document.body.appendChild(container);
             
-            // Attendre le rendu
             await new Promise(resolve => setTimeout(resolve, 200));
             
-            // Capturer avec html2canvas
             const canvas = await html2canvas(container, {
-                scale: 3,
+                scale: 2,
                 backgroundColor: '#ffffff',
                 logging: false,
-                useCORS: false
+                useCORS: true
             });
             
-            // Nettoyer
             document.body.removeChild(container);
             
-            // Créer le PDF
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF({
                 orientation: 'portrait',
@@ -350,23 +335,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             const imgWidth = 190;
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
             const xPosition = (210 - imgWidth) / 2;
-            const yPosition = 10;
             
-            pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
+            pdf.addImage(imgData, 'PNG', xPosition, 15, imgWidth, imgHeight);
             
             const fileName = `recu_${data.memberId}_${data.year}.pdf`;
             pdf.save(fileName);
             
-            toast.success('Reçu téléchargé avec succès');
+            toast.success('Reçu téléchargé');
         } catch (error) {
-            console.error('PDF generation error:', error);
+            console.error('PDF error:', error);
             toast.error('Erreur lors de la génération du PDF');
         } finally {
             setIsDownloading(false);
         }
     };
 
-    // Téléchargement manuel
     const handleDownload = () => {
         if (receiptData) {
             downloadPDF(receiptData);
@@ -375,7 +358,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         }
     };
 
-    // Téléchargement automatique après paiement
     useEffect(() => {
         if (paymentCompleted && receiptData && !isDownloading) {
             const timer = setTimeout(() => {
@@ -389,54 +371,66 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         return createPortal(
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                 <div className="relative w-full max-w-sm">
-                    <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-                        <div className="bg-[#E51A1A] px-4 py-3 text-white">
-                            <h3 className="text-sm font-black uppercase text-center">Paiement effectué !</h3>
-                            <p className="text-[10px] text-center opacity-80 mt-1">
-                                {receiptData.memberName} - {formatCurrency(receiptData.paidAmount)}
-                            </p>
+                    <div className="bg-white rounded-xl shadow-xl overflow-hidden">
+                        <div className="bg-gradient-to-r from-[#E51A1A] to-[#C41515] px-5 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                                    <AiOutlineCheckCircle size={22} className="text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-bold text-lg">Paiement effectué</h3>
+                                    <p className="text-white/80 text-xs">{receiptData.memberName}</p>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div className="p-4 text-center">
-                            <AiOutlineCheckCircle size={48} className="text-green-500 mx-auto mb-3" />
-                            <p className="text-sm font-bold text-gray-800">Paiement enregistré avec succès !</p>
-                            <p className="text-[10px] text-gray-500 mt-2">
-                                Le reçu va être téléchargé automatiquement.
-                            </p>
-                            <p className="text-[9px] text-gray-400 mt-3">
-                                4 reçus par page A4 pour économiser le papier
-                            </p>
-                        </div>
-                        
-                        <div className="flex gap-3 p-4 border-t border-gray-100">
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                onClick={() => {
-                                    setPaymentCompleted(false);
-                                    resetForm();
-                                    onSuccess?.();
-                                    onClose();
-                                }}
-                                className="flex-1 py-2 text-sm font-bold"
-                                disabled={isDownloading}
-                            >
-                                Fermer
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="primary"
-                                onClick={handleDownload}
-                                disabled={isDownloading}
-                                className="flex-1 py-2 text-sm flex items-center justify-center gap-2 bg-[#E51A1A] hover:bg-[#C41515] text-white disabled:opacity-50"
-                            >
-                                {isDownloading ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                ) : (
-                                    <AiOutlineDownload size={16} />
-                                )}
-                                Télécharger
-                            </Button>
+                        <div className="p-5">
+                            <div className="text-center mb-4">
+                                <p className="text-2xl font-bold text-gray-800">{formatCurrency(receiptData.paidAmount)}</p>
+                                <p className="text-xs text-gray-500 mt-1">Montant payé</p>
+                            </div>
+                            
+                            <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                                <div className="flex justify-between text-sm mb-1">
+                                    <span className="text-gray-500">Total dû</span>
+                                    <span className="font-medium">{formatCurrency(receiptData.amount)}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">Reste à payer</span>
+                                    <span className="font-medium text-orange-600">{formatCurrency(receiptData.remaining)}</span>
+                                </div>
+                            </div>
+                            
+                            <p className="text-center text-[11px] text-gray-400 mb-4">4 reçus par page A4 • Économie de papier</p>
+                            
+                            <div className="flex gap-3">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => {
+                                        setPaymentCompleted(false);
+                                        resetForm();
+                                        onSuccess?.();
+                                        onClose();
+                                    }}
+                                    className="flex-1"
+                                >
+                                    Fermer
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="primary"
+                                    onClick={handleDownload}
+                                    disabled={isDownloading}
+                                    className="flex-1 bg-[#E51A1A] hover:bg-[#C41515]"
+                                >
+                                    {isDownloading ? (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <span className="flex items-center gap-2">📄 Télécharger</span>
+                                    )}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -450,16 +444,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="relative w-full max-w-md">
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
-                    <div className="bg-[#E51A1A] px-6 py-5 text-white relative">
+                <div className="bg-white rounded-xl shadow-xl overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-[#E51A1A] px-6 py-5 relative">
                         <button
                             onClick={onClose}
-                            className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                            className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
                         >
                             <AiOutlineClose size={18} />
                         </button>
 
-                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/20 flex items-center justify-center mb-3 border-2 border-white shadow-md mx-auto">
+                        <div className="flex flex-col items-center">
                             <Avatar
                                 imageUrl={memberImageUrl}
                                 firstName={memberName?.split(' ')[0]}
@@ -468,58 +463,55 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 category="member"
                                 size="xl"
                                 shape="rounded"
-                                className="w-full h-full"
+                                className="w-20 h-20 rounded-xl  shadow-lg mb-3"
                             />
+                            <h2 className="text-xl font-bold text-white">Encaissement</h2>
+                            <p className="text-white/80 text-sm mt-1">{memberName}</p>
                         </div>
-                        <h2 className="text-2xl font-black uppercase text-center">Enregistrement Paiement</h2>
-                        {memberName && (
-                            <p className="text-sm font-bold text-white/80 text-center mt-1">{memberName}</p>
-                        )}
                     </div>
 
-                    <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                        <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase">Total dû</p>
-                                    <p className="font-black text-xl">{formatCurrency(contributionAmount || 0)}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] font-black text-red-400 uppercase">Reste à payer</p>
-                                    <p className="font-black text-xl text-red-600">{formatCurrency(remainingAmount || 0)}</p>
-                                </div>
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                        {/* Montant summary */}
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex justify-between mb-2">
+                                <span className="text-sm text-gray-500">Total dû</span>
+                                <span className="font-bold text-gray-800">{formatCurrency(contributionAmount || 0)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-sm text-gray-500">Reste à payer</span>
+                                <span className="font-bold text-[#E51A1A]">{formatCurrency(remainingAmount || 0)}</span>
                             </div>
                             {selectedAmount > 0 && !isOverPayment && (
-                                <div
-                                    className={`mt-4 pt-3 border-t border-gray-200 flex justify-between items-center ${isFullPayment ? 'text-green-600' : 'text-orange-500'
-                                        }`}
-                                >
-                                    <span className="text-[10px] font-black uppercase">Après ce paiement</span>
-                                    <span className="text-sm font-black">
-                                        {isFullPayment ? 'Totalement réglé' : `Reste: ${formatCurrency(remainingAfterPayment)}`}
+                                <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between text-sm">
+                                    <span className="text-gray-500">Après paiement</span>
+                                    <span className={isFullPayment ? 'text-green-600 font-bold' : 'text-orange-500'}>
+                                        {isFullPayment ? 'Soldé' : `Reste: ${formatCurrency(remainingAfterPayment)}`}
                                     </span>
                                 </div>
                             )}
                         </div>
 
+                        {/* Montant input */}
                         <div>
-                            <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1 block">
-                                Montant payé
-                            </label>
-                            <Input
-                                name="amountPaid"
-                                type="number"
-                                value={selectedAmount.toString()}
-                                onChange={handleAmountChange}
-                                onBlur={handleBlur}
-                                error={touched.amountPaid ? errors.amountPaid : amountError || undefined}
-                                icon={<AiOutlineDollar />}
-                                placeholder="Saisir le montant"
-                                max={remainingAmount}
-                                step="1000"
-                            />
+                            <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Montant à payer</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">Ar</span>
+                                <Input
+                                    name="amountPaid"
+                                    type="number"
+                                    value={selectedAmount.toString()}
+                                    onChange={handleAmountChange}
+                                    onBlur={handleBlur}
+                                    error={touched.amountPaid ? errors.amountPaid : amountError || undefined}
+                                    placeholder="0"
+                                    max={remainingAmount}
+                                    step="1000"
+                                    className="pl-10"
+                                />
+                            </div>
                             {remainingAmount && remainingAmount > 0 && !isOverPayment && (
-                                <div className="flex gap-2 mt-3">
+                                <div className="flex gap-2 mt-2">
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -528,9 +520,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                             setFieldValue('amountPaid', half);
                                             setAmountError(null);
                                         }}
-                                        className="flex-1 text-[10px] font-black py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                        className="flex-1 text-xs font-semibold py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
                                     >
-                                        50% ({formatCurrency(Math.min(Math.round((remainingAmount || 0) / 2), remainingAmount || 0))})
+                                        50%
                                     </button>
                                     <button
                                         type="button"
@@ -539,14 +531,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                             setFieldValue('amountPaid', remainingAmount || 0);
                                             setAmountError(null);
                                         }}
-                                        className="flex-1 text-[10px] font-black py-2 bg-[#E51A1A]/10 text-[#E51A1A] hover:bg-[#E51A1A]/20 rounded-lg transition-colors"
+                                        className="flex-1 text-xs font-semibold py-1.5 bg-[#E51A1A]/10 text-[#E51A1A] hover:bg-[#E51A1A]/20 rounded-lg transition"
                                     >
-                                        Total ({formatCurrency(remainingAmount || 0)})
+                                        Total
                                     </button>
                                 </div>
                             )}
                         </div>
 
+                        {/* Date */}
                         <Input
                             label="Date"
                             name="paymentDate"
@@ -558,28 +551,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             icon={<AiOutlineCalendar />}
                         />
 
+                        {/* Status */}
                         <div>
-                            <label className="text-[10px] font-black uppercase text-gray-500 mb-1 block">
-                                Statut du paiement
-                            </label>
-                            <div
-                                className={`flex items-center justify-between p-3 rounded-xl border ${autoStatus === PaymentStatus.COMPLETED
-                                        ? 'bg-green-50 border-green-200'
-                                        : 'bg-orange-50 border-orange-200'
-                                    }`}
-                            >
-                                <span
-                                    className={`font-black text-sm ${autoStatus === PaymentStatus.COMPLETED ? 'text-green-700' : 'text-orange-700'
-                                        }`}
-                                >
+                            <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Statut</label>
+                            <div className={`flex items-center justify-between p-3 rounded-lg border ${autoStatus === PaymentStatus.COMPLETED ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
+                                <span className={`font-semibold text-sm ${autoStatus === PaymentStatus.COMPLETED ? 'text-green-700' : 'text-amber-700'}`}>
                                     {getStatusLabel()}
                                 </span>
                                 <AiOutlineInfoCircle size={14} className="text-gray-400" />
                             </div>
                         </div>
 
-                        <div className="flex gap-3 pt-2">
-                            <Button type="button" variant="secondary" onClick={onClose} className="flex-1 py-2.5 text-sm font-bold">
+                        {/* Actions */}
+                        <div className="flex gap-3 pt-3">
+                            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
                                 Annuler
                             </Button>
                             <Button
@@ -587,7 +572,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 variant="primary"
                                 isLoading={addPayment.isPending}
                                 disabled={isOverPayment || selectedAmount <= 0}
-                                className="flex-1 py-2.5 text-sm font-bold bg-[#E51A1A] hover:bg-[#C41515] text-white"
+                                className="flex-1 bg-[#E51A1A] hover:bg-[#C41515]"
                             >
                                 Valider
                             </Button>
@@ -596,10 +581,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 </div>
 
                 {showSuccess && (
-                    <div className="absolute inset-0 bg-[#E51A1A] rounded-2xl flex flex-col items-center justify-center text-white z-10 animate-in zoom-in duration-300">
-                        <AiOutlineCheckCircle size={80} className="mb-4" />
-                        <p className="font-black text-2xl uppercase">Paiement effectué!</p>
-                        <p className="text-sm mt-2">Préparation du reçu...</p>
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#E51A1A] to-[#C41515] rounded-xl flex flex-col items-center justify-center text-white z-10 animate-in zoom-in duration-300">
+                        <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                            <AiOutlineCheckCircle size={40} className="text-white" />
+                        </div>
+                        <p className="font-bold text-xl">Paiement effectué !</p>
+                        <p className="text-sm mt-2 opacity-90">Génération du reçu...</p>
                     </div>
                 )}
             </div>
