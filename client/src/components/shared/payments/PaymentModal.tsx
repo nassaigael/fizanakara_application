@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
     AiOutlineClose,
@@ -17,7 +17,6 @@ import Button from '../../ui/Button';
 import { formatCurrency } from '../../../lib/helper';
 import { useAuth } from '../../../context/AuthContext';
 import { Avatar } from '../../ui/Avatar';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import toast from 'react-hot-toast';
 
@@ -60,6 +59,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const [paymentCompleted, setPaymentCompleted] = useState(false);
     const [receiptData, setReceiptData] = useState<any>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    const receiptRef = useRef<HTMLDivElement>(null);
 
     const getAutoStatus = (amount: number): PaymentStatus => {
         if (!contributionAmount || !remainingAmount) return PaymentStatus.PENDING;
@@ -185,121 +185,182 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const remainingAfterPayment = Math.max(0, (remainingAmount || 0) - selectedAmount);
     const getStatusLabel = () => autoStatus === PaymentStatus.COMPLETED ? 'Payé' : 'Partiel';
 
-    // Style ticket bancaire (ATM style)
-    const generateReceiptHTML = (data: any, isCompact: boolean = false): string => {
-        const paymentDateObj = new Date(data.paymentDate);
-        const formattedDate = paymentDateObj.toLocaleDateString('fr-FR');
-        const formattedTime = paymentDateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    // Génération directe du PDF avec jsPDF
+    const generatePDF = (data: any) => {
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+        const receiptWidth = (pageWidth - margin * 2) / 2;
+        const receiptHeight = 70; // Hauteur approximative d'un reçu
+        const gap = 5;
+
+        // Fonction pour dessiner un reçu
+        const drawReceipt = (x: number, y: number, data: any) => {
+            // Bordure du reçu
+            pdf.setDrawColor(200, 200, 200);
+            pdf.rect(x, y, receiptWidth, receiptHeight);
+            
+            // En-tête
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(229, 26, 26);
+            pdf.text('FIZANAKARA', x + receiptWidth / 2, y + 6, { align: 'center' });
+            
+            pdf.setFontSize(6);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(100, 100, 100);
+            pdf.text('Gestion des cotisations', x + receiptWidth / 2, y + 11, { align: 'center' });
+            
+            // Ligne séparatrice
+            pdf.setDrawColor(200, 200, 200);
+            pdf.line(x, y + 14, x + receiptWidth, y + 14);
+            
+            // Date et heure
+            const paymentDateObj = new Date(data.paymentDate);
+            const formattedDate = paymentDateObj.toLocaleDateString('fr-FR');
+            const formattedTime = paymentDateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            
+            pdf.setFontSize(7);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text(`Date: ${formattedDate}`, x + 3, y + 20);
+            pdf.text(`Heure: ${formattedTime}`, x + 3, y + 26);
+            pdf.text(`Opérateur: ${data.generatedBy.split(' ')[0]}`, x + 3, y + 32);
+            pdf.text(`Ticket: ${data.receiptNumber}`, x + 3, y + 38);
+            
+            // Ligne séparatrice
+            pdf.line(x, y + 42, x + receiptWidth, y + 42);
+            
+            // Membre
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Membre', x + 3, y + 48);
+            pdf.text('ID', x + receiptWidth - 25, y + 48);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(data.memberName.length > 20 ? data.memberName.substring(0, 18) + '...' : data.memberName, x + 3, y + 54);
+            pdf.text(data.memberId.slice(-8), x + receiptWidth - 25, y + 54);
+            
+            // Ligne séparatrice
+            pdf.line(x, y + 58, x + receiptWidth, y + 58);
+            
+            // Montants
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Cotisation', x + 3, y + 64);
+            pdf.text(`${formatCurrency(data.amount)}`, x + receiptWidth - 25, y + 64);
+        };
+
+        // Dessiner 4 reçus sur la page
+        // Ligne 1
+        drawReceipt(margin, margin, receiptData);
+        drawReceipt(margin + receiptWidth + gap, margin, receiptData);
         
-        // Taille réduite pour 4 par page
-        const padding = isCompact ? '4px 6px' : '8px 10px';
-        const fontSizeTitle = isCompact ? '11px' : '14px';
-        const fontSizeNormal = isCompact ? '7px' : '9px';
-        const fontSizeSmall = isCompact ? '6px' : '7px';
-        
-        return `
-            <div style="width: 95mm; margin: 0 auto; background: white; font-family: 'Courier New', 'Fira Code', monospace; border: 1px solid #ddd; border-radius: 0; overflow: hidden;">
-                <!-- En-tête -->
-                <div style="padding: ${padding}; text-align: center; border-bottom: 1px dashed #ccc;">
-                    <h1 style="font-size: ${fontSizeTitle}; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; margin: 0;">FIZANAKARA</h1>
-                    <p style="font-size: ${fontSizeSmall}; color: #666; margin: 2px 0 0;">Gestion des cotisations</p>
-                    <p style="font-size: ${parseInt(fontSizeSmall) - 1}px; color: #999; margin: 2px 0 0;">Antananarivo, Madagascar</p>
-                    <p style="font-size: ${parseInt(fontSizeSmall) - 1}px; color: #999; margin: 0;">Tel: +261 34 00 000 00</p>
-                </div>
-                
-                <!-- Infos transaction -->
-                <div style="padding: ${padding}; border-bottom: 1px dashed #ccc;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
-                        <span style="font-weight: bold;">Date:</span>
-                        <span>${formattedDate}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
-                        <span style="font-weight: bold;">Heure:</span>
-                        <span>${formattedTime}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 3px;">
-                        <span style="font-weight: bold;">Opérateur:</span>
-                        <span>${data.generatedBy.split(' ')[0]}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal};">
-                        <span style="font-weight: bold;">Ticket N°:</span>
-                        <span style="font-size: ${parseInt(fontSizeNormal) - 1}px;">${data.receiptNumber}</span>
-                    </div>
-                </div>
-                
-                <!-- Membre -->
-                <div style="padding: ${padding}; border-bottom: 1px dashed #ccc;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: bold; margin-bottom: 4px;">
-                        <span>Membre</span>
-                        <span>ID</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) + 1}px; margin-bottom: 2px;">
-                        <span style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">${data.memberName}</span>
-                        <span style="font-size: ${parseInt(fontSizeNormal) - 1}px; color: #666;">${data.memberId.slice(-8)}</span>
-                    </div>
-                    ${data.memberPhone ? `<div style="font-size: ${parseInt(fontSizeNormal) - 1}px; color: #888; margin-top: 2px;">📞 ${data.memberPhone}</div>` : ''}
-                </div>
-                
-                <!-- Détails paiement -->
-                <div style="padding: ${padding}; border-bottom: 1px dashed #ccc;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: bold; margin-bottom: 4px;">
-                        <span>Désignation</span>
-                        <span>Montant</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${parseInt(fontSizeNormal) + 1}px; margin-bottom: 2px;">
-                        <span>Cotisation ${data.year}</span>
-                        <span>${formatCurrency(data.amount)}</span>
-                    </div>
-                </div>
-                
-                <!-- Totaux -->
-                <div style="padding: ${padding}; border-bottom: 1px dashed #ccc;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 2px;">
-                        <span>Sous-total :</span>
-                        <span>${formatCurrency(data.amount)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 3px; margin-top: 2px;">
-                        <span>TOTAL :</span>
-                        <span>${formatCurrency(data.amount)}</span>
-                    </div>
-                </div>
-                
-                <!-- Paiement -->
-                <div style="padding: ${padding}; border-bottom: 1px dashed #ccc;">
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 2px;">
-                        <span>Paiement :</span>
-                        <span>Espèces</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; margin-bottom: 2px;">
-                        <span>Montant reçu :</span>
-                        <span>${formatCurrency(data.paidAmount)}</span>
-                    </div>
-                    ${data.remaining > 0 ? `
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; color: #ea580c; margin-top: 2px; padding-top: 2px; border-top: 1px dashed #ccc;">
-                        <span>Reste à payer :</span>
-                        <span>${formatCurrency(data.remaining)}</span>
-                    </div>
-                    ` : ''}
-                    ${data.paidAmount > data.amount ? `
-                    <div style="display: flex; justify-content: space-between; font-size: ${fontSizeNormal}; color: #16a34a; margin-top: 2px; padding-top: 2px; border-top: 1px dashed #ccc;">
-                        <span>Monnaie :</span>
-                        <span>${formatCurrency(data.paidAmount - data.amount)}</span>
-                    </div>
-                    ` : ''}
-                </div>
-                
-                <!-- Footer -->
-                <div style="padding: ${padding}; text-align: center;">
-                    <p style="font-size: ${parseInt(fontSizeNormal) - 1}px; font-weight: bold; margin: 0;">✓ Paiement enregistré</p>
-                    <p style="font-size: ${parseInt(fontSizeSmall) - 1}px; color: #999; margin: 3px 0 0;">Merci pour votre confiance !</p>
-                    <p style="font-size: ${parseInt(fontSizeSmall) - 2}px; color: #ccc; margin: 2px 0 0;">Fizanakara - Gestion des cotisations</p>
-                </div>
-            </div>
-        `;
+        // Ligne 2
+        drawReceipt(margin, margin + receiptHeight + gap, receiptData);
+        drawReceipt(margin + receiptWidth + gap, margin + receiptHeight + gap, receiptData);
+
+        const fileName = `recu_${data.memberId}_${data.year}.pdf`;
+        pdf.save(fileName);
     };
 
-    const downloadPDF = async (data: any) => {
-        if (!data) {
+    // Version avec plus d'informations
+    const generateDetailedPDF = (data: any) => {
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const margin = 10;
+        const receiptWidth = (pageWidth - margin * 2) / 2;
+        const receiptHeight = 85;
+        const gap = 5;
+
+        const drawDetailedReceipt = (x: number, y: number, data: any) => {
+            const paymentDateObj = new Date(data.paymentDate);
+            const formattedDate = paymentDateObj.toLocaleDateString('fr-FR');
+            const formattedTime = paymentDateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            
+            // Bordure
+            pdf.setDrawColor(200, 200, 200);
+            pdf.rect(x, y, receiptWidth, receiptHeight);
+            
+            // En-tête
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(229, 26, 26);
+            pdf.text('FIZANAKARA', x + receiptWidth / 2, y + 5, { align: 'center' });
+            
+            pdf.setFontSize(5);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(100, 100, 100);
+            pdf.text('Gestion des cotisations', x + receiptWidth / 2, y + 9, { align: 'center' });
+            
+            pdf.line(x, y + 12, x + receiptWidth, y + 12);
+            
+            // Infos transaction
+            pdf.setFontSize(6);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text(`Date: ${formattedDate}`, x + 3, y + 18);
+            pdf.text(`Heure: ${formattedTime}`, x + 3, y + 24);
+            pdf.text(`Opérateur: ${data.generatedBy.split(' ')[0]}`, x + 3, y + 30);
+            pdf.text(`N° Ticket: ${data.receiptNumber}`, x + 3, y + 36);
+            
+            pdf.line(x, y + 40, x + receiptWidth, y + 40);
+            
+            // Membre
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Membre', x + 3, y + 46);
+            pdf.text('ID', x + receiptWidth - 20, y + 46);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(7);
+            pdf.text(data.memberName.length > 18 ? data.memberName.substring(0, 16) + '...' : data.memberName, x + 3, y + 52);
+            pdf.setFontSize(6);
+            pdf.text(data.memberId.slice(-8), x + receiptWidth - 20, y + 52);
+            
+            if (data.memberPhone) {
+                pdf.setFontSize(5);
+                pdf.text(`Tel: ${data.memberPhone}`, x + 3, y + 58);
+            }
+            
+            pdf.line(x, y + 62, x + receiptWidth, y + 62);
+            
+            // Paiement
+            pdf.setFontSize(6);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Cotisation', x + 3, y + 68);
+            pdf.text(`${formatCurrency(data.amount)}`, x + receiptWidth - 25, y + 68);
+            
+            pdf.setFont('helvetica', 'normal');
+            pdf.text('Montant reçu:', x + 3, y + 74);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(`${formatCurrency(data.paidAmount)}`, x + receiptWidth - 25, y + 74);
+            
+            if (data.remaining > 0) {
+                pdf.setFont('helvetica', 'normal');
+                pdf.setTextColor(234, 88, 12);
+                pdf.text('Reste à payer:', x + 3, y + 80);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text(`${formatCurrency(data.remaining)}`, x + receiptWidth - 25, y + 80);
+            }
+        };
+
+        // 4 reçus
+        drawDetailedReceipt(margin, margin, receiptData);
+        drawDetailedReceipt(margin + receiptWidth + gap, margin, receiptData);
+        drawDetailedReceipt(margin, margin + receiptHeight + gap, receiptData);
+        drawDetailedReceipt(margin + receiptWidth + gap, margin + receiptHeight + gap, receiptData);
+
+        const fileName = `recu_${data.memberId}_${data.year}.pdf`;
+        pdf.save(fileName);
+    };
+
+    const downloadPDF = () => {
+        if (!receiptData) {
             toast.error('Aucune donnée de reçu disponible');
             return;
         }
@@ -307,59 +368,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         setIsDownloading(true);
         
         try {
-            const container = document.createElement('div');
-            container.style.position = 'fixed';
-            container.style.left = '-9999px';
-            container.style.top = '0';
-            container.style.width = '210mm';
-            container.style.backgroundColor = 'white';
-            container.style.padding = '5mm';
-            container.style.boxSizing = 'border-box';
-            
-            const grid = document.createElement('div');
-            grid.style.display = 'grid';
-            grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-            grid.style.gap = '8px';
-            grid.style.width = '100%';
-            
-            // 4 reçus par page
-            for (let i = 0; i < 4; i++) {
-                const receiptDiv = document.createElement('div');
-                receiptDiv.innerHTML = generateReceiptHTML(data, true);
-                grid.appendChild(receiptDiv);
-            }
-            
-            container.appendChild(grid);
-            document.body.appendChild(container);
-            
-            await new Promise(resolve => setTimeout(resolve, 200));
-            
-            const canvas = await html2canvas(container, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                useCORS: true
-            });
-            
-            document.body.removeChild(container);
-            
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
-            
-            const imgWidth = 190;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            const xPosition = (210 - imgWidth) / 2;
-            
-            pdf.addImage(imgData, 'PNG', xPosition, 10, imgWidth, imgHeight);
-            
-            const fileName = `recu_${data.memberId}_${data.year}.pdf`;
-            pdf.save(fileName);
-            
-            toast.success('Reçu téléchargé');
+            generateDetailedPDF(receiptData);
+            toast.success('Reçu téléchargé avec succès');
         } catch (error) {
             console.error('PDF error:', error);
             toast.error('Erreur lors de la génération du PDF');
@@ -368,18 +378,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         }
     };
 
-    const handleDownload = () => {
-        if (receiptData) {
-            downloadPDF(receiptData);
-        } else {
-            toast.error('Aucun reçu à télécharger');
-        }
-    };
-
     useEffect(() => {
         if (paymentCompleted && receiptData && !isDownloading) {
             const timer = setTimeout(() => {
-                downloadPDF(receiptData);
+                downloadPDF();
             }, 1500);
             return () => clearTimeout(timer);
         }
@@ -438,7 +440,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 <Button
                                     type="button"
                                     variant="primary"
-                                    onClick={handleDownload}
+                                    onClick={downloadPDF}
                                     disabled={isDownloading}
                                     className="flex-1 bg-[#E51A1A] hover:bg-[#C41515]"
                                 >
@@ -480,7 +482,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 category="member"
                                 size="xl"
                                 shape="rounded"
-                                className="w-20 h-20 rounded-xl bg-white! shadow-lg mb-3"
+                                className="w-20 h-20 rounded-xl shadow-lg mb-3"
                             />
                             <h2 className="text-xl font-bold text-white">Encaissement</h2>
                             <p className="text-white/80 text-sm mt-1">{memberName}</p>
