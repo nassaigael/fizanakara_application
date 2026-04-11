@@ -2,11 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
     AiOutlineClose,
-    AiOutlineDollar,
     AiOutlineCalendar,
     AiOutlineCheckCircle,
     AiOutlineInfoCircle,
-    AiOutlineDownload,
 } from 'react-icons/ai';
 import { useForm } from '../../../hooks/useForm';
 import { usePayment } from '../../../hooks/usePayment';
@@ -59,7 +57,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const [paymentCompleted, setPaymentCompleted] = useState(false);
     const [receiptData, setReceiptData] = useState<any>(null);
     const [isDownloading, setIsDownloading] = useState(false);
-    const receiptRef = useRef<HTMLDivElement>(null);
 
     const getAutoStatus = (amount: number): PaymentStatus => {
         if (!contributionAmount || !remainingAmount) return PaymentStatus.PENDING;
@@ -186,85 +183,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const getStatusLabel = () => autoStatus === PaymentStatus.COMPLETED ? 'Payé' : 'Partiel';
 
     // Génération directe du PDF avec jsPDF
-    const generatePDF = (data: any) => {
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-        });
-
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 10;
-        const receiptWidth = (pageWidth - margin * 2) / 2;
-        const receiptHeight = 70; // Hauteur approximative d'un reçu
-        const gap = 5;
-
-        // Fonction pour dessiner un reçu
-        const drawReceipt = (x: number, y: number, data: any) => {
-            // Bordure du reçu
-            pdf.setDrawColor(200, 200, 200);
-            pdf.rect(x, y, receiptWidth, receiptHeight);
-            
-            // En-tête
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(229, 26, 26);
-            pdf.text('FIZANAKARA', x + receiptWidth / 2, y + 6, { align: 'center' });
-            
-            pdf.setFontSize(6);
-            pdf.setFont('helvetica', 'normal');
-            pdf.setTextColor(100, 100, 100);
-            pdf.text('Gestion des cotisations', x + receiptWidth / 2, y + 11, { align: 'center' });
-            
-            // Ligne séparatrice
-            pdf.setDrawColor(200, 200, 200);
-            pdf.line(x, y + 14, x + receiptWidth, y + 14);
-            
-            // Date et heure
-            const paymentDateObj = new Date(data.paymentDate);
-            const formattedDate = paymentDateObj.toLocaleDateString('fr-FR');
-            const formattedTime = paymentDateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            
-            pdf.setFontSize(7);
-            pdf.setTextColor(0, 0, 0);
-            pdf.text(`Date: ${formattedDate}`, x + 3, y + 20);
-            pdf.text(`Heure: ${formattedTime}`, x + 3, y + 26);
-            pdf.text(`Opérateur: ${data.generatedBy.split(' ')[0]}`, x + 3, y + 32);
-            pdf.text(`Ticket: ${data.receiptNumber}`, x + 3, y + 38);
-            
-            // Ligne séparatrice
-            pdf.line(x, y + 42, x + receiptWidth, y + 42);
-            
-            // Membre
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Membre', x + 3, y + 48);
-            pdf.text('ID', x + receiptWidth - 25, y + 48);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(data.memberName.length > 20 ? data.memberName.substring(0, 18) + '...' : data.memberName, x + 3, y + 54);
-            pdf.text(data.memberId.slice(-8), x + receiptWidth - 25, y + 54);
-            
-            // Ligne séparatrice
-            pdf.line(x, y + 58, x + receiptWidth, y + 58);
-            
-            // Montants
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Cotisation', x + 3, y + 64);
-            pdf.text(`${formatCurrency(data.amount)}`, x + receiptWidth - 25, y + 64);
-        };
-
-        // Dessiner 4 reçus sur la page
-        // Ligne 1
-        drawReceipt(margin, margin, receiptData);
-        drawReceipt(margin + receiptWidth + gap, margin, receiptData);
-        
-        // Ligne 2
-        drawReceipt(margin, margin + receiptHeight + gap, receiptData);
-        drawReceipt(margin + receiptWidth + gap, margin + receiptHeight + gap, receiptData);
-
-        const fileName = `recu_${data.memberId}_${data.year}.pdf`;
-        pdf.save(fileName);
-    };
 
     // Version avec plus d'informations
     const generateDetailedPDF = (data: any) => {
@@ -392,7 +310,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                 <div className="relative w-full max-w-sm">
                     <div className="bg-white rounded-xl shadow-xl overflow-hidden">
-                        <div className="bg-gradient-to-r from-[#E51A1A] to-[#C41515] px-5 py-4">
+                        <div className="bg-linear-to-r from-[#E51A1A] to-[#C41515] px-5 py-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                                     <AiOutlineCheckCircle size={22} className="text-white" />
@@ -482,7 +400,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 category="member"
                                 size="xl"
                                 shape="rounded"
-                                className="w-20 h-20 rounded-xl shadow-lg mb-3"
+                                className="w-20 h-20 rounded-xl bg-white! shadow-lg mb-3"
                             />
                             <h2 className="text-xl font-bold text-white">Encaissement</h2>
                             <p className="text-white/80 text-sm mt-1">{memberName}</p>
@@ -594,7 +512,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 </div>
 
                 {showSuccess && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#E51A1A] to-[#C41515] rounded-xl flex flex-col items-center justify-center text-white z-10 animate-in zoom-in duration-300">
+                    <div className="absolute inset-0 bg-linear-to-r from-[#E51A1A] to-[#C41515] rounded-xl flex flex-col items-center justify-center text-white z-10 animate-in zoom-in duration-300">
                         <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-4">
                             <AiOutlineCheckCircle size={40} className="text-white" />
                         </div>
