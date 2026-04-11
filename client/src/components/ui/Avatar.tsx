@@ -106,7 +106,7 @@ export const Avatar: React.FC<AvatarProps> = ({
             className={`
                 ${sizeClasses[size]} 
                 ${shapeClasses[shape]} 
-                bg-gray-100 
+                bg-[#E51A1A]
                 flex items-center justify-center 
                 overflow-hidden 
                 shadow-sm

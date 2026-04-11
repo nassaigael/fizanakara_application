@@ -219,7 +219,7 @@ const AdminMembers: React.FC = () => {
           <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-xl border border-gray-100 p-3 sm:p-4">
             {/* Info du nombre d'éléments */}
             <div className="text-[10px] sm:text-xs text-gray-500 order-2 sm:order-1">
-              Affichage de {startIndex + 1} à {Math.min(endIndex, filteredMembers.length)} sur {filteredMembers.length} membres
+              Affichage de {startIndex + 1} à {Math.min(endIndex, filteredMembers.length)}/{filteredMembers.length} membres
             </div>
 
             {/* Contrôles de pagination */}

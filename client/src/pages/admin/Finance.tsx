@@ -10,7 +10,8 @@ import {
     AiOutlinePlusCircle,
     AiOutlineMenu,
     AiOutlineLeft,
-    AiOutlineRight
+    AiOutlineRight,
+
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
@@ -419,31 +420,58 @@ const AdminFinance: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Cartes statistiques */}
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mt-2 sm:mt-4">
-                    <div className="bg-[#E51A1A]/10 rounded-xl border border-[#E51A1A]/20 p-2 sm:p-3">
-                        <p className="text-lg sm:text-xl font-bold text-[#E51A1A] mb-0.5">
+                {/* Cartes statistiques - Design centré, couleur rouge unie */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                    {/* Total dû */}
+                    <div className="bg-[#E51A1A] rounded-xl p-4 shadow-md text-center">
+                        <p className="font-black text-white text-xl sm:text-2xl">
                             {formatCurrency(stats.totalAmount)}
                         </p>
-                        <p className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-wide">Total dû</p>
+                        <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
+                            Total dû
+                        </p>
+                        <p className="text-white/50 text-[8px] mt-1">
+                            Année {selectedYear}
+                        </p>
                     </div>
-                    <div className="bg-[#E51A1A]/10 rounded-xl border border-[#E51A1A]/20 p-2 sm:p-3">
-                        <p className="text-lg sm:text-xl font-bold text-[#E51A1A] mb-0.5">
+
+                    {/* Total payé */}
+                    <div className="bg-[#E51A1A] rounded-xl p-4 shadow-md text-center">
+                        <p className="font-black text-white text-xl sm:text-2xl">
                             {formatCurrency(stats.totalPaid)}
                         </p>
-                        <p className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-wide">Total payé</p>
+                        <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
+                            Total payé
+                        </p>
+                        <p className="text-white/50 text-[8px] mt-1">
+                            {stats.totalAmount > 0 ? ((stats.totalPaid / stats.totalAmount) * 100).toFixed(1) : 0}% du total
+                        </p>
                     </div>
-                    <div className="bg-[#E51A1A]/10 rounded-xl border border-[#E51A1A]/20 p-2 sm:p-3">
-                        <p className="text-lg sm:text-xl font-bold text-[#E51A1A] mb-0.5">
+
+                    {/* Reste à payer */}
+                    <div className="bg-[#E51A1A] rounded-xl p-4 shadow-md text-center">
+                        <p className="font-black text-white text-xl sm:text-2xl">
                             {formatCurrency(stats.remaining)}
                         </p>
-                        <p className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-wide">Reste à payer</p>
+                        <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
+                            Reste à payer
+                        </p>
+                        <p className="text-white/50 text-[8px] mt-1">
+                            {stats.totalAmount > 0 ? ((stats.remaining / stats.totalAmount) * 100).toFixed(1) : 0}% du total
+                        </p>
                     </div>
-                    <div className="bg-[#E51A1A]/10 rounded-xl border border-[#E51A1A]/20 p-2 sm:p-3">
-                        <p className="text-lg sm:text-xl font-bold text-[#E51A1A] mb-0.5">
+
+                    {/* Taux de paiement */}
+                    <div className="bg-[#E51A1A] rounded-xl p-4 shadow-md text-center">
+                        <p className="font-black text-white text-2xl sm:text-3xl">
                             {stats.paymentRate.toFixed(1)}%
                         </p>
-                        <p className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-wide">Taux de paiement</p>
+                        <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
+                            Taux de paiement
+                        </p>
+                        <p className="text-white/50 text-[8px] mt-1">
+                            Objectif: 100%
+                        </p>
                     </div>
                 </div>
             </div>
