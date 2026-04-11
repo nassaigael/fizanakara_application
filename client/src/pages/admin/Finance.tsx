@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
-    AiOutlineDollar,
     AiOutlineCheckCircle,
     AiOutlineWarning,
     AiOutlineSearch,
@@ -11,6 +10,7 @@ import {
     AiOutlineMenu,
     AiOutlineLeft,
     AiOutlineRight,
+    AiOutlineDollar,
 
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
@@ -23,8 +23,10 @@ import { formatCurrency } from '../../lib/helper';
 import { THEME } from '../../styles/theme';
 import toast from 'react-hot-toast';
 import Avatar from '../../components/ui/Avatar';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminFinance: React.FC = () => {
+    const { user } = useAuth();
     const currentYear = new Date().getFullYear();
     const [selectedYear, setSelectedYear] = useState<number | null>(null);
     const [availableYears, setAvailableYears] = useState<number[]>([]);
@@ -294,14 +296,21 @@ const AdminFinance: React.FC = () => {
     const newLocal = "px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-25";
     const newLocal_1 = "px-3 sm:px-4 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-[100px]";
     const newLocal_2 = "px-3 sm:px-4 py-3 sm:py-4 text-right text-[10px] sm:text-xs font-black uppercase text-gray-500 min-w-[80px]";
+
     return (
         <div className="h-full flex flex-col px-3 sm:px-4 md:px-6 py-4 sm:py-6">
             <div className="shrink-0 space-y-4 sm:space-y-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="p-3 sm:p-4 bg-[#E51A1A] text-white rounded-2xl sm:rounded-3xl shadow-md">
-                            <AiOutlineDollar className="w-6 h-6 sm:w-8 sm:h-8" />
-                        </div>
+                        <Avatar
+                            imageUrl={user?.imageUrl}
+                            firstName={user?.firstName}
+                            lastName={user?.lastName}
+                            category="admin"
+                            size="lg"
+                            shape="rounded"
+                            className="shadow-md"
+                        />
                         <div>
                             <h1 className={`${THEME.font.h1} text-2xl sm:text-3xl uppercase`}>Finances</h1>
                             <p className={`${THEME.font.muted} mt-1 text-[9px] sm:text-xs uppercase tracking-widest`}>
@@ -420,9 +429,7 @@ const AdminFinance: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Cartes statistiques - Mêmes couleurs que le Dashboard */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                    {/* Total dû - Bleu */}
                     <div className="bg-blue-600 rounded-xl p-4 shadow-md text-center">
                         <p className="font-black text-white text-xl sm:text-2xl">
                             {formatCurrency(stats.totalAmount)}
@@ -430,12 +437,11 @@ const AdminFinance: React.FC = () => {
                         <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
                             Total dû
                         </p>
-                        <p className="text-white/50 text-[8px] mt-1">
+                        <p className="text-white text-[8px] mt-1">
                             Année {selectedYear}
                         </p>
                     </div>
 
-                    {/* Total payé - Vert */}
                     <div className="bg-green-600 rounded-xl p-4 shadow-md text-center">
                         <p className="font-black text-white text-xl sm:text-2xl">
                             {formatCurrency(stats.totalPaid)}
@@ -443,12 +449,11 @@ const AdminFinance: React.FC = () => {
                         <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
                             Total payé
                         </p>
-                        <p className="text-white/50 text-[8px] mt-1">
+                        <p className="text-white text-[8px] mt-1">
                             {stats.totalAmount > 0 ? ((stats.totalPaid / stats.totalAmount) * 100).toFixed(1) : 0}% du total
                         </p>
                     </div>
 
-                    {/* Reste à payer - Orange */}
                     <div className="bg-orange-600 rounded-xl p-4 shadow-md text-center">
                         <p className="font-black text-white text-xl sm:text-2xl">
                             {formatCurrency(stats.remaining)}
@@ -456,12 +461,11 @@ const AdminFinance: React.FC = () => {
                         <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
                             Reste à payer
                         </p>
-                        <p className="text-white/50 text-[8px] mt-1">
+                        <p className="text-white text-[8px] mt-1">
                             {stats.totalAmount > 0 ? ((stats.remaining / stats.totalAmount) * 100).toFixed(1) : 0}% du total
                         </p>
                     </div>
 
-                    {/* Taux de paiement - Violet */}
                     <div className="bg-purple-600 rounded-xl p-4 shadow-md text-center">
                         <p className="font-black text-white text-2xl sm:text-3xl">
                             {stats.paymentRate.toFixed(1)}%
@@ -469,8 +473,8 @@ const AdminFinance: React.FC = () => {
                         <p className="font-bold text-white/80 text-[10px] uppercase tracking-wider mt-2">
                             Taux de paiement
                         </p>
-                        <p className="text-white/50 text-[8px] mt-1">
-                            Objectif: 100%
+                        <p className="text-white text-[8px] mt-1">
+                            Objectif en pourcentage
                         </p>
                     </div>
                 </div>
@@ -590,9 +594,8 @@ const AdminFinance: React.FC = () => {
                                                 const isPaid = totalPaid >= amount;
                                                 const isUnpaid = totalPaid === 0;
 
-                                                // Déterminer la couleur de fond de la ligne
                                                 const rowBgClass = isStudent
-                                                    ? 'bg-gray-50'
+                                                    ? 'bg-gray-100'
                                                     : 'bg-white';
 
                                                 return (
