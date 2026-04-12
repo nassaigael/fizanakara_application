@@ -186,6 +186,7 @@ export interface PaymentResponse {
     paymentDate: string;
     status: PaymentStatus;
     contributionId: string;
+    paymentTime: string;
 }
 
 // ============================================

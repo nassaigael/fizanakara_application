@@ -11,6 +11,7 @@ import mg.fizanakara.api.models.enums.PaymentStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Entity
@@ -35,18 +36,21 @@ public class Payment {
     @Column(nullable = false)
     @NotNull(message = "Payment date is required")
     @Builder.Default
-    private LocalDateTime paymentDate = LocalDateTime.now();
+    private LocalDateTime paymentDate = LocalDateTime.now(ZoneId.of("Indian/Antananarivo"));
 
     @Enumerated(EnumType.STRING)
     @Column
     @Builder.Default
     private PaymentStatus status = PaymentStatus.COMPLETED;
 
+    @Column(length = 10)
+    private String paymentTime;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contribution_id", nullable = false)
     @NotNull(message = "Contribution is required")
     private Contribution contribution;
-    
+
     public String generatedCustomId() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         return "PAY" + this.getPaymentDate().format(formatter);

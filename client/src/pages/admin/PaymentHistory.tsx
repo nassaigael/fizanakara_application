@@ -10,7 +10,7 @@ import {
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
 import Button from '../../components/ui/Button';
-import { formatCurrency, formatDate } from '../../lib/helper';
+import { formatCurrency } from '../../lib/helper';
 import { THEME } from '../../styles/theme';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../../components/ui/Avatar';
@@ -67,8 +67,17 @@ const PaymentHistory: React.FC = () => {
             if (contribution.payments && contribution.payments.length > 0) {
                 contribution.payments.forEach((payment: any) => {
                     const member = members.find(m => m.id === contribution.memberId);
+
+                    // Formater la date correctement
                     const paymentDate = new Date(payment.paymentDate);
-                    
+                    const day = paymentDate.getDate().toString().padStart(2, '0');
+                    const month = (paymentDate.getMonth() + 1).toString().padStart(2, '0');
+                    const year = paymentDate.getFullYear();
+                    const formattedDate = `${day}/${month}/${year}`;
+
+                    // Utiliser paymentTime du backend, jamais recalculer
+                    const exactTime = payment.paymentTime || '--:--:--';
+
                     payments.push({
                         id: payment.id,
                         memberName: member ? `${member.firstName} ${member.lastName}` : contribution.memberName,
@@ -76,8 +85,8 @@ const PaymentHistory: React.FC = () => {
                         memberImageUrl: member?.imageUrl,
                         memberGender: member?.gender,
                         amount: payment.amountPaid,
-                        paymentDate: payment.paymentDate,
-                        paymentTime: paymentDate.toLocaleTimeString('fr-FR'),
+                        paymentDate: formattedDate,
+                        paymentTime: exactTime,
                         contributionYear: contribution.year,
                         status: contribution.status,
                         receivedBy: payment.receivedBy || user?.firstName || 'Admin',
@@ -88,7 +97,12 @@ const PaymentHistory: React.FC = () => {
         });
 
         // Trier par date décroissante
-        payments.sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime());
+        payments.sort((a, b) => {
+            // Extraire la date du format DD/MM/YYYY
+            const dateA = a.paymentDate.split('/').reverse().join('-');
+            const dateB = b.paymentDate.split('/').reverse().join('-');
+            return new Date(dateB).getTime() - new Date(dateA).getTime();
+        });
         return payments;
     }, [contributions, members, user]);
 
@@ -112,13 +126,13 @@ const PaymentHistory: React.FC = () => {
 
             // Filtre par date de début
             if (startDate) {
-                const paymentDate = new Date(payment.paymentDate).toISOString().split('T')[0];
+                const paymentDate = payment.paymentDate.split('/').reverse().join('-');
                 if (paymentDate < startDate) return false;
             }
 
             // Filtre par date de fin
             if (endDate) {
-                const paymentDate = new Date(payment.paymentDate).toISOString().split('T')[0];
+                const paymentDate = payment.paymentDate.split('/').reverse().join('-');
                 if (paymentDate > endDate) return false;
             }
 
@@ -131,19 +145,11 @@ const PaymentHistory: React.FC = () => {
         const totalAmount = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
         const totalCount = filteredPayments.length;
         const averageAmount = totalCount > 0 ? totalAmount / totalCount : 0;
-        
-        // Paiements par mois
-        const paymentsByMonth = filteredPayments.reduce((acc, p) => {
-            const month = new Date(p.paymentDate).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-            acc[month] = (acc[month] || 0) + p.amount;
-            return acc;
-        }, {} as Record<string, number>);
 
         return {
             totalAmount,
             totalCount,
             averageAmount,
-            paymentsByMonth
         };
     }, [filteredPayments]);
 
@@ -265,11 +271,10 @@ const PaymentHistory: React.FC = () => {
                         </div>
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border transition-all ${
-                                showFilters
-                                    ? 'bg-[#E51A1A] text-white border-[#E51A1A]'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#E51A1A]'
-                            }`}
+                            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border transition-all ${showFilters
+                                ? 'bg-[#E51A1A] text-white border-[#E51A1A]'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-[#E51A1A]'
+                                }`}
                         >
                             <AiOutlineFilter size={16} />
                             <span className="text-sm font-medium">Filtres</span>
@@ -357,6 +362,7 @@ const PaymentHistory: React.FC = () => {
                                     <tr>
                                         <th className="px-4 py-3 text-left text-[10px] font-black uppercase text-gray-500">Membre</th>
                                         <th className="px-4 py-3 text-left text-[10px] font-black uppercase text-gray-500">Date</th>
+                                        <th className="px-4 py-3 text-left text-[10px] font-black uppercase text-gray-500">Heure</th>
                                         <th className="px-4 py-3 text-left text-[10px] font-black uppercase text-gray-500">Montant</th>
                                         <th className="px-4 py-3 text-left text-[10px] font-black uppercase text-gray-500">Année</th>
                                         <th className="px-4 py-3 text-left text-[10px] font-black uppercase text-gray-500">Statut</th>
@@ -368,7 +374,7 @@ const PaymentHistory: React.FC = () => {
                                     {paginatedPayments.map((payment) => {
                                         const member = members.find(m => m.id === payment.memberId);
                                         const isPaid = payment.status === 'PAID';
-                                        
+
                                         return (
                                             <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-4 py-3">
@@ -389,8 +395,10 @@ const PaymentHistory: React.FC = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <p className="text-sm">{formatDate(payment.paymentDate)}</p>
-                                                    <p className="text-[9px] text-gray-400">{payment.paymentTime}</p>
+                                                    <p className="text-sm font-medium">{payment.paymentDate}</p>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <p className="text-sm font-mono text-gray-600">{payment.paymentTime}</p>
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <p className="font-bold text-green-600">{formatCurrency(payment.amount)}</p>
@@ -399,13 +407,12 @@ const PaymentHistory: React.FC = () => {
                                                     <p className="text-sm">{payment.contributionYear}</p>
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                                                        isPaid
-                                                            ? 'bg-green-100 text-green-700'
-                                                            : payment.status === 'PARTIAL'
-                                                                ? 'bg-orange-100 text-orange-700'
-                                                                : 'bg-red-100 text-red-700'
-                                                    }`}>
+                                                    <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${isPaid
+                                                        ? 'bg-green-100 text-green-700'
+                                                        : payment.status === 'PARTIAL'
+                                                            ? 'bg-orange-100 text-orange-700'
+                                                            : 'bg-red-100 text-red-700'
+                                                        }`}>
                                                         {isPaid ? 'Payé' : payment.status === 'PARTIAL' ? 'Partiel' : 'En attente'}
                                                     </span>
                                                 </td>
@@ -413,7 +420,7 @@ const PaymentHistory: React.FC = () => {
                                                     <p className="text-sm">{payment.receivedBy}</p>
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <p className="text-xs font-mono text-gray-500">{payment.receiptNumber}</p>
+                                                    <p className="text-xs font-mono text-gray-500">{payment.receiptNumber.slice(-12)}</p>
                                                 </td>
                                             </tr>
                                         );
@@ -445,11 +452,10 @@ const PaymentHistory: React.FC = () => {
                                                     <button
                                                         key={page}
                                                         onClick={() => goToPage(page)}
-                                                        className={`min-w-8 h-8 px-2 text-xs font-bold rounded-lg transition-colors ${
-                                                            currentPage === page
-                                                                ? 'bg-[#E51A1A] text-white'
-                                                                : 'text-gray-600 hover:bg-gray-100'
-                                                        }`}
+                                                        className={`min-w-8 h-8 px-2 text-xs font-bold rounded-lg transition-colors ${currentPage === page
+                                                            ? 'bg-[#E51A1A] text-white'
+                                                            : 'text-gray-600 hover:bg-gray-100'
+                                                            }`}
                                                     >
                                                         {page}
                                                     </button>

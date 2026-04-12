@@ -254,6 +254,7 @@ public class ContributionService {
                     pDto.setPaymentDate(LocalDate.from(payment.getPaymentDate()));
                     pDto.setStatus(payment.getStatus());
                     pDto.setContributionId(payment.getContribution().getId());
+                    pDto.setPaymentTime(payment.getPaymentTime());
                     return pDto;
                 })
                 .collect(Collectors.toList()));

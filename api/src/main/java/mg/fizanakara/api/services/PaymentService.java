@@ -19,6 +19,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,98 +29,111 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentService {
-    private final PaymentRepository paymentRepository;
-    private final ContributionRepository contributionRepository;
-    private final ContributionService contributionService;
+        private final PaymentRepository paymentRepository;
+        private final ContributionRepository contributionRepository;
+        private final ContributionService contributionService;
 
-    // GET BY CONTRIBUTION ID
-    @Transactional(readOnly = true)
-    public List<PaymentResponseDto> getPaymentsByContributionId(String contributionId) {
-        log.info("Retrieving payments for contribution ID: {}", contributionId);
-        return paymentRepository.findByContributionId(contributionId).stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
-    }
-
-    // CREATE
-    @Transactional
-    public PaymentResponseDto createPayment(PaymentDto dto) {
-        log.info("Creating payment for contribution ID: {} amount: {}", dto.getContributionId(), dto.getAmountPaid());
-
-        Contribution contribution = contributionRepository.findById(dto.getContributionId())
-                .orElseThrow(() -> new ContributionNotFoundException("Contribution not found with ID: " + dto.getContributionId()));
-
-        BigDecimal currentTotalPaid = paymentRepository.getTotalPaidByContributionId(dto.getContributionId());
-        if (currentTotalPaid == null) currentTotalPaid = BigDecimal.ZERO;
-        BigDecimal projectedTotal = currentTotalPaid.add(dto.getAmountPaid());
-
-        if (projectedTotal.compareTo(contribution.getAmount()) > 0) {
-            BigDecimal surplus = projectedTotal.subtract(contribution.getAmount());
-            log.warn("Overpayment blocked for contribution {}: projected total {} > amount {} (surplus: {})",
-                    dto.getContributionId(), projectedTotal, contribution.getAmount(), surplus);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Map.of(
-                    "error", "Overpaid detected",
-                    "message", String.format("Amount total project (%s) overwrought the contribution (%s). excess : %s AR",
-                            projectedTotal, contribution.getAmount(), surplus),
-                    "contributionId", dto.getContributionId(),
-                    "amountPaid", dto.getAmountPaid()
-            ).toString());
+        // GET BY CONTRIBUTION ID
+        @Transactional(readOnly = true)
+        public List<PaymentResponseDto> getPaymentsByContributionId(String contributionId) {
+                log.info("Retrieving payments for contribution ID: {}", contributionId);
+                return paymentRepository.findByContributionId(contributionId).stream()
+                                .map(this::mapToResponseDto)
+                                .collect(Collectors.toList());
         }
 
-        Payment payment = Payment.builder()
-                .amountPaid(dto.getAmountPaid())
-                .paymentDate(dto.getPaymentDate() != null ? dto.getPaymentDate() : LocalDateTime.now())
-                .status(dto.getStatus() != null ? dto.getStatus() : PaymentStatus.COMPLETED)
-                .contribution(contribution)
-                .build();
+        // CREATE
+        @Transactional
+        public PaymentResponseDto createPayment(PaymentDto dto) {
 
-        payment.setId(payment.generatedCustomId());
+                String paymentTime = LocalDateTime.now(ZoneId.of("Indian/Antananarivo"))
+                                .format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 
-        Payment saved = paymentRepository.save(payment);
+                log.info("Creating payment for contribution ID: {} amount: {}", dto.getContributionId(),
+                                dto.getAmountPaid());
 
-        contributionService.updateContributionStatusAfterPayment(dto.getContributionId());
+                Contribution contribution = contributionRepository.findById(dto.getContributionId())
+                                .orElseThrow(() -> new ContributionNotFoundException(
+                                                "Contribution not found with ID: " + dto.getContributionId()));
 
-        return mapToResponseDto(saved);
-    }
+                BigDecimal currentTotalPaid = paymentRepository.getTotalPaidByContributionId(dto.getContributionId());
+                if (currentTotalPaid == null)
+                        currentTotalPaid = BigDecimal.ZERO;
+                BigDecimal projectedTotal = currentTotalPaid.add(dto.getAmountPaid());
 
-    // UPDATE
-    @Transactional
-    public PaymentResponseDto updatePayment(String id, PaymentDto dto) {
-        Payment payment = paymentRepository.findById(id)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with ID: " + id));
+                if (projectedTotal.compareTo(contribution.getAmount()) > 0) {
+                        BigDecimal surplus = projectedTotal.subtract(contribution.getAmount());
+                        log.warn("Overpayment blocked for contribution {}: projected total {} > amount {} (surplus: {})",
+                                        dto.getContributionId(), projectedTotal, contribution.getAmount(), surplus);
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Map.of(
+                                        "error", "Overpaid detected",
+                                        "message",
+                                        String.format("Amount total project (%s) overwrought the contribution (%s). excess : %s AR",
+                                                        projectedTotal, contribution.getAmount(), surplus),
+                                        "contributionId", dto.getContributionId(),
+                                        "amountPaid", dto.getAmountPaid()).toString());
+                }
 
-        if (dto.getAmountPaid() != null) payment.setAmountPaid(dto.getAmountPaid());
-        if (dto.getPaymentDate() != null) payment.setPaymentDate(dto.getPaymentDate());
-        if (dto.getStatus() != null) payment.setStatus(dto.getStatus());
+                Payment payment = Payment.builder()
+                                .amountPaid(dto.getAmountPaid())
+                                .paymentDate(dto.getPaymentDate() != null ? dto.getPaymentDate()
+                                                : LocalDateTime.now(ZoneId.of("Indian/Antananarivo")))
+                                .status(dto.getStatus() != null ? dto.getStatus() : PaymentStatus.COMPLETED)
+                                .paymentTime(paymentTime)
+                                .contribution(contribution)
+                                .build();
 
-        log.info("Updating payment ID: {}", id);
+                payment.setId(payment.generatedCustomId());
 
-        Payment updated = paymentRepository.save(payment);
+                Payment saved = paymentRepository.save(payment);
 
-        contributionService.updateContributionStatusAfterPayment(updated.getContribution().getId());
+                contributionService.updateContributionStatusAfterPayment(dto.getContributionId());
 
-        return mapToResponseDto(updated);
-    }
+                return mapToResponseDto(saved);
+        }
 
-    // DELETE
-    @Transactional
-    public void deletePayment(String id) {
-        Payment payment = paymentRepository.findById(id)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with ID: " + id));
-        log.info("Deleting payment ID: {}", id);
-        paymentRepository.delete(payment);
+        // UPDATE
+        @Transactional
+        public PaymentResponseDto updatePayment(String id, PaymentDto dto) {
+                Payment payment = paymentRepository.findById(id)
+                                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with ID: " + id));
 
-        contributionService.updateContributionStatusAfterPayment(payment.getContribution().getId());
-    }
+                if (dto.getAmountPaid() != null)
+                        payment.setAmountPaid(dto.getAmountPaid());
+                if (dto.getPaymentDate() != null)
+                        payment.setPaymentDate(dto.getPaymentDate());
+                if (dto.getStatus() != null)
+                        payment.setStatus(dto.getStatus());
 
-    // DTO
-    private PaymentResponseDto mapToResponseDto(Payment payment) {
-        PaymentResponseDto dto = new PaymentResponseDto();
-        dto.setId(payment.getId());
-        dto.setAmountPaid(payment.getAmountPaid());
-        dto.setPaymentDate(LocalDate.from(payment.getPaymentDate()));
-        dto.setStatus(payment.getStatus());
-        dto.setContributionId(payment.getContribution().getId());
-        return dto;
-    }
+                log.info("Updating payment ID: {}", id);
+
+                Payment updated = paymentRepository.save(payment);
+
+                contributionService.updateContributionStatusAfterPayment(updated.getContribution().getId());
+
+                return mapToResponseDto(updated);
+        }
+
+        // DELETE
+        @Transactional
+        public void deletePayment(String id) {
+                Payment payment = paymentRepository.findById(id)
+                                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with ID: " + id));
+                log.info("Deleting payment ID: {}", id);
+                paymentRepository.delete(payment);
+
+                contributionService.updateContributionStatusAfterPayment(payment.getContribution().getId());
+        }
+
+        // DTO
+        private PaymentResponseDto mapToResponseDto(Payment payment) {
+                PaymentResponseDto dto = new PaymentResponseDto();
+                dto.setId(payment.getId());
+                dto.setAmountPaid(payment.getAmountPaid());
+                dto.setPaymentDate(LocalDate.from(payment.getPaymentDate()));
+                dto.setStatus(payment.getStatus());
+                dto.setContributionId(payment.getContribution().getId());
+                dto.setPaymentTime(payment.getPaymentTime());
+                return dto;
+        }
 }
