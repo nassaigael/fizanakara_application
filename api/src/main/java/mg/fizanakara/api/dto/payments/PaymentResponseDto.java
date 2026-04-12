@@ -14,4 +14,5 @@ public class PaymentResponseDto {
     private PaymentStatus status;
     private String contributionId;
     private String paymentTime;
+    private String receivedBy;
 }

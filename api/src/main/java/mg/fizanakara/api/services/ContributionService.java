@@ -255,6 +255,7 @@ public class ContributionService {
                     pDto.setStatus(payment.getStatus());
                     pDto.setContributionId(payment.getContribution().getId());
                     pDto.setPaymentTime(payment.getPaymentTime());
+                    pDto.setReceivedBy(payment.getReceivedBy());
                     return pDto;
                 })
                 .collect(Collectors.toList()));

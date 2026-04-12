@@ -12,6 +12,8 @@ import mg.fizanakara.api.models.enums.PaymentStatus;
 import mg.fizanakara.api.repository.ContributionRepository;
 import mg.fizanakara.api.repository.PaymentRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -49,6 +51,17 @@ public class PaymentService {
                 String paymentTime = LocalDateTime.now(ZoneId.of("Indian/Antananarivo"))
                                 .format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 
+                String receivedBy = "System";
+                try {
+                        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                        if (auth != null && auth.getName() != null && !auth.getName().equals("anonymousUser")) {
+                                receivedBy = auth.getName();
+                        }
+                        log.info("Payment received by: {}", receivedBy);
+                } catch (Exception e) {
+                        log.warn("Could not get authenticated user: {}", e.getMessage());
+                }
+
                 log.info("Creating payment for contribution ID: {} amount: {}", dto.getContributionId(),
                                 dto.getAmountPaid());
 
@@ -81,6 +94,7 @@ public class PaymentService {
                                 .status(dto.getStatus() != null ? dto.getStatus() : PaymentStatus.COMPLETED)
                                 .paymentTime(paymentTime)
                                 .contribution(contribution)
+                                .receivedBy(receivedBy)
                                 .build();
 
                 payment.setId(payment.generatedCustomId());
@@ -134,6 +148,7 @@ public class PaymentService {
                 dto.setStatus(payment.getStatus());
                 dto.setContributionId(payment.getContribution().getId());
                 dto.setPaymentTime(payment.getPaymentTime());
+                dto.setReceivedBy(payment.getReceivedBy());
                 return dto;
         }
 }

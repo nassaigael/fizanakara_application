@@ -12,7 +12,6 @@ import { useMembers } from '../../hooks/useMembers';
 import Button from '../../components/ui/Button';
 import { formatCurrency } from '../../lib/helper';
 import { THEME } from '../../styles/theme';
-import { useAuth } from '../../context/AuthContext';
 import Avatar from '../../components/ui/Avatar';
 import toast from 'react-hot-toast';
 
@@ -32,24 +31,19 @@ interface PaymentHistoryItem {
 }
 
 const PaymentHistory: React.FC = () => {
-    const { user } = useAuth();
     const { contributions, isLoading } = useFinance();
     const { members } = useMembers();
 
-    // États pour les filtres
     const [searchTerm, setSearchTerm] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [selectedYear, setSelectedYear] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [showFilters, setShowFilters] = useState(false);
-
-    // États pour la pagination
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [isMobile, setIsMobile] = useState(false);
 
-    // Détecter mobile pour pagination
     useEffect(() => {
         const checkMobile = () => {
             setIsMobile(window.innerWidth < 640);
@@ -59,7 +53,6 @@ const PaymentHistory: React.FC = () => {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Récupérer tous les paiements
     const allPayments = useMemo(() => {
         const payments: PaymentHistoryItem[] = [];
 
@@ -68,15 +61,13 @@ const PaymentHistory: React.FC = () => {
                 contribution.payments.forEach((payment: any) => {
                     const member = members.find(m => m.id === contribution.memberId);
 
-                    // Formater la date correctement
                     const paymentDate = new Date(payment.paymentDate);
                     const day = paymentDate.getDate().toString().padStart(2, '0');
                     const month = (paymentDate.getMonth() + 1).toString().padStart(2, '0');
                     const year = paymentDate.getFullYear();
                     const formattedDate = `${day}/${month}/${year}`;
-
-                    // Utiliser paymentTime du backend
                     const exactTime = payment.paymentTime || '--:--:--';
+                    const receivedByValue = payment.receivedBy || 'Système';
 
                     payments.push({
                         id: payment.id,
@@ -89,23 +80,22 @@ const PaymentHistory: React.FC = () => {
                         paymentTime: exactTime,
                         contributionYear: contribution.year,
                         status: contribution.status,
-                        receivedBy: payment.receivedBy || user?.firstName || 'Admin',
+                        receivedBy: receivedByValue,
                         receiptNumber: payment.receiptNumber || `FC${contribution.year}${Math.floor(Math.random() * 10000)}`
                     });
                 });
             }
         });
 
-        // Trier par date décroissante
         payments.sort((a, b) => {
             const dateA = a.paymentDate.split('/').reverse().join('-');
             const dateB = b.paymentDate.split('/').reverse().join('-');
             return new Date(dateB).getTime() - new Date(dateA).getTime();
         });
-        return payments;
-    }, [contributions, members, user]);
 
-    // Filtrer les paiements
+        return payments;
+    }, [contributions, members]);
+
     const filteredPayments = useMemo(() => {
         return allPayments.filter(payment => {
             if (searchTerm && !payment.memberName.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -129,7 +119,6 @@ const PaymentHistory: React.FC = () => {
         });
     }, [allPayments, searchTerm, selectedYear, statusFilter, startDate, endDate]);
 
-    // Statistiques
     const stats = useMemo(() => {
         const totalAmount = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
         const totalCount = filteredPayments.length;
@@ -137,13 +126,11 @@ const PaymentHistory: React.FC = () => {
         return { totalAmount, totalCount, averageAmount };
     }, [filteredPayments]);
 
-    // Années disponibles pour le filtre
     const availableYears = useMemo(() => {
         const years = new Set(allPayments.map(p => p.contributionYear));
         return Array.from(years).sort((a, b) => b - a);
     }, [allPayments]);
 
-    // Pagination
     const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
     const paginatedPayments = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -197,7 +184,6 @@ const PaymentHistory: React.FC = () => {
 
     return (
         <div className="h-full flex flex-col px-3 sm:px-4 md:px-6 py-4 sm:py-6">
-            {/* En-tête */}
             <div className="shrink-0 mb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3 sm:gap-4">
@@ -221,7 +207,6 @@ const PaymentHistory: React.FC = () => {
                 </div>
             </div>
 
-            {/* Cartes statistiques */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-6">
                 <div className="bg-blue-600 rounded-xl p-4 shadow-md text-center">
                     <p className="font-black text-white text-xl sm:text-2xl">{formatCurrency(stats.totalAmount)}</p>
@@ -237,7 +222,6 @@ const PaymentHistory: React.FC = () => {
                 </div>
             </div>
 
-            {/* Barre de recherche et filtres */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
                 <div className="p-4">
                     <div className="flex flex-col sm:flex-row gap-3">
@@ -272,7 +256,6 @@ const PaymentHistory: React.FC = () => {
                         </button>
                     </div>
 
-                    {/* Filtres avancés */}
                     {showFilters && (
                         <div className="mt-4 pt-4 border-t border-gray-100">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -326,7 +309,6 @@ const PaymentHistory: React.FC = () => {
                 </div>
             </div>
 
-            {/* Liste des paiements */}
             <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 {filteredPayments.length === 0 ? (
                     <div className="text-center py-12">
@@ -399,7 +381,7 @@ const PaymentHistory: React.FC = () => {
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <p className="text-sm">{payment.receivedBy}</p>
+                                                    <p className="text-sm font-medium">{payment.receivedBy}</p>
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <p className="text-xs font-mono text-gray-500">{payment.receiptNumber.slice(-12)}</p>
@@ -411,7 +393,6 @@ const PaymentHistory: React.FC = () => {
                             </table>
                         </div>
 
-                        {/* Pagination */}
                         {filteredPayments.length > 0 && (
                             <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
                                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3">

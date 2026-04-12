@@ -46,6 +46,9 @@ public class Payment {
     @Column(length = 10)
     private String paymentTime;
 
+    @Column(name = "received_by", nullable = false)
+    private String receivedBy;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contribution_id", nullable = false)
     @NotNull(message = "Contribution is required")
