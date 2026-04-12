@@ -75,7 +75,7 @@ const PaymentHistory: React.FC = () => {
                     const year = paymentDate.getFullYear();
                     const formattedDate = `${day}/${month}/${year}`;
 
-                    // Utiliser paymentTime du backend, jamais recalculer
+                    // Utiliser paymentTime du backend
                     const exactTime = payment.paymentTime || '--:--:--';
 
                     payments.push({
@@ -98,7 +98,6 @@ const PaymentHistory: React.FC = () => {
 
         // Trier par date décroissante
         payments.sort((a, b) => {
-            // Extraire la date du format DD/MM/YYYY
             const dateA = a.paymentDate.split('/').reverse().join('-');
             const dateB = b.paymentDate.split('/').reverse().join('-');
             return new Date(dateB).getTime() - new Date(dateA).getTime();
@@ -109,33 +108,23 @@ const PaymentHistory: React.FC = () => {
     // Filtrer les paiements
     const filteredPayments = useMemo(() => {
         return allPayments.filter(payment => {
-            // Recherche par nom
             if (searchTerm && !payment.memberName.toLowerCase().includes(searchTerm.toLowerCase())) {
                 return false;
             }
-
-            // Filtre par année
             if (selectedYear !== 'all' && payment.contributionYear !== parseInt(selectedYear)) {
                 return false;
             }
-
-            // Filtre par statut
             if (statusFilter !== 'all' && payment.status !== statusFilter) {
                 return false;
             }
-
-            // Filtre par date de début
             if (startDate) {
                 const paymentDate = payment.paymentDate.split('/').reverse().join('-');
                 if (paymentDate < startDate) return false;
             }
-
-            // Filtre par date de fin
             if (endDate) {
                 const paymentDate = payment.paymentDate.split('/').reverse().join('-');
                 if (paymentDate > endDate) return false;
             }
-
             return true;
         });
     }, [allPayments, searchTerm, selectedYear, statusFilter, startDate, endDate]);
@@ -145,12 +134,7 @@ const PaymentHistory: React.FC = () => {
         const totalAmount = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
         const totalCount = filteredPayments.length;
         const averageAmount = totalCount > 0 ? totalAmount / totalCount : 0;
-
-        return {
-            totalAmount,
-            totalCount,
-            averageAmount,
-        };
+        return { totalAmount, totalCount, averageAmount };
     }, [filteredPayments]);
 
     // Années disponibles pour le filtre
@@ -178,11 +162,9 @@ const PaymentHistory: React.FC = () => {
         const maxVisible = isMobile ? 3 : 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
         let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-
         if (endPage - startPage + 1 < maxVisible) {
             startPage = Math.max(1, endPage - maxVisible + 1);
         }
-
         const pages = [];
         for (let i = startPage; i <= endPage; i++) {
             pages.push(i);

@@ -7,7 +7,6 @@ import Navbar from './Navbar';
 const MainLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
-    // Fermer la sidebar automatiquement sur mobile
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth < 768) {

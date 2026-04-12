@@ -17,7 +17,6 @@ public interface ContributionRepository extends JpaRepository<Contribution, Stri
 
     List<Contribution> findByStatus(ContributionStatus status);
 
-    // Cotisations par personne
     List<Contribution> findByMemberId(String memberId);
 
     @Query("SELECT c FROM Contribution c WHERE c.childId = :childId")
@@ -27,7 +26,6 @@ public interface ContributionRepository extends JpaRepository<Contribution, Stri
     boolean hasDuplicateByMemberAndYear(@Param("memberId") String memberId, @Param("year") Year year,
             @Param("childId") String childId);
 
-    // Cotisations en retard
     @Query("SELECT c FROM Contribution c WHERE c.dueDate < CURRENT_DATE AND c.status != 'PAID'")
     List<Contribution> findOverdueContributions();
 }

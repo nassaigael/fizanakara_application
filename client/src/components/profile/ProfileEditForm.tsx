@@ -61,7 +61,7 @@ const ProfileEditForm: React.FC = () => {
             <Button
               variant="primary"
               onClick={() => setIsEditing(true)}
-              className="w-full sm:w-auto md:w-full lg:w-auto lg:min-w-[200px] mx-auto block"
+              className="w-full sm:w-auto md:w-full lg:w-auto lg:min-w-50 mx-auto block"
             >
               MODIFIER
             </Button>

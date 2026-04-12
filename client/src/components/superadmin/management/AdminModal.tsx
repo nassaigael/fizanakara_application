@@ -3,7 +3,6 @@ import { AiOutlineClose, AiOutlineUser, AiOutlinePlus } from 'react-icons/ai';
 import Button from '../../ui/Button';
 import Input from '../../ui/Input';
 import Select from '../../ui/Select';
-import { THEME } from '../../../styles/theme';
 
 interface AdminModalProps {
     form: any;
@@ -17,8 +16,7 @@ const AdminModal: React.FC<AdminModalProps> = ({ form, isOpen, onClose }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
             <div className="bg-white rounded-2xl w-full max-w-2xl border-2 border-brand-border shadow-[0_12px_0_0_#E5E5E5] overflow-hidden max-h-[90vh] overflow-y-auto">
-                {/* Header with Duolingo style gradient */}
-                <div className="bg-gradient-to-r from-brand-primary to-brand-primary-dark p-6 text-white relative">
+                <div className="bg-linear-to-r from-brand-primary to-brand-primary-dark p-6 text-white relative">
                     <button 
                         onClick={onClose} 
                         className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-xl transition-colors"
