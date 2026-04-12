@@ -81,16 +81,16 @@ const PaymentHistory: React.FC = () => {
                         contributionYear: contribution.year,
                         status: contribution.status,
                         receivedBy: receivedByValue,
-                        receiptNumber: payment.receiptNumber || `FC${contribution.year}${Math.floor(Math.random() * 10000)}`
+                        receiptNumber: payment.receiptNumber || `FIZ${contribution.year}${Math.floor(Math.random() * 10000)}`
                     });
                 });
             }
         });
 
         payments.sort((a, b) => {
-            const dateA = a.paymentDate.split('/').reverse().join('-');
-            const dateB = b.paymentDate.split('/').reverse().join('-');
-            return new Date(dateB).getTime() - new Date(dateA).getTime();
+            const dateTimeA = new Date(`${a.paymentDate.split('/').reverse().join('-')}T${a.paymentTime}`);
+            const dateTimeB = new Date(`${b.paymentDate.split('/').reverse().join('-')}T${b.paymentTime}`);
+            return dateTimeB.getTime() - dateTimeA.getTime();
         });
 
         return payments;
