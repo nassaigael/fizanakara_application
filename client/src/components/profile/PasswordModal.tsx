@@ -4,6 +4,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import toast from 'react-hot-toast';
 import { getApiErrorMessage } from '../../lib/helper';
+import { AiOutlineLock, AiOutlineCheckCircle, AiOutlineClose } from 'react-icons/ai';
 
 interface PasswordModalProps {
     isOpen: boolean;
@@ -83,14 +84,25 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSave }
 
     return (
         <>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
-                <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-[90%] sm:max-w-md border-2 border-black shadow-lg overflow-hidden animate-in zoom-in duration-200">
-                    <div className="bg-[#E51A1A] p-4 sm:p-6 text-white">
-                        <h2 className="text-lg sm:text-xl font-black uppercase">Changer le mot de passe</h2>
-                        <p className="text-white/80 text-xs sm:text-sm mt-1">Entrez votre nouveau mot de passe</p>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4">
+                <div className="bg-white rounded-lg w-full max-w-md shadow-xl animate-in fade-in zoom-in duration-200">
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+                        <div className="flex items-center gap-3">
+
+                            <div>
+                                <h2 className="text-base font-bold text-gray-800">Changer le mot de passe</h2>
+                                <p className="text-[10px] text-gray-500">Entrez votre nouveau mot de passe</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleClose}
+                            className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+                        >
+                            <AiOutlineClose size={16} className="text-gray-400" />
+                        </button>
                     </div>
 
-                    <form onSubmit={handleNext} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+                    <form onSubmit={handleNext} className="p-5 space-y-4">
                         <Input
                             name="password"
                             label="Nouveau mot de passe"
@@ -112,19 +124,20 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSave }
                             required
                         />
 
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
+                        {/* Boutons */}
+                        <div className="flex gap-3 pt-4 border-t border-gray-100">
                             <Button
                                 type="button"
                                 variant="secondary"
                                 onClick={handleClose}
-                                className="flex-1 w-full sm:w-auto order-2 sm:order-1"
+                                className="flex-1 py-2 text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-md"
                             >
                                 Annuler
                             </Button>
                             <Button
                                 type="submit"
                                 variant="primary"
-                                className="flex-1 w-full sm:w-auto order-1 sm:order-2 bg-[#E51A1A] hover:bg-[#C41515]"
+                                className="flex-1 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-md"
                             >
                                 Suivant
                             </Button>
@@ -134,33 +147,40 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSave }
             </div>
 
             {showConfirmModal && (
-                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4">
-                    <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-[90%] sm:max-w-md border-2 border-black shadow-lg overflow-hidden animate-in zoom-in duration-200">
-                        <div className="bg-[#E51A1A] p-5 sm:p-6 text-white text-center">
-                            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-3 sm:p-4">
+                    <div className="bg-white rounded-lg w-full max-w-md shadow-xl animate-in fade-in zoom-in duration-200">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+                            <div className="flex items-center gap-3">
+                                <div>
+                                    <h2 className="text-base font-bold text-gray-800">Confirmation</h2>
+                                    <p className="text-[10px] text-gray-500">Vérifiez votre action</p>
+                                </div>
                             </div>
-                            <h2 className="text-lg sm:text-xl font-black uppercase">Confirmer le changement</h2>
-                            <p className="text-white/80 text-xs sm:text-sm mt-2">
-                                Êtes-vous sûr de vouloir changer votre mot de passe ?
-                            </p>
+                            <button
+                                onClick={handleCancel}
+                                className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+                            >
+                                <AiOutlineClose size={16} className="text-gray-400" />
+                            </button>
                         </div>
 
-                        <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-                            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-3 sm:p-4">
-                                <p className="text-[10px] sm:text-xs font-bold text-yellow-800 uppercase text-center leading-tight">
-                                    ⚠️ Vous devrez vous reconnecter avec votre nouveau mot de passe
+                        <div className="p-5">
+                            <div className="text-center mb-5">
+                                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-red-100 flex items-center justify-center">
+                                    <AiOutlineLock className="text-red-600" size={20} />
+                                </div>
+                                <p className="text-sm font-medium text-gray-700">
+                                    Êtes-vous sûr de vouloir changer votre mot de passe ?
                                 </p>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
+
+                            <div className="flex gap-3 pt-2 border-t border-gray-100">
                                 <Button
                                     type="button"
                                     variant="secondary"
                                     onClick={handleCancel}
-                                    className="flex-1 w-full sm:w-auto order-2 sm:order-1"
+                                    className="flex-1 py-2 text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-md"
                                 >
                                     Annuler
                                 </Button>
@@ -169,8 +189,9 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSave }
                                     variant="primary"
                                     onClick={handleConfirm}
                                     isLoading={isLoading}
-                                    className="flex-1 w-full sm:w-auto order-1 sm:order-2 bg-[#E51A1A] hover:bg-[#C41515]"
+                                    className="flex-1 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-md"
                                 >
+                                    <AiOutlineCheckCircle size={14} className="mr-1" />
                                     Confirmer
                                 </Button>
                             </div>

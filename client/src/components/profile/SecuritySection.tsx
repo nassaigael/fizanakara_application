@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 import PasswordModal from '../profile/PasswordModal';
-import { AiOutlineLock } from 'react-icons/ai';
 
 const SecuritySection: React.FC = () => {
   const { updateProfile } = useAuth();
@@ -13,7 +12,6 @@ const SecuritySection: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg sm:text-xl font-black uppercase tracking-wider flex items-center gap-2 mb-2">
-            <AiOutlineLock className="text-[#E51A1A]" size={18} />
             SÉCURITÉ & MOT DE PASSE
           </h2>
           <p className="text-gray-500 text-xs sm:text-sm">
