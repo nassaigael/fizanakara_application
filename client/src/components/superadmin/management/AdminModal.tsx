@@ -46,6 +46,7 @@ const AdminModal: React.FC<AdminModalProps> = ({ form, isOpen, onClose }) => {
                                 required
                                 className="border-2 border-brand-border rounded-xl focus:ring-2 focus:ring-brand-primary"
                             />
+                            
                             <Input
                                 label="Nom"
                                 name="lastName"
