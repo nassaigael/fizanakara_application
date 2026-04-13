@@ -1,5 +1,5 @@
 import React from 'react';
-import { AiOutlineUser, AiOutlineCheckCircle, AiOutlineCloseCircle, AiOutlineDelete } from 'react-icons/ai';
+import { AiOutlineUser, AiOutlineCheckCircle, AiOutlineCloseCircle, AiOutlineDelete, AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
 import { AdminResponse } from '../../../lib/types';
 import { getImageUrl } from '../../../lib/constant/constant';
 
@@ -13,7 +13,7 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
     if (isLoading) {
         return (
             <div className="flex items-center justify-center py-20">
-                <div className="w-12 h-12 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -21,11 +21,11 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
     if (!admins || admins.length === 0) {
         return (
             <div className="text-center py-20">
-                <div className="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <AiOutlineUser size={40} className="text-gray-300" />
                 </div>
-                <p className="font-black text-gray-400 mb-2">No administrators</p>
-                <p className="text-sm text-gray-500">Start by creating a new administrator</p>
+                <p className="font-medium text-gray-500 mb-2">Aucun administrateur</p>
+                <p className="text-sm text-gray-400">Commencez par créer un nouvel administrateur</p>
             </div>
         );
     }
@@ -34,21 +34,21 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
         <div className="overflow-x-auto">
             <table className="w-full">
                 <thead>
-                    <tr className="border-b-2 border-brand-border">
-                        <th className="py-4 px-6 text-left text-xs font-black uppercase text-brand-muted">Administrator</th>
-                        <th className="py-4 px-6 text-left text-xs font-black uppercase text-brand-muted">Email</th>
-                        <th className="py-4 px-6 text-left text-xs font-black uppercase text-brand-muted">Phone</th>
-                        <th className="py-4 px-6 text-left text-xs font-black uppercase text-brand-muted">Role</th>
-                        <th className="py-4 px-6 text-left text-xs font-black uppercase text-brand-muted">Status</th>
-                        <th className="py-4 px-6 text-right text-xs font-black uppercase text-brand-muted">Actions</th>
+                    <tr className="border-b border-gray-200 bg-gray-50">
+                        <th className="py-3 px-4 text-left text-[10px] font-semibold uppercase text-gray-500">Administrateur</th>
+                        <th className="py-3 px-4 text-left text-[10px] font-semibold uppercase text-gray-500">Email</th>
+                        <th className="py-3 px-4 text-left text-[10px] font-semibold uppercase text-gray-500">Téléphone</th>
+                        <th className="py-3 px-4 text-left text-[10px] font-semibold uppercase text-gray-500">Rôle</th>
+                        <th className="py-3 px-4 text-left text-[10px] font-semibold uppercase text-gray-500">Statut</th>
+                        <th className="py-3 px-4 text-right text-[10px] font-semibold uppercase text-gray-500">Actions</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {admins.map((admin: AdminResponse) => (
                         <tr key={admin.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="py-4 px-6">
+                            <td className="py-3 px-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-brand-border flex items-center justify-center bg-linear-to-br from-brand-primary to-orange-500 shadow-md">
+                                    <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 flex items-center justify-center bg-red-600 shadow-sm">
                                         {admin.imageUrl ? (
                                             <img
                                                 src={getImageUrl(admin.imageUrl, 'admin')}
@@ -60,58 +60,64 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
                                                 }}
                                             />
                                         ) : (
-                                            <span className="text-white font-black text-sm uppercase">
+                                            <span className="text-white font-bold text-sm uppercase">
                                                 {admin.firstName?.[0]}{admin.lastName?.[0]}
                                             </span>
                                         )}
                                     </div>
                                     <div>
-                                        <p className="font-black text-sm text-brand-text truncate max-w-37.5 uppercase">
+                                        <p className="font-medium text-sm text-gray-800">
                                             {admin.firstName} {admin.lastName}
                                         </p>
-                                        <p className="text-[10px] font-bold text-brand-muted tracking-tighter">
+                                        <p className="text-[9px] text-gray-400 font-mono">
                                             {admin.id}
                                         </p>
                                     </div>
                                 </div>
                             </td>
-                            <td className="py-4 px-6">
-                                <p className="font-bold text-xs text-brand-text">{admin.email}</p>
+                            <td className="py-3 px-4">
+                                <div className="flex items-center gap-1.5">
+                                    <AiOutlineMail size={12} className="text-gray-400" />
+                                    <p className="text-xs text-gray-600">{admin.email}</p>
+                                </div>
                             </td>
-                            <td className="py-4 px-6">
-                                <p className="font-bold text-xs text-brand-text">{admin.phoneNumber || '-'}</p>
+                            <td className="py-3 px-4">
+                                <div className="flex items-center gap-1.5">
+                                    <AiOutlinePhone size={12} className="text-gray-400" />
+                                    <p className="text-xs text-gray-600">{admin.phoneNumber || '-'}</p>
+                                </div>
                             </td>
-                            <td className="py-4 px-6">
-                                <span className={`px-3 py-1 rounded-full text-xs font-black border-2 ${
+                            <td className="py-3 px-4">
+                                <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-medium ${
                                     admin.role === 'SUPERADMIN'
-                                        ? 'bg-purple-100 text-purple-600 border-purple-300'
-                                        : 'bg-blue-100 text-blue-600 border-blue-300'
+                                        ? 'bg-purple-100 text-purple-700'
+                                        : 'bg-blue-100 text-blue-700'
                                 }`}>
-                                    {admin.role}
+                                    {admin.role === 'SUPERADMIN' ? 'Super Admin' : 'Admin'}
                                 </span>
                             </td>
-                            <td className="py-4 px-6">
-                                <div className="flex items-center gap-2">
+                            <td className="py-3 px-4">
+                                <div className="flex items-center gap-1.5">
                                     {admin.verified ? (
                                         <>
-                                            <AiOutlineCheckCircle className="text-green-600" size={18} />
-                                            <span className="text-xs font-black text-green-600">Verified</span>
+                                            <AiOutlineCheckCircle className="text-green-600" size={14} />
+                                            <span className="text-[10px] font-medium text-green-600">Vérifié</span>
                                         </>
                                     ) : (
                                         <>
-                                            <AiOutlineCloseCircle className="text-orange-600" size={18} />
-                                            <span className="text-xs font-black text-orange-600">Unverified</span>
+                                            <AiOutlineCloseCircle className="text-orange-600" size={14} />
+                                            <span className="text-[10px] font-medium text-orange-600">Non vérifié</span>
                                         </>
                                     )}
                                 </div>
                             </td>
-                            <td className="py-4 px-6 text-right">
+                            <td className="py-3 px-4 text-right">
                                 <button
                                     onClick={() => onDelete(admin.id)}
-                                    className="p-2 hover:bg-red-100 text-red-600 rounded-xl transition-colors transform hover:scale-110"
-                                    title="Delete"
+                                    className="p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
+                                    title="Supprimer"
                                 >
-                                    <AiOutlineDelete size={20} />
+                                    <AiOutlineDelete size={16} />
                                 </button>
                             </td>
                         </tr>
