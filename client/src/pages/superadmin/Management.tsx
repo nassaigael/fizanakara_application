@@ -4,6 +4,7 @@ import {
     AiOutlineUser,
     AiOutlineEnvironment,
     AiOutlineFlag,
+    AiOutlinePlus,
     AiOutlineClose,
 } from 'react-icons/ai';
 import { useAdmin } from '../../hooks/useAdmin';
@@ -167,7 +168,6 @@ const SuperAdminManagement: React.FC = () => {
                 const errorMessage = getErrorMessage(error);
                 toast.error(`Erreur : ${errorMessage}`);
             }
-
         }
     });
 
@@ -239,6 +239,7 @@ const SuperAdminManagement: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+            {/* Header Style Odoo */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -271,9 +272,7 @@ const SuperAdminManagement: React.FC = () => {
                 </div>
             </div>
 
-            {/* Tabs Style Odoo - Version premium */}
             <div className="mb-8">
-                {/* Conteneur des tabs avec scroll horizontal sur mobile */}
                 <div className="flex gap-2 overflow-x-auto pb-3 md:pb-0 scrollbar-thin">
                     {tabs.map((tab) => (
                         <button
@@ -299,7 +298,6 @@ const SuperAdminManagement: React.FC = () => {
                                 {tab.count}
                             </span>
 
-                            {/* Indicateur actif sous l'onglet */}
                             {activeTab === tab.id && (
                                 <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-red-600" />
                             )}
@@ -308,9 +306,7 @@ const SuperAdminManagement: React.FC = () => {
                 </div>
             </div>
 
-            {/* Content Area - Style Odoo premium */}
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-                {/* Header with gradient line */}
                 <div className="relative">
                     <div className="px-5 py-4 bg-gray-50/80 border-b border-gray-200">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -337,7 +333,6 @@ const SuperAdminManagement: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Content */}
                 <div className="p-4 sm:p-5 md:p-6">
                     {activeTab === 'admins' && (
                         <AdminsTab
@@ -384,7 +379,6 @@ const SuperAdminManagement: React.FC = () => {
                 </div>
             </div>
 
-            {/* Modals */}
             <AdminModal
                 form={adminForm}
                 isOpen={isAdminModalOpen}
