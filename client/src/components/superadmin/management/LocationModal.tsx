@@ -1,5 +1,6 @@
 import React from 'react';
-import { AiOutlineClose, AiOutlineEnvironment, AiOutlineFlag, AiOutlinePlus } from 'react-icons/ai';
+import { createPortal } from 'react-dom';
+import { AiOutlineClose, AiOutlineEnvironment, AiOutlineFlag } from 'react-icons/ai';
 import Button from '../../ui/Button';
 import Input from '../../ui/Input';
 
@@ -15,31 +16,32 @@ const LocationModal: React.FC<LocationModalProps> = ({ form, title, placeholder,
     if (!isOpen) return null;
 
     const isDistrict = title.includes('District');
-    const color = isDistrict ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-pink-500';
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-            <div className="bg-white rounded-3xl w-full max-w-md border-2 border-black shadow-[0_20px_25px_-5px_rgba(0,0,0,0.3)] overflow-hidden">
-                <div className={`bg-linear-to-r ${color} p-8 text-white relative`}>
-                    <button 
-                        onClick={onClose} 
-                        className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-xl transition-colors"
-                    >
-                        <AiOutlineClose size={24} />
-                    </button>
+    return createPortal(
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-md flex flex-col shadow-2xl overflow-hidden border-4 border-white">
+                <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-white/20 rounded-xl">
-                            {isDistrict ? <AiOutlineEnvironment size={24} /> : <AiOutlineFlag size={24} />}
+                        <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white">
+                            {isDistrict ? <AiOutlineEnvironment size={20} /> : <AiOutlineFlag size={20} />}
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black uppercase">{title}</h2>
-                            <p className="text-white/80 text-sm mt-1">Add a new {isDistrict ? 'geographic zone' : 'traditional entity'}</p>
+                            <h2 className="text-lg font-black uppercase">{title}</h2>
+                            <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                                Ajouter un nouveau {isDistrict ? 'district' : 'tribut'}
+                            </p>
                         </div>
                     </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all"
+                    >
+                        <AiOutlineClose size={20} />
+                    </button>
                 </div>
 
-                <div className="p-8">
-                    <form onSubmit={form.handleSubmit} className="space-y-6">
+                <div className="p-6">
+                    <form onSubmit={form.handleSubmit} className="space-y-5">
                         <Input
                             label={placeholder}
                             name="name"
@@ -50,14 +52,14 @@ const LocationModal: React.FC<LocationModalProps> = ({ form, title, placeholder,
                             required
                         />
 
-                        <div className="flex gap-3 pt-4 border-t-2 border-brand-border">
+                        <div className="flex gap-3 pt-4 border-t-2 border-gray-100">
                             <Button 
                                 type="button" 
                                 variant="secondary" 
                                 onClick={onClose}
                                 className="flex-1"
                             >
-                                Cancel
+                                ANNULER
                             </Button>
                             <Button 
                                 type="submit" 
@@ -65,14 +67,14 @@ const LocationModal: React.FC<LocationModalProps> = ({ form, title, placeholder,
                                 isLoading={form.isSubmitting}
                                 className="flex-1 flex items-center justify-center gap-2"
                             >
-                                <AiOutlinePlus size={18} />
-                                Create
+                                CRÉER
                             </Button>
                         </div>
                     </form>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
