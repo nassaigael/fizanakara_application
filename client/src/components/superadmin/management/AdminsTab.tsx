@@ -60,9 +60,6 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
                                         <p className="font-medium text-sm text-gray-800">
                                             {admin.firstName} {admin.lastName}
                                         </p>
-                                        <p className="text-[9px] text-gray-400 font-mono">
-                                            {admin.id}
-                                        </p>
                                     </div>
                                 </div>
                             </td>
