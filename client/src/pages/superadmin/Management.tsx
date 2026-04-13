@@ -24,7 +24,7 @@ import { getErrorMessage } from '../../lib/helper';
 import AdminsTab from '../../components/superadmin/management/AdminsTab';
 import LocationTab from '../../components/superadmin/management/LocationTab';
 import AdminModal from '../../components/superadmin/management/AdminForm';
-import LocationModal from '../../components/superadmin/management/LocationModal';
+import LocationModal from '../../components/superadmin/management/LocationForm';
 
 type TabType = 'admins' | 'districts' | 'tributes';
 type DeleteType = 'admin' | 'district' | 'tribute' | null;
