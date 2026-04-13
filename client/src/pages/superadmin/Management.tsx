@@ -5,6 +5,7 @@ import {
     AiOutlineEnvironment,
     AiOutlineFlag,
     AiOutlinePlus,
+    AiOutlineClose,
 } from 'react-icons/ai';
 import { useAdmin } from '../../hooks/useAdmin';
 import { useDistrict } from '../../hooks/useDistrict';
@@ -65,15 +66,20 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-            <div className="bg-white rounded-2xl w-full max-w-md border-2 border-brand-border shadow-[0_8px_0_0_#E5E5E5] overflow-hidden">
-                <div className="bg-linear-to-r from-brand-primary to-brand-primary-dark p-6 text-white">
-                    <h2 className="text-2xl font-black uppercase tracking-tight">Modifier {title}</h2>
-                    <p className="text-white/80 text-sm mt-1">Mettez à jour le nom du {title.toLowerCase()}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-lg w-full max-w-md border border-gray-200 shadow-xl overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-white">
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-800">Modifier {title}</h2>
+                        <p className="text-xs text-gray-500 mt-0.5">Mettez à jour le nom du {title.toLowerCase()}</p>
+                    </div>
+                    <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100 transition-colors">
+                        <AiOutlineClose size={16} className="text-gray-400" />
+                    </button>
                 </div>
 
-                <div className="p-6">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="p-5">
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <Input
                             label="Nom"
                             name="name"
@@ -84,12 +90,12 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({
                             required
                         />
 
-                        <div className="flex gap-3 pt-4 border-t border-brand-border">
+                        <div className="flex gap-3 pt-2">
                             <Button
                                 type="button"
                                 variant="secondary"
                                 onClick={onClose}
-                                className="flex-1"
+                                className="flex-1 py-2 text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-md"
                             >
                                 Annuler
                             </Button>
@@ -97,7 +103,7 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({
                                 type="submit"
                                 variant="primary"
                                 isLoading={isLoading}
-                                className="flex-1"
+                                className="flex-1 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-md"
                             >
                                 Enregistrer
                             </Button>
@@ -232,28 +238,21 @@ const SuperAdminManagement: React.FC = () => {
     ];
 
     return (
-        <div className={THEME.section}>
-            {/* Header Style Duolingo */}
-            <div className="relative overflow-hidden bg-white border-2 border-brand-border rounded-2xl shadow-[0_8px_0_0_#E5E5E5] hover:shadow-[0_12px_0_0_#E5E5E5] hover:-translate-y-1 transition-all duration-300 p-6 md:p-8">
-                <div className="absolute inset-0 bg-linear-to-r from-brand-primary/5 via-transparent to-brand-primary/5" />
-                <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-brand-primary/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-
-                <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+            {/* Header Style Odoo */}
+            <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-linear-to-r from-brand-primary to-brand-primary rounded-2xl blur-md opacity-50" />
-                            <div className="relative p-4 bg-linear-to-br from-brand-primary to-brand-primary-dark text-white rounded-2xl shadow-lg transform hover:scale-105 transition-transform">
-                                {activeTab === 'admins' && <AiOutlineUser size={32} />}
-                                {activeTab === 'districts' && <AiOutlineEnvironment size={32} />}
-                                {activeTab === 'tributes' && <AiOutlineFlag size={32} />}
-                            </div>
+                        <div className="w-12 h-12 rounded-lg bg-red-600 text-white flex items-center justify-center">
+                            {activeTab === 'admins' && <AiOutlineUser size={24} />}
+                            {activeTab === 'districts' && <AiOutlineEnvironment size={24} />}
+                            {activeTab === 'tributes' && <AiOutlineFlag size={24} />}
                         </div>
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-black text-brand-text tracking-tight">
+                            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">
                                 GESTION
                             </h1>
-                            <p className="flex items-center gap-2 text-sm text-brand-muted mt-1">
-                                <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+                            <p className="flex items-center gap-2 text-sm text-gray-500 mt-1">
                                 {tabs.find(t => t.id === activeTab)?.label}
                             </p>
                         </div>
@@ -266,39 +265,43 @@ const SuperAdminManagement: React.FC = () => {
                             if (activeTab === 'districts') setIsDistrictModalOpen(true);
                             if (activeTab === 'tributes') setIsTributeModalOpen(true);
                         }}
-                        className="flex items-center gap-2 px-6 py-3 text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all w-full md:w-auto justify-center"
+                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-md bg-red-600 hover:bg-red-700 text-white transition-all w-full md:w-auto justify-center"
                     >
-                        <AiOutlinePlus size={18} />
+                        <AiOutlinePlus size={16} />
                         AJOUTER
                     </Button>
                 </div>
             </div>
 
-            {/* Tabs Style Duolingo */}
-            <div className="flex gap-2 p-2 bg-white border-2 border-brand-border rounded-2xl shadow-[0_6px_0_0_#E5E5E5] mb-8 overflow-x-auto">
+            {/* Tabs Style Odoo */}
+            <div className="flex gap-1 bg-white border border-gray-200 rounded-lg p2 overflow-x-auto">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`
-                            flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all whitespace-nowrap
+                            flex items-center gap-2 px-4 py-2 rounded-md font-medium text-xs uppercase tracking-wider transition-all whitespace-nowrap
                             ${activeTab === tab.id
-                                ? 'bg-linear-to-r from-brand-primary to-brand-primary-dark text-white shadow-md'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-red-600 text-white shadow-sm'
+                                : 'bg-white text-gray-600 hover:bg-gray-100'
                             }
                         `}
                     >
-                        <tab.icon size={18} />
+                        <tab.icon size={14} />
                         <span className="hidden sm:inline">{tab.label}</span>
-                        <span className="bg-white/30 px-2 py-0.5 rounded-full text-[10px] font-black">
+                        <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${
+                            activeTab === tab.id
+                                ? 'bg-white/20 text-white'
+                                : 'bg-gray-200 text-gray-600'
+                        }`}>
                             {tab.count}
                         </span>
                     </button>
                 ))}
             </div>
 
-            {/* Content Area - Card Duolingo */}
-            <div className="bg-white border-2 border-brand-border rounded-2xl shadow-[0_6px_0_0_#E5E5E5] p-6 md:p-8">
+            {/* Content Area - Style Odoo */}
+            <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
                 {activeTab === 'admins' && (
                     <AdminsTab
                         admins={admins}
@@ -315,7 +318,7 @@ const SuperAdminManagement: React.FC = () => {
                         items={districts}
                         isLoading={loadingDistricts}
                         title="Districts"
-                        icon={<AiOutlineEnvironment size={20} />}
+                        icon={<AiOutlineEnvironment size={18} />}
                         color="blue"
                         onDelete={(id) => {
                             setDeleteId(id);
@@ -332,7 +335,7 @@ const SuperAdminManagement: React.FC = () => {
                         items={tributes}
                         isLoading={loadingTributes}
                         title="Tributs"
-                        icon={<AiOutlineFlag size={20} />}
+                        icon={<AiOutlineFlag size={18} />}
                         color="purple"
                         onDelete={(id) => {
                             setDeleteId(id);

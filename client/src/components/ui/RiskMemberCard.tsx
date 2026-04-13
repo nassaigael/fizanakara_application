@@ -53,7 +53,6 @@ export const RiskMemberCard: React.FC<RiskMemberCardProps> = ({
                         <p className="text-[8px] text-gray-400">Reste</p>
                     </div>
 
-                    {/* Flèche */}
                     <AiOutlineArrowRight size={12} className="text-gray-300 group-hover:text-red-500 transition-colors" />
                 </div>
 

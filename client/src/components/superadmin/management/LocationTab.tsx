@@ -23,18 +23,18 @@ const LocationTab: React.FC<LocationTabProps> = ({
 }) => {
     const colorClasses = {
         blue: {
-            bg: 'from-blue-50 to-cyan-50',
-            border: 'border-blue-200 hover:border-blue-500',
-            badge: 'bg-blue-100 text-blue-600 border-blue-300',
+            bg: 'bg-blue-50',
+            border: 'border-blue-200 hover:border-blue-400',
+            badge: 'bg-blue-100 text-blue-700',
             icon: 'bg-blue-100',
             text: 'text-blue-600',
             editHover: 'hover:bg-blue-100 hover:text-blue-600',
             deleteHover: 'hover:bg-red-100 hover:text-red-600'
         },
         purple: {
-            bg: 'from-purple-50 to-pink-50',
-            border: 'border-purple-200 hover:border-purple-500',
-            badge: 'bg-purple-100 text-purple-600 border-purple-300',
+            bg: 'bg-purple-50',
+            border: 'border-purple-200 hover:border-purple-400',
+            badge: 'bg-purple-100 text-purple-700',
             icon: 'bg-purple-100',
             text: 'text-purple-600',
             editHover: 'hover:bg-purple-100 hover:text-purple-600',
@@ -47,7 +47,7 @@ const LocationTab: React.FC<LocationTabProps> = ({
     if (isLoading) {
         return (
             <div className="flex items-center justify-center py-20">
-                <div className="w-12 h-12 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -55,11 +55,11 @@ const LocationTab: React.FC<LocationTabProps> = ({
     if (!items || items.length === 0) {
         return (
             <div className="text-center py-20">
-                <div className={`w-20 h-20 ${colors.icon} rounded-3xl flex items-center justify-center mx-auto mb-4`}>
+                <div className={`w-20 h-20 ${colors.icon} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
                     {icon}
                 </div>
-                <p className="font-black text-gray-400 mb-2">No {title.toLowerCase()}</p>
-                <p className="text-sm text-gray-500">Create your first {title === 'Districts' ? 'zone' : 'entity'}</p>
+                <p className="font-medium text-gray-500 mb-2">Aucun {title.toLowerCase()}</p>
+                <p className="text-sm text-gray-400">Créez votre premier {title === 'Districts' ? 'district' : 'tribut'}</p>
             </div>
         );
     }
@@ -81,36 +81,35 @@ const LocationTab: React.FC<LocationTabProps> = ({
             {items.map((item) => (
                 <div
                     key={item.id}
-                    className={`group relative overflow-hidden rounded-2xl border-2 p-5 bg-linear-to-br ${colors.bg} ${colors.border} transition-all hover:shadow-lg hover:scale-105 cursor-pointer`}
+                    className={`group relative overflow-hidden rounded-lg border ${colors.bg} ${colors.border} transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer`}
                 >
-                    <div className="flex items-start justify-between relative z-10">
+                    <div className="flex items-start justify-between p-4">
                         <div className="flex items-center gap-3 flex-1">
-                            <div className={`p-3 ${colors.icon} ${colors.text} rounded-xl`}>
+                            <div className={`p-2.5 rounded-lg ${colors.icon} ${colors.text}`}>
                                 {icon}
                             </div>
                             <div className="flex-1">
-                                <p className="font-black text-sm uppercase text-brand-text">{item.name}</p>
-                                <p className="text-xs text-brand-muted mt-1">ID: {item.id}</p>
+                                <p className="font-semibold text-sm text-gray-800">{item.name}</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">ID: {item.id}</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                             <button
                                 onClick={(e) => handleEditClick(e, item.id!, item.name)}
-                                className={`p-2 rounded-lg transition-all shadow-md ${colors.editHover} text-gray-500 hover:scale-110`}
-                                title="Edit"
+                                className={`p-2 rounded-md transition-all ${colors.editHover} text-gray-400 hover:scale-105`}
+                                title="Modifier"
                             >
-                                <AiOutlineEdit size={18} />
+                                <AiOutlineEdit size={16} />
                             </button>
                             <button
                                 onClick={(e) => handleDeleteClick(e, item.id!)}
-                                className={`p-2 rounded-lg transition-all shadow-md ${colors.deleteHover} text-gray-500 hover:scale-110`}
-                                title="Delete"
+                                className={`p-2 rounded-md transition-all ${colors.deleteHover} text-gray-400 hover:scale-105`}
+                                title="Supprimer"
                             >
-                                <AiOutlineDelete size={18} />
+                                <AiOutlineDelete size={16} />
                             </button>
                         </div>
                     </div>
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-bl from-white/20 to-transparent rounded-bl-full pointer-events-none"></div>
                 </div>
             ))}
         </div>
