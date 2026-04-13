@@ -23,7 +23,7 @@ import { getErrorMessage } from '../../lib/helper';
 
 import AdminsTab from '../../components/superadmin/management/AdminsTab';
 import LocationTab from '../../components/superadmin/management/LocationTab';
-import AdminModal from '../../components/superadmin/management/AdminModal';
+import AdminModal from '../../components/superadmin/management/AdminForm';
 import LocationModal from '../../components/superadmin/management/LocationModal';
 
 type TabType = 'admins' | 'districts' | 'tributes';
