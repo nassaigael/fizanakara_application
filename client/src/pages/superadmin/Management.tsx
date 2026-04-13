@@ -319,7 +319,6 @@ const SuperAdminManagement: React.FC = () => {
                         isLoading={loadingDistricts}
                         title="Districts"
                         icon={<AiOutlineEnvironment size={18} />}
-                        color="blue"
                         onDelete={(id) => {
                             setDeleteId(id);
                             setDeleteType('district');
@@ -336,7 +335,6 @@ const SuperAdminManagement: React.FC = () => {
                         isLoading={loadingTributes}
                         title="Tributs"
                         icon={<AiOutlineFlag size={18} />}
-                        color="purple"
                         onDelete={(id) => {
                             setDeleteId(id);
                             setDeleteType('tribute');
