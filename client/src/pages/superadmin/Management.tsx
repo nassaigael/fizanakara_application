@@ -4,7 +4,6 @@ import {
     AiOutlineUser,
     AiOutlineEnvironment,
     AiOutlineFlag,
-    AiOutlinePlus,
     AiOutlineClose,
 } from 'react-icons/ai';
 import { useAdmin } from '../../hooks/useAdmin';
