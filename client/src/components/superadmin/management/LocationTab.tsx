@@ -7,7 +7,6 @@ interface LocationTabProps {
     isLoading: boolean;
     title: string;
     icon: React.ReactNode;
-    color: 'blue' | 'purple';
     onDelete: (id: number) => void;
     onEdit: (id: number, name: string) => void;
 }
@@ -17,33 +16,9 @@ const LocationTab: React.FC<LocationTabProps> = ({
     isLoading,
     title,
     icon,
-    color,
     onDelete,
     onEdit
 }) => {
-    const colorClasses = {
-        blue: {
-            bg: 'bg-blue-50',
-            border: 'border-blue-200 hover:border-blue-400',
-            badge: 'bg-blue-100 text-blue-700',
-            icon: 'bg-blue-100',
-            text: 'text-blue-600',
-            editHover: 'hover:bg-blue-100 hover:text-blue-600',
-            deleteHover: 'hover:bg-red-100 hover:text-red-600'
-        },
-        purple: {
-            bg: 'bg-purple-50',
-            border: 'border-purple-200 hover:border-purple-400',
-            badge: 'bg-purple-100 text-purple-700',
-            icon: 'bg-purple-100',
-            text: 'text-purple-600',
-            editHover: 'hover:bg-purple-100 hover:text-purple-600',
-            deleteHover: 'hover:bg-red-100 hover:text-red-600'
-        }
-    };
-
-    const colors = colorClasses[color];
-
     if (isLoading) {
         return (
             <div className="flex items-center justify-center py-20">
@@ -55,8 +30,8 @@ const LocationTab: React.FC<LocationTabProps> = ({
     if (!items || items.length === 0) {
         return (
             <div className="text-center py-20">
-                <div className={`w-20 h-20 ${colors.icon} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                    {icon}
+                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="text-red-500 text-2xl">{icon}</div>
                 </div>
                 <p className="font-medium text-gray-500 mb-2">Aucun {title.toLowerCase()}</p>
                 <p className="text-sm text-gray-400">Créez votre premier {title === 'Districts' ? 'district' : 'tribut'}</p>
@@ -77,36 +52,35 @@ const LocationTab: React.FC<LocationTabProps> = ({
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {items.map((item) => (
                 <div
                     key={item.id}
-                    className={`group relative overflow-hidden rounded-lg border ${colors.bg} ${colors.border} transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer`}
+                    className="group bg-white border border-gray-200 rounded-lg hover:border-red-300 hover:shadow-sm transition-all cursor-pointer"
                 >
-                    <div className="flex items-start justify-between p-4">
+                    <div className="flex items-center justify-between p-3">
                         <div className="flex items-center gap-3 flex-1">
-                            <div className={`p-2.5 rounded-lg ${colors.icon} ${colors.text}`}>
+                            <div className="w-9 h-9 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
                                 {icon}
                             </div>
                             <div className="flex-1">
-                                <p className="font-semibold text-sm text-gray-800">{item.name}</p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">ID: {item.id}</p>
+                                <p className="font-medium text-sm text-gray-800">{item.name}</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                                 onClick={(e) => handleEditClick(e, item.id!, item.name)}
-                                className={`p-2 rounded-md transition-all ${colors.editHover} text-gray-400 hover:scale-105`}
+                                className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                 title="Modifier"
                             >
-                                <AiOutlineEdit size={16} />
+                                <AiOutlineEdit size={14} />
                             </button>
                             <button
                                 onClick={(e) => handleDeleteClick(e, item.id!)}
-                                className={`p-2 rounded-md transition-all ${colors.deleteHover} text-gray-400 hover:scale-105`}
+                                className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                 title="Supprimer"
                             >
-                                <AiOutlineDelete size={16} />
+                                <AiOutlineDelete size={14} />
                             </button>
                         </div>
                     </div>
