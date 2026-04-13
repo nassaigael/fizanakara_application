@@ -4,7 +4,6 @@ import {
     AiOutlineUser,
     AiOutlineEnvironment,
     AiOutlineFlag,
-    AiOutlinePlus,
     AiOutlineClose,
 } from 'react-icons/ai';
 import { useAdmin } from '../../hooks/useAdmin';
@@ -17,7 +16,6 @@ import { RegisterRequest, DistrictDto, TributeDto } from '../../lib/types';
 import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
 import Input from '../../components/ui/Input';
-import { THEME } from '../../styles/theme';
 import toast from 'react-hot-toast';
 import { getErrorMessage } from '../../lib/helper';
 
@@ -118,13 +116,13 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({
 const SuperAdminManagement: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState<TabType>((searchParams.get('tab') as TabType) || 'admins');
-    
+
     const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
     const [isDistrictModalOpen, setIsDistrictModalOpen] = useState(false);
     const [isTributeModalOpen, setIsTributeModalOpen] = useState(false);
-    
+
     const [editItem, setEditItem] = useState<{ id: number; name: string; type: 'district' | 'tribute' } | null>(null);
-    
+
     const [deleteId, setDeleteId] = useState<string | number | null>(null);
     const [deleteType, setDeleteType] = useState<DeleteType>(null);
 
@@ -155,19 +153,21 @@ const SuperAdminManagement: React.FC = () => {
             }
 
             const cleanImageUrl = data.imageUrl.trim().replace(/\s+/g, '_');
-            
+
             const payload: RegisterRequest = {
                 ...data,
                 imageUrl: cleanImageUrl
             };
-            
+
             try {
                 await createAdmin.mutateAsync(payload);
                 setIsAdminModalOpen(false);
                 adminForm.resetForm();
             } catch (error) {
-                // Géré dans le hook
+                const errorMessage = getErrorMessage(error);
+                toast.error(`Erreur : ${errorMessage}`);
             }
+
         }
     });
 
@@ -213,7 +213,7 @@ const SuperAdminManagement: React.FC = () => {
 
     const handleDelete = async () => {
         if (deleteId === null || deleteType === null) return;
-        
+
         try {
             if (deleteType === 'admin') {
                 await deleteAdmin.mutateAsync(deleteId as string);
@@ -239,7 +239,6 @@ const SuperAdminManagement: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-            {/* Header Style Odoo */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -267,83 +266,122 @@ const SuperAdminManagement: React.FC = () => {
                         }}
                         className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-md bg-red-600 hover:bg-red-700 text-white transition-all w-full md:w-auto justify-center"
                     >
-                        <AiOutlinePlus size={16} />
                         AJOUTER
                     </Button>
                 </div>
             </div>
 
-            {/* Tabs Style Odoo */}
-            <div className="flex gap-1 bg-white border border-gray-200 rounded-lg p2 overflow-x-auto">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`
-                            flex items-center gap-2 px-4 py-2 rounded-md font-medium text-xs uppercase tracking-wider transition-all whitespace-nowrap
-                            ${activeTab === tab.id
-                                ? 'bg-red-600 text-white shadow-sm'
-                                : 'bg-white text-gray-600 hover:bg-gray-100'
-                            }
-                        `}
-                    >
-                        <tab.icon size={14} />
-                        <span className="hidden sm:inline">{tab.label}</span>
-                        <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${
-                            activeTab === tab.id
-                                ? 'bg-white/20 text-white'
-                                : 'bg-gray-200 text-gray-600'
-                        }`}>
-                            {tab.count}
-                        </span>
-                    </button>
-                ))}
+            {/* Tabs Style Odoo - Version premium */}
+            <div className="mb-8">
+                {/* Conteneur des tabs avec scroll horizontal sur mobile */}
+                <div className="flex gap-2 overflow-x-auto pb-3 md:pb-0 scrollbar-thin">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`
+                    group relative flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 whitespace-nowrap
+                    ${activeTab === tab.id
+                                    ? 'bg-red-600 text-white shadow-lg shadow-red-200'
+                                    : 'bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-800 border border-gray-200'
+                                }
+                `}
+                        >
+                            <tab.icon size={15} className={activeTab === tab.id ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'} />
+                            <span className="hidden sm:inline">{tab.label}</span>
+                            <span className={`
+                    ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold transition-all
+                    ${activeTab === tab.id
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-gray-100 text-gray-500'
+                                }
+                `}>
+                                {tab.count}
+                            </span>
+
+                            {/* Indicateur actif sous l'onglet */}
+                            {activeTab === tab.id && (
+                                <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-red-600" />
+                            )}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Content Area - Style Odoo */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
-                {activeTab === 'admins' && (
-                    <AdminsTab
-                        admins={admins}
-                        isLoading={loadingAdmins}
-                        onDelete={(id) => {
-                            setDeleteId(id);
-                            setDeleteType('admin');
-                        }}
-                    />
-                )}
+            {/* Content Area - Style Odoo premium */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                {/* Header with gradient line */}
+                <div className="relative">
+                    <div className="px-5 py-4 bg-gray-50/80 border-b border-gray-200">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                                    {activeTab === 'admins' && <AiOutlineUser size={14} className="text-red-600" />}
+                                    {activeTab === 'districts' && <AiOutlineEnvironment size={14} className="text-red-600" />}
+                                    {activeTab === 'tributes' && <AiOutlineFlag size={14} className="text-red-600" />}
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold text-gray-800">
+                                        {activeTab === 'admins' && 'Administrateurs'}
+                                        {activeTab === 'districts' && 'Districts'}
+                                        {activeTab === 'tributes' && 'Tributs'}
+                                    </h3>
+                                    <p className="text-[10px] text-gray-400">
+                                        {activeTab === 'admins' && 'Gestion des comptes administrateurs'}
+                                        {activeTab === 'districts' && 'Gestion des zones géographiques'}
+                                        {activeTab === 'tributes' && 'Gestion des entités traditionnelles'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                {activeTab === 'districts' && (
-                    <LocationTab
-                        items={districts}
-                        isLoading={loadingDistricts}
-                        title="Districts"
-                        icon={<AiOutlineEnvironment size={18} />}
-                        onDelete={(id) => {
-                            setDeleteId(id);
-                            setDeleteType('district');
-                        }}
-                        onEdit={(id, name) => {
-                            setEditItem({ id, name, type: 'district' });
-                        }}
-                    />
-                )}
+                {/* Content */}
+                <div className="p-4 sm:p-5 md:p-6">
+                    {activeTab === 'admins' && (
+                        <AdminsTab
+                            admins={admins}
+                            isLoading={loadingAdmins}
+                            onDelete={(id) => {
+                                setDeleteId(id);
+                                setDeleteType('admin');
+                            }}
+                        />
+                    )}
 
-                {activeTab === 'tributes' && (
-                    <LocationTab
-                        items={tributes}
-                        isLoading={loadingTributes}
-                        title="Tributs"
-                        icon={<AiOutlineFlag size={18} />}
-                        onDelete={(id) => {
-                            setDeleteId(id);
-                            setDeleteType('tribute');
-                        }}
-                        onEdit={(id, name) => {
-                            setEditItem({ id, name, type: 'tribute' });
-                        }}
-                    />
-                )}
+                    {activeTab === 'districts' && (
+                        <LocationTab
+                            items={districts}
+                            isLoading={loadingDistricts}
+                            title="Districts"
+                            icon={<AiOutlineEnvironment size={18} />}
+                            onDelete={(id) => {
+                                setDeleteId(id);
+                                setDeleteType('district');
+                            }}
+                            onEdit={(id, name) => {
+                                setEditItem({ id, name, type: 'district' });
+                            }}
+                        />
+                    )}
+
+                    {activeTab === 'tributes' && (
+                        <LocationTab
+                            items={tributes}
+                            isLoading={loadingTributes}
+                            title="Tributs"
+                            icon={<AiOutlineFlag size={18} />}
+                            onDelete={(id) => {
+                                setDeleteId(id);
+                                setDeleteType('tribute');
+                            }}
+                            onEdit={(id, name) => {
+                                setEditItem({ id, name, type: 'tribute' });
+                            }}
+                        />
+                    )}
+                </div>
             </div>
 
             {/* Modals */}
