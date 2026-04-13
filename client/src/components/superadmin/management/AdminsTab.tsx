@@ -32,9 +32,8 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
 
     return (
         <>
-            {/* Version Desktop - Tableau */}
             <div className="hidden md:block overflow-x-auto">
-                <table className="w-full min-w-[800px]">
+                <table className="w-full min-w-200">
                     <thead>
                         <tr className="border-b border-gray-200">
                             <th className="py-3 px-4 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400">Administrateur</th>
@@ -122,17 +121,14 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
                 </table>
             </div>
 
-            {/* Version Mobile - Cartes */}
             <div className="md:hidden space-y-3">
                 {admins.map((admin: AdminResponse) => (
                     <div
                         key={admin.id}
                         className="bg-white border border-gray-200 rounded-lg p-4 hover:border-red-200 transition-all"
                     >
-                        {/* Barre d'accentuation */}
                         <div className="h-0.5 bg-red-500 rounded-t-lg -mt-4 mb-3 w-12" />
                         
-                        {/* En-tête avec Avatar et Nom */}
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
                                 <Avatar
@@ -161,9 +157,7 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
                             </button>
                         </div>
 
-                        {/* Informations */}
                         <div className="space-y-2 pt-2 border-t border-gray-100">
-                            {/* Email */}
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <AiOutlineMail size={12} className="text-gray-400" />
@@ -172,7 +166,6 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
                                 <p className="text-xs text-gray-700 truncate max-w-[60%]">{admin.email}</p>
                             </div>
 
-                            {/* Téléphone */}
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <AiOutlinePhone size={12} className="text-gray-400" />
@@ -181,7 +174,6 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
                                 <p className="text-xs text-gray-700">{admin.phoneNumber || '—'}</p>
                             </div>
 
-                            {/* Rôle */}
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] text-gray-500">Rôle</span>
                                 <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-medium ${
@@ -193,7 +185,6 @@ const AdminsTab: React.FC<AdminsTabProps> = ({ admins, isLoading, onDelete }) =>
                                 </span>
                             </div>
 
-                            {/* Statut */}
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] text-gray-500">Statut</span>
                                 <div className="flex items-center gap-1.5">
