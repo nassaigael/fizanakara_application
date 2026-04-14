@@ -7,16 +7,11 @@ import {
     AiOutlineEyeInvisible
 } from 'react-icons/ai';
 import { useAuth } from '../../context/AuthContext';
-import { useForm } from '../../hooks/useForm';
-import { resetPasswordSchema } from '../../lib/validators/admin.validator';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import logo from "../../assets/logo.png";
+import toast from 'react-hot-toast';
 
-interface ResetPasswordForm {
-    newPassword: string;
-    confirmPassword: string;
-}
 
 const ResetPassword: React.FC = () => {
     const { token } = useParams<{ token: string }>();
@@ -25,50 +20,63 @@ const ResetPassword: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [localSubmitError, setLocalSubmitError] = useState<string | undefined>(undefined);
+    const [isLoading, setIsLoading] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState('');
 
-    const form = useForm<ResetPasswordForm>({
-        initialValues: {
-            newPassword: '',
-            confirmPassword: ''
-        },
-        validationSchema: resetPasswordSchema,
-        onSubmit: async (data) => {
-            if (!token) {
-                setLocalSubmitError('Token invalide ou manquant');
-                return;
-            }
-            console.log('Sending reset request with token:', token, 'password:', data.newPassword);
-            try {
-                const result = await resetPassword(token, data.newPassword);
-                console.log('Reset response:', result);
-                setIsSubmitted(true);
-                setTimeout(() => {
-                    navigate('/login');
-                }, 3000);
-            } catch (error: any) {
-                console.error('Reset error:', error);
-                const message = error?.response?.data?.message || error?.message || 'Erreur lors de la réinitialisation';
-                setLocalSubmitError(message);
-            }
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!newPassword || !confirmPassword) {
+            toast.error('Veuillez remplir tous les champs');
+            return;
         }
-    });
-
-    const displaySubmitError = localSubmitError || form.submitError;
+        
+        if (newPassword !== confirmPassword) {
+            toast.error('Les mots de passe ne correspondent pas');
+            return;
+        }
+        
+        if (newPassword.length < 6) {
+            toast.error('Le mot de passe doit contenir au moins 6 caractères');
+            return;
+        }
+        
+        if (!token) {
+            toast.error('Token invalide ou manquant');
+            return;
+        }
+        
+        setIsLoading(true);
+        setError('');
+        
+        try {
+            await resetPassword(token, newPassword);
+            toast.success('Mot de passe réinitialisé avec succès !');
+            setIsSubmitted(true);
+            
+            setTimeout(() => {
+                navigate('/login');
+            }, 3000);
+            
+        } catch (err: any) {
+            const message = err?.response?.data?.message || err?.message || 'Erreur lors de la réinitialisation';
+            setError(message);
+            toast.error(message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     if (isSubmitted) {
         return (
             <div className="relative min-h-screen flex items-center justify-center p-4 bg-white">
-                {/* Background blanc */}
                 <div className="absolute inset-0 bg-white" />
-
-                {/* Éléments décoratifs */}
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#E51A1A]/5 rounded-full blur-3xl" />
                     <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#E51A1A]/5 rounded-full blur-3xl" />
                 </div>
-
-                {/* Card de succès */}
                 <div className="relative w-full max-w-md z-10">
                     <div className="bg-white rounded-2xl shadow-2xl shadow-black/10 border border-gray-100 overflow-hidden">
                         <div className="p-8 text-center">
@@ -92,20 +100,15 @@ const ResetPassword: React.FC = () => {
 
     return (
         <div className="relative min-h-screen flex items-center justify-center p-4 bg-white">
-            {/* Background blanc */}
             <div className="absolute inset-0 bg-white" />
-
-            {/* Éléments décoratifs */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#E51A1A]/5 rounded-full blur-3xl" />
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#E51A1A]/5 rounded-full blur-3xl" />
             </div>
 
             <div className="relative w-full max-w-md z-10">
-                {/* Card principal */}
                 <div className="bg-white rounded-2xl shadow-2xl shadow-gray-400 border border-gray-100 overflow-hidden">
                     <div className="p-6 sm:p-8">
-                        {/* Logo et titre avec image PNG */}
                         <div className="flex flex-col items-center justify-center mb-6">
                             <div className="w-20 h-20 rounded-full bg-[#E51A1A]/10 flex items-center justify-center mb-4 shadow-sm">
                                 <img
@@ -122,14 +125,12 @@ const ResetPassword: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* Séparateur élégant */}
                         <div className="relative mb-6">
                             <div className="absolute inset-0 flex items-center">
                                 <div className="w-full border-t border-gray-100"></div>
                             </div>
                         </div>
 
-                        {/* Titre centré */}
                         <h2 className="text-center text-lg font-bold text-gray-800 mb-2">
                             Nouveau mot de passe
                         </h2>
@@ -137,26 +138,22 @@ const ResetPassword: React.FC = () => {
                             Choisissez un mot de passe sécurisé
                         </p>
 
-                        <form onSubmit={form.handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="relative">
                                 <Input
                                     label="Nouveau mot de passe"
                                     name="newPassword"
                                     type={showPassword ? 'text' : 'password'}
-                                    value={form.values.newPassword}
-                                    onChange={form.handleChange}
-                                    onBlur={form.handleBlur}
-                                    error={form.touched.newPassword ? form.errors.newPassword : undefined}
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
                                     icon={<AiOutlineLock size={18} />}
                                     placeholder="••••••••"
                                     required
-                                    className="border-gray-200 focus:border-[#E51A1A] focus:ring-2 focus:ring-[#E51A1A]/20 transition-all pr-10"
-                                    errorClassName="border-[#E51A1A] focus:border-[#E51A1A] focus:ring-[#E51A1A]/20"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#E51A1A] transition-colors z-10"
+                                    className="absolute right-3 top-10.5 text-gray-400 hover:text-[#E51A1A] transition-colors"
                                 >
                                     {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
                                 </button>
@@ -167,29 +164,25 @@ const ResetPassword: React.FC = () => {
                                     label="Confirmer le mot de passe"
                                     name="confirmPassword"
                                     type={showConfirmPassword ? 'text' : 'password'}
-                                    value={form.values.confirmPassword}
-                                    onChange={form.handleChange}
-                                    onBlur={form.handleBlur}
-                                    error={form.touched.confirmPassword ? form.errors.confirmPassword : undefined}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
                                     icon={<AiOutlineLock size={18} />}
                                     placeholder="••••••••"
                                     required
-                                    className="border-gray-200 focus:border-[#E51A1A] focus:ring-2 focus:ring-[#E51A1A]/20 transition-all pr-10"
-                                    errorClassName="border-[#E51A1A] focus:border-[#E51A1A] focus:ring-[#E51A1A]/20"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#E51A1A] transition-colors z-10"
+                                    className="absolute right-3 top-10.5 text-gray-400 hover:text-[#E51A1A] transition-colors"
                                 >
                                     {showConfirmPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
                                 </button>
                             </div>
 
-                            {displaySubmitError && (
-                                <div className="p-3 bg-red-50 border border-[#E51A1A]/20 rounded-xl">
-                                    <p className="text-[#E51A1A] text-xs font-medium text-center">
-                                        {displaySubmitError}
+                            {error && (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+                                    <p className="text-red-600 text-xs font-medium text-center">
+                                        {error}
                                     </p>
                                 </div>
                             )}
@@ -197,8 +190,8 @@ const ResetPassword: React.FC = () => {
                             <Button
                                 type="submit"
                                 variant="primary"
-                                isLoading={form.isSubmitting}
-                                className="w-full py-3.5 text-sm font-bold bg-[#E51A1A] hover:bg-[#C41515] rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 text-white"
+                                isLoading={isLoading}
+                                className="w-full py-3.5 text-sm font-bold bg-[#E51A1A] hover:bg-[#C41515] rounded-xl shadow-md hover:shadow-lg transition-all text-white"
                             >
                                 RÉINITIALISER
                             </Button>
@@ -206,7 +199,6 @@ const ResetPassword: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Footer */}
                 <p className="text-center text-xs text-gray-400 mt-6">
                     &copy; {new Date().getFullYear()} Fizanakara. Tous droits réservés.
                 </p>
