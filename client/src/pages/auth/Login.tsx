@@ -13,7 +13,7 @@ import { loginSchema } from '../../lib/validators/admin.validator';
 import { LoginRequest } from '../../lib/types';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import logo from "../../../public/logo.png";
+import logo from "../../assets/logo.png";
 
 const Login: React.FC = () => {
     const { login } = useAuth();

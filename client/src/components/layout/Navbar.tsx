@@ -10,7 +10,7 @@ import {
     AiOutlineLogout
 } from 'react-icons/ai';
 import { Avatar } from '../../components/ui/Avatar';
-import logo from "../../../public/logo.png";
+import logo from "../../assets/logo.png";
 
 interface NavbarProps {
     toggleSidebar: () => void;

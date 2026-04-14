@@ -4,6 +4,13 @@ import {
     AiOutlineInfoCircle,
     AiOutlineWarning,
 } from 'react-icons/ai';
+
+import man from "../../assets/default-avatar-man.png";
+import woman from "../../assets/default-avatar-woman.png";
+import admin from "../../assets/default-avatar-admin.png";
+import defaultAvatar from "../../assets/default-avatar.png";
+
+
 import { MemberStatus, Gender } from '../types';
 
 const GITHUB_ACCOUNT = 'nassaigael';
@@ -18,10 +25,10 @@ export const GITHUB_URLS = {
 } as const;
 
 export const DEFAULT_IMAGES = {
-    [Gender.MALE]: '/default-avatar-man.png',
-    [Gender.FEMALE]: '/default-avatar-woman.png',
-    ADMIN: '/default-avatar-admin.png',
-    DEFAULT: '/default-avatar.png',
+    [Gender.MALE]: man,
+    [Gender.FEMALE]: woman,
+    ADMIN: admin,
+    DEFAULT: defaultAvatar,
 } as const;
 
 export const getDefaultImage = (

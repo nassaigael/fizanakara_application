@@ -11,7 +11,7 @@ import { useForm } from '../../hooks/useForm';
 import { resetPasswordSchema } from '../../lib/validators/admin.validator';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import logo from "../../../public/logo.png";
+import logo from "../../assets/logo.png";
 
 interface ResetPasswordForm {
     newPassword: string;
@@ -61,7 +61,7 @@ const ResetPassword: React.FC = () => {
             <div className="relative min-h-screen flex items-center justify-center p-4 bg-white">
                 {/* Background blanc */}
                 <div className="absolute inset-0 bg-white" />
-                
+
                 {/* Éléments décoratifs */}
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#E51A1A]/5 rounded-full blur-3xl" />
@@ -94,7 +94,7 @@ const ResetPassword: React.FC = () => {
         <div className="relative min-h-screen flex items-center justify-center p-4 bg-white">
             {/* Background blanc */}
             <div className="absolute inset-0 bg-white" />
-            
+
             {/* Éléments décoratifs */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#E51A1A]/5 rounded-full blur-3xl" />
@@ -108,9 +108,9 @@ const ResetPassword: React.FC = () => {
                         {/* Logo et titre avec image PNG */}
                         <div className="flex flex-col items-center justify-center mb-6">
                             <div className="w-20 h-20 rounded-full bg-[#E51A1A]/10 flex items-center justify-center mb-4 shadow-sm">
-                                <img 
-                                    src={logo} 
-                                    alt="FIZANAKARA logo" 
+                                <img
+                                    src={logo}
+                                    alt="FIZANAKARA logo"
                                     className="w-14 h-14 object-contain"
                                 />
                             </div>
@@ -205,7 +205,7 @@ const ResetPassword: React.FC = () => {
                         </form>
                     </div>
                 </div>
-                
+
                 {/* Footer */}
                 <p className="text-center text-xs text-gray-400 mt-6">
                     &copy; {new Date().getFullYear()} Fizanakara. Tous droits réservés.

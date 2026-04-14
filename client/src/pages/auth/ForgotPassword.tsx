@@ -10,7 +10,7 @@ import { useForm } from '../../hooks/useForm';
 import { forgotPasswordSchema } from '../../lib/validators/admin.validator';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import logo from "../../../public/logo.png";
+import logo from "../../assets/logo.png";
 
 const ForgotPassword: React.FC = () => {
     const { forgotPassword } = useAuth();
@@ -87,9 +87,9 @@ const ForgotPassword: React.FC = () => {
                         {/* Logo et titre avec image PNG */}
                         <div className="flex flex-col items-center justify-center mb-6">
                             <div className="w-20 h-20 rounded-full bg-[#E51A1A]/10 flex items-center justify-center mb-4 shadow-sm">
-                                <img 
-                                    src={logo} 
-                                    alt="FIZANAKARA logo" 
+                                <img
+                                    src={logo}
+                                    alt="FIZANAKARA logo"
                                     className="w-14 h-14 object-contain"
                                 />
                             </div>
