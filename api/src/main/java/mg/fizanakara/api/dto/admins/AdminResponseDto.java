@@ -2,6 +2,7 @@ package mg.fizanakara.api.dto.admins;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import mg.fizanakara.api.models.Admins;
 import mg.fizanakara.api.models.enums.Role;
 
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class AdminResponseDto {
     private String id;
     private String firstName;
@@ -33,9 +35,5 @@ public class AdminResponseDto {
         this.email = admin.getEmail();
         this.verified = admin.isVerified();
         this.createdAt = admin.getCreatedAt();
-    }
-
-    public AdminResponseDto() {
-
     }
 }
