@@ -15,8 +15,6 @@ import {
     AiOutlineDollar,
     AiOutlineBook,
     AiOutlineRise,
-    AiOutlineEdit,
-    AiOutlineDelete,
     AiOutlineCheckCircle
 } from 'react-icons/ai';
 import { PersonResponse, MemberStatus, Gender, PaymentResponse } from '../../../lib/types';
@@ -266,7 +264,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                         <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historique des paiements</p>
                                                         <div className="space-y-2">
                                                             {contribution.payments.map((payment) => (
-                                                                <div key={payment.id} className="flex justify-between items-center py-1 group">
+                                                                <div key={payment.id} className="flex justify-between items-center py-2 group border-b border-gray-50 last:border-0">
                                                                     <div className="flex items-center gap-2">
                                                                         <AiOutlineCheckCircle size={10} className="text-green-500" />
                                                                         <span className="text-[9px] text-gray-600">
@@ -276,24 +274,24 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                                             par {payment.receivedBy}
                                                                         </span>
                                                                     </div>
-                                                                    <div className="flex items-center gap-2">
+                                                                    <div className="flex items-center gap-3">
                                                                         <span className={`font-black text-xs ${fullyPaid ? 'text-green-600' : 'text-[#E51A1A]'}`}>
                                                                             {formatCurrency(payment.amountPaid)}
                                                                         </span>
-                                                                        <button
-                                                                            onClick={() => handleEditPayment(payment, contribution)}
-                                                                            className="opacity-0 group-hover:opacity-100 p-1 text-amber-500 hover:bg-amber-50 rounded transition-all"
-                                                                            title="Modifier"
-                                                                        >
-                                                                            <AiOutlineEdit size={12} />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => handleDeletePayment(payment.id, contribution.id)}
-                                                                            className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-50 rounded transition-all"
-                                                                            title="Supprimer"
-                                                                        >
-                                                                            <AiOutlineDelete size={12} />
-                                                                        </button>
+                                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                                                            <button
+                                                                                onClick={() => handleEditPayment(payment, contribution)}
+                                                                                className="px-2 py-1 text-[9px] font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 rounded transition-all"
+                                                                            >
+                                                                                MODIFIER
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleDeletePayment(payment.id, contribution.id)}
+                                                                                className="px-2 py-1 text-[9px] font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded transition-all"
+                                                                            >
+                                                                                SUPPRIMER
+                                                                            </button>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             ))}
