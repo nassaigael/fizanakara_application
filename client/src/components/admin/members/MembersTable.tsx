@@ -33,7 +33,7 @@ const MembersTable: React.FC<MembersTableProps> = ({ members, onEdit, onDelete, 
 							Genre
 						</th>
 						<th className="px-4 py-3 text-left text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-500 hidden md:table-cell">
-							District
+							Secteur
 						</th>
 						<th className="px-4 py-3 text-left text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-500 hidden md:table-cell">
 							Tribu

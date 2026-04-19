@@ -12,6 +12,7 @@ export const useFinance = (personId?: string, year?: number) => {
         data: contributions = [],
         isLoading,
         error,
+        refetch,
     } = useQuery({
         queryKey: ['contributions', personId, year],
         queryFn: async () => {
@@ -20,10 +21,8 @@ export const useFinance = (personId?: string, year?: number) => {
             }
             const allContributions = await ContributionService.getAll();
             
-            // Filtrer par année si spécifiée
             if (year !== undefined && year !== null) {
                 return allContributions.filter(c => {
-                    // Gérer le cas où year est une string dans la réponse
                     const contributionYear = typeof c.year === 'string' ? parseInt(c.year, 10) : c.year;
                     return contributionYear === year;
                 });
@@ -145,6 +144,7 @@ export const useFinance = (personId?: string, year?: number) => {
         contributions,
         isLoading,
         error,
+        refetch,
         usePayments,
         generateAnnualContributions,
         regenerateForYear,

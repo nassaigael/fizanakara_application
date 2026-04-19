@@ -14,13 +14,19 @@ import {
     AiOutlineGlobal,
     AiOutlineDollar,
     AiOutlineBook,
-    AiOutlineRise
+    AiOutlineRise,
+    AiOutlineEdit,
+    AiOutlineDelete,
+    AiOutlineCheckCircle
 } from 'react-icons/ai';
-import { PersonResponse, MemberStatus, Gender } from '../../../lib/types';
+import { PersonResponse, MemberStatus, Gender, PaymentResponse } from '../../../lib/types';
 import { formatDate, calculateAge, formatCurrency } from '../../../lib/helper';
 import { useFinance } from '../../../hooks/useFinance';
 import { useMembers } from '../../../hooks/useMembers';
+import { usePayment } from '../../../hooks/usePayment';
 import Avatar from '../../../components/ui/Avatar';
+import EditPaymentModal from '../../../components/shared/payments/EditPaymentModal';
+import toast from 'react-hot-toast';
 
 interface MemberDetailModalProps {
     isOpen: boolean;
@@ -31,6 +37,7 @@ interface MemberDetailModalProps {
     onAddChild?: () => void;
     onViewChild?: (child: PersonResponse) => void;
     onViewParent?: (parentId: string) => void;
+    onRefresh?: () => void;
 }
 
 const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
@@ -41,14 +48,17 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     onDelete,
     onAddChild,
     onViewChild,
-    onViewParent
+    onViewParent,
+    onRefresh
 }) => {
     const [activeTab, setActiveTab] = useState<'info' | 'payments' | 'family'>('info');
     const [isAnimating, setIsAnimating] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [editingPayment, setEditingPayment] = useState<{ payment: PaymentResponse; contribution: any } | null>(null);
 
-    const { contributions } = useFinance(member?.id);
+    const { contributions, refetch } = useFinance(member?.id);
     const { members } = useMembers();
+    const { deletePayment } = usePayment();
 
     const memberContributions = contributions.filter(c => c.memberId === member?.id);
     const parentMember = member?.parentId ? members.find(m => m.id === member.parentId) : null;
@@ -109,6 +119,29 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                 setIsAnimating(false);
             }, 150);
         }, 150);
+    };
+
+    const handleDeletePayment = async (paymentId: string, contributionId: string) => {
+        if (!confirm('Supprimer ce paiement ? Cette action est irréversible.')) return;
+
+        try {
+            await deletePayment.mutateAsync(paymentId);
+            toast.success('Paiement supprimé');
+            refetch();
+            onRefresh?.();
+        } catch (error) {
+            toast.error('Erreur lors de la suppression');
+        }
+    };
+
+    const handleEditPayment = (payment: PaymentResponse, contribution: any) => {
+        setEditingPayment({ payment, contribution });
+    };
+
+    const handlePaymentUpdateSuccess = () => {
+        refetch();
+        onRefresh?.();
+        setEditingPayment(null);
     };
 
     const renderContent = () => {
@@ -233,11 +266,35 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                                                         <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historique des paiements</p>
                                                         <div className="space-y-2">
                                                             {contribution.payments.map((payment) => (
-                                                                <div key={payment.id} className="flex justify-between items-center text-sm">
-                                                                    <span className="text-gray-500">{formatDate(payment.paymentDate)}</span>
-                                                                    <span className={`font-medium ${fullyPaid ? 'text-green-600' : 'text-[#E51A1A]'}`}>
-                                                                        {formatCurrency(payment.amountPaid)}
-                                                                    </span>
+                                                                <div key={payment.id} className="flex justify-between items-center py-1 group">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <AiOutlineCheckCircle size={10} className="text-green-500" />
+                                                                        <span className="text-[9px] text-gray-600">
+                                                                            {formatDate(payment.paymentDate)}
+                                                                        </span>
+                                                                        <span className="text-[8px] text-gray-400">
+                                                                            par {payment.receivedBy}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className={`font-black text-xs ${fullyPaid ? 'text-green-600' : 'text-[#E51A1A]'}`}>
+                                                                            {formatCurrency(payment.amountPaid)}
+                                                                        </span>
+                                                                        <button
+                                                                            onClick={() => handleEditPayment(payment, contribution)}
+                                                                            className="opacity-0 group-hover:opacity-100 p-1 text-amber-500 hover:bg-amber-50 rounded transition-all"
+                                                                            title="Modifier"
+                                                                        >
+                                                                            <AiOutlineEdit size={12} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeletePayment(payment.id, contribution.id)}
+                                                                            className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-50 rounded transition-all"
+                                                                            title="Supprimer"
+                                                                        >
+                                                                            <AiOutlineDelete size={12} />
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -332,120 +389,132 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div
-                ref={scrollContainerRef}
-                className="bg-white rounded-xl w-full max-w-3xl h-150 overflow-hidden shadow-2xl flex flex-col animate-in zoom-in duration-300"
-            >
-                <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-3">
-                        <Avatar
-                            imageUrl={member.imageUrl}
-                            firstName={member.firstName}
-                            lastName={member.lastName}
-                            gender={member.gender}
-                            category="member"
-                            size="md"
-                            shape="rounded"
-                        />
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-800">
-                                {member.lastName} {member.firstName}
-                            </h2>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-wide">
-                                Membre depuis {formatDate(member.createdAt || new Date().toISOString())}
-                            </p>
+        <>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                <div
+                    ref={scrollContainerRef}
+                    className="bg-white rounded-xl w-full max-w-3xl h-150 overflow-hidden shadow-2xl flex flex-col animate-in zoom-in duration-300"
+                >
+                    <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
+                        <div className="flex items-center gap-3">
+                            <Avatar
+                                imageUrl={member.imageUrl}
+                                firstName={member.firstName}
+                                lastName={member.lastName}
+                                gender={member.gender}
+                                category="member"
+                                size="md"
+                                shape="rounded"
+                            />
+                            <div>
+                                <h2 className="text-lg font-bold text-gray-800">
+                                    {member.lastName} {member.firstName}
+                                </h2>
+                                <p className="text-[10px] text-gray-400 uppercase tracking-wide">
+                                    Membre depuis {formatDate(member.createdAt || new Date().toISOString())}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                        >
+                            <AiOutlineClose size={18} />
+                        </button>
+                    </div>
+
+                    <div className="border-b border-gray-200 px-6 shrink-0">
+                        <div className="flex gap-6">
+                            <button
+                                onClick={() => handleTabChange('info')}
+                                className={`relative py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'info'
+                                        ? 'text-[#E51A1A]'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Informations
+                                {activeTab === 'info' && (
+                                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E51A1A] animate-in slide-in-from-left duration-200" />
+                                )}
+                            </button>
+                            <button
+                                onClick={() => handleTabChange('payments')}
+                                className={`relative py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'payments'
+                                        ? 'text-[#E51A1A]'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Paiements
+                                {hasPaymentHistory && (
+                                    <span className="ml-2 px-1.5 py-0.5 text-[9px] bg-gray-100 text-gray-600 rounded-full">
+                                        {memberContributions.length}
+                                    </span>
+                                )}
+                                {activeTab === 'payments' && (
+                                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E51A1A] animate-in slide-in-from-left duration-200" />
+                                )}
+                            </button>
+                            <button
+                                onClick={() => handleTabChange('family')}
+                                className={`relative py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'family'
+                                        ? 'text-[#E51A1A]'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Famille
+                                {member.childrenCount > 0 && (
+                                    <span className="ml-2 px-1.5 py-0.5 text-[9px] bg-gray-100 text-gray-600 rounded-full">
+                                        {member.childrenCount}
+                                    </span>
+                                )}
+                                {activeTab === 'family' && (
+                                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E51A1A] animate-in slide-in-from-left duration-200" />
+                                )}
+                            </button>
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
-                    >
-                        <AiOutlineClose size={18} />
-                    </button>
-                </div>
 
-                <div className="border-b border-gray-200 px-6 shrink-0">
-                    <div className="flex gap-6">
+                    <div className="flex-1 overflow-y-auto p-6">
+                        {renderContent()}
+                    </div>
+
+                    <div className="border-t border-gray-200 px-6 py-4 flex justify-center gap-4 shrink-0">
+                        {onDelete && (
+                            <button
+                                onClick={onDelete}
+                                className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                                Supprimer
+                            </button>
+                        )}
                         <button
-                            onClick={() => handleTabChange('info')}
-                            className={`relative py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'info'
-                                    ? 'text-[#E51A1A]'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                }`}
+                            onClick={onClose}
+                            className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                         >
-                            Informations
-                            {activeTab === 'info' && (
-                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E51A1A] animate-in slide-in-from-left duration-200" />
-                            )}
+                            Fermer
                         </button>
-                        <button
-                            onClick={() => handleTabChange('payments')}
-                            className={`relative py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'payments'
-                                    ? 'text-[#E51A1A]'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                }`}
-                        >
-                            Paiements
-                            {hasPaymentHistory && (
-                                <span className="ml-2 px-1.5 py-0.5 text-[9px] bg-gray-100 text-gray-600 rounded-full">
-                                    {memberContributions.length}
-                                </span>
-                            )}
-                            {activeTab === 'payments' && (
-                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E51A1A] animate-in slide-in-from-left duration-200" />
-                            )}
-                        </button>
-                        <button
-                            onClick={() => handleTabChange('family')}
-                            className={`relative py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'family'
-                                    ? 'text-[#E51A1A]'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                }`}
-                        >
-                            Famille
-                            {member.childrenCount > 0 && (
-                                <span className="ml-2 px-1.5 py-0.5 text-[9px] bg-gray-100 text-gray-600 rounded-full">
-                                    {member.childrenCount}
-                                </span>
-                            )}
-                            {activeTab === 'family' && (
-                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E51A1A] animate-in slide-in-from-left duration-200" />
-                            )}
-                        </button>
+                        {onEdit && (
+                            <button
+                                onClick={onEdit}
+                                className="px-4 py-2 text-sm font-medium bg-[#E51A1A] text-white rounded-lg hover:bg-[#C41515] transition-colors"
+                            >
+                                Modifier
+                            </button>
+                        )}
                     </div>
                 </div>
-
-                <div className="flex-1 overflow-y-auto p-6">
-                    {renderContent()}
-                </div>
-
-                <div className="border-t border-gray-200 px-6 py-4 flex justify-center gap-4 shrink-0">
-                    {onDelete && (
-                        <button
-                            onClick={onDelete}
-                            className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                            Supprimer
-                        </button>
-                    )}
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                        Fermer
-                    </button>
-                    {onEdit && (
-                        <button
-                            onClick={onEdit}
-                            className="px-4 py-2 text-sm font-medium bg-[#E51A1A] text-white rounded-lg hover:bg-[#C41515] transition-colors"
-                        >
-                            Modifier
-                        </button>
-                    )}
-                </div>
             </div>
-        </div>,
+
+            {editingPayment && (
+                <EditPaymentModal
+                    isOpen={!!editingPayment}
+                    onClose={() => setEditingPayment(null)}
+                    payment={editingPayment.payment}
+                    contributionAmount={editingPayment.contribution.amount}
+                    onSuccess={handlePaymentUpdateSuccess}
+                />
+            )}
+        </>,
         document.body
     );
 };

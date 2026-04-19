@@ -11,18 +11,23 @@ import {
     AiOutlineLeft,
     AiOutlineRight,
     AiOutlineDollar,
+    AiOutlineEdit,
+    AiOutlineDelete,
 } from 'react-icons/ai';
 import { useFinance } from '../../hooks/useFinance';
 import { useMembers } from '../../hooks/useMembers';
+import { usePayment } from '../../hooks/usePayment';
 import PaymentModal from '../../components/shared/payments/PaymentModal';
+import EditPaymentModal from '../../components/shared/payments/EditPaymentModal';
 import { FinanceFilters } from '../../components/shared/payments/FinanceFilter';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import { formatCurrency } from '../../lib/helper';
+import { formatCurrency, formatDate } from '../../lib/helper';
 import { THEME } from '../../styles/theme';
 import toast from 'react-hot-toast';
 import Avatar from '../../components/ui/Avatar';
 import { useAuth } from '../../context/AuthContext';
+import { PaymentResponse } from '../../lib/types';
 
 const AdminFinance: React.FC = () => {
     const { user } = useAuth();
@@ -37,6 +42,8 @@ const AdminFinance: React.FC = () => {
     const [typeFilter, setTypeFilter] = useState('all');
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedContribution, setSelectedContribution] = useState<any>(null);
+    const [editingPayment, setEditingPayment] = useState<{ payment: PaymentResponse; contribution: any } | null>(null);
+    const [expandedContributions, setExpandedContributions] = useState<Set<string>>(new Set());
 
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -48,8 +55,21 @@ const AdminFinance: React.FC = () => {
     const [isFiltersSticky, setIsFiltersSticky] = useState(false);
     const [, setFiltersHeight] = useState(0);
 
-    const { contributions, isLoading, generateAnnualContributions, regenerateForYear } = useFinance(undefined, selectedYear || undefined);
+    const { contributions, isLoading, generateAnnualContributions, regenerateForYear, refetch } = useFinance(undefined, selectedYear || undefined);
     const { members } = useMembers();
+    const { deletePayment  } = usePayment();
+
+    const toggleExpand = (contributionId: string) => {
+        setExpandedContributions(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(contributionId)) {
+                newSet.delete(contributionId);
+            } else {
+                newSet.add(contributionId);
+            }
+            return newSet;
+        });
+    };
 
     useEffect(() => {
         const checkMobile = () => {
@@ -295,6 +315,27 @@ const AdminFinance: React.FC = () => {
     const handleOpenAddYear = () => {
         setIsAddingYear(true);
         setNewYear(availableYears.length > 0 ? Math.max(...availableYears) + 1 : currentYear + 1);
+    };
+
+    const handleDeletePayment = async (paymentId: string, contributionId: string) => {
+        if (!confirm('Supprimer ce paiement ? Cette action est irréversible.')) return;
+
+        try {
+            await deletePayment.mutateAsync(paymentId);
+            toast.success('Paiement supprimé');
+            refetch();
+        } catch (error) {
+            toast.error('Erreur lors de la suppression');
+        }
+    };
+
+    const handleEditPayment = (payment: PaymentResponse, contribution: any) => {
+        setEditingPayment({ payment, contribution });
+    };
+
+    const handlePaymentUpdateSuccess = () => {
+        refetch();
+        setEditingPayment(null);
     };
 
     if (isLoading) {
@@ -605,75 +646,122 @@ const AdminFinance: React.FC = () => {
                                                 const remaining = amount - totalPaid;
                                                 const isPaid = totalPaid >= amount;
                                                 const isUnpaid = totalPaid === 0;
+                                                const isExpanded = expandedContributions.has(contribution.id);
+                                                const hasPayments = contribution.payments && contribution.payments.length > 0;
 
                                                 const rowBgClass = isStudent ? 'bg-gray-50' : 'bg-white';
 
                                                 return (
-                                                    <tr key={contribution.id} className={`${rowBgClass} hover:bg-gray-100 transition-colors`}>
-                                                        <td className="px-3 sm:px-4 py-3 sm:py-4">
-                                                            <div className="flex items-center gap-2 sm:gap-3">
-                                                                <Avatar
-                                                                    imageUrl={member?.imageUrl}
-                                                                    firstName={member?.firstName}
-                                                                    lastName={member?.lastName}
-                                                                    gender={member?.gender}
-                                                                    category="member"
-                                                                    size="sm"
-                                                                    shape="rounded"
-                                                                />
-                                                                <div>
-                                                                    <p className="font-black text-xs sm:text-sm">{contribution.memberName}</p>
-                                                                    <p className="text-[8px] sm:text-[10px] text-gray-500 uppercase">
-                                                                        {isStudent ? 'Étudiant' : 'Travailleur'}
-                                                                    </p>
+                                                    <React.Fragment key={contribution.id}>
+                                                        <tr className={`${rowBgClass} hover:bg-gray-100 transition-colors cursor-pointer`} onClick={() => toggleExpand(contribution.id)}>
+                                                            <td className="px-3 sm:px-4 py-3 sm:py-4">
+                                                                <div className="flex items-center gap-2 sm:gap-3">
+                                                                    <Avatar
+                                                                        imageUrl={member?.imageUrl}
+                                                                        firstName={member?.firstName}
+                                                                        lastName={member?.lastName}
+                                                                        gender={member?.gender}
+                                                                        category="member"
+                                                                        size="sm"
+                                                                        shape="rounded"
+                                                                    />
+                                                                    <div>
+                                                                        <p className="font-black text-xs sm:text-sm">{contribution.memberName}</p>
+                                                                        <p className="text-[8px] sm:text-[10px] text-gray-500 uppercase">
+                                                                            {isStudent ? 'Étudiant' : 'Travailleur'}
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-xs sm:text-sm">
-                                                            {contribution.year}
-                                                        </td>
-                                                        <td className="px-3 sm:px-4 py-3 sm:py-4">
-                                                            <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[7px] sm:text-[8px] font-black uppercase whitespace-nowrap ${
-                                                                isPaid
-                                                                    ? 'bg-green-100 text-green-600'
-                                                                    : isUnpaid
-                                                                        ? 'bg-red-100 text-red-600'
-                                                                        : 'bg-orange-100 text-orange-600'
-                                                            }`}>
-                                                                {isPaid ? 'Payé' : isUnpaid ? 'Impayé' : 'Partiel'}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-xs sm:text-sm whitespace-nowrap">
-                                                            {formatCurrency(amount)}
-                                                        </td>
-                                                        <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-green-600 text-xs sm:text-sm whitespace-nowrap">
-                                                            {formatCurrency(totalPaid)}
-                                                        </td>
-                                                        <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-red-600 text-xs sm:text-sm whitespace-nowrap">
-                                                            {formatCurrency(remaining)}
-                                                        </td>
-                                                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-right">
-                                                            {isPaid ? (
-                                                                <span
-                                                                    className="inline-flex items-center justify-center text-green-600"
-                                                                    title="Réglé"
-                                                                >
-                                                                    <AiOutlineCheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                                                            </td>
+                                                            <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-xs sm:text-sm">
+                                                                {contribution.year}
+                                                            </td>
+                                                            <td className="px-3 sm:px-4 py-3 sm:py-4">
+                                                                <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[7px] sm:text-[8px] font-black uppercase whitespace-nowrap ${
+                                                                    isPaid
+                                                                        ? 'bg-green-100 text-green-600'
+                                                                        : isUnpaid
+                                                                            ? 'bg-red-100 text-red-600'
+                                                                            : 'bg-orange-100 text-orange-600'
+                                                                }`}>
+                                                                    {isPaid ? 'Payé' : isUnpaid ? 'Impayé' : 'Partiel'}
                                                                 </span>
-                                                            ) : (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setSelectedContribution(contribution);
-                                                                        setIsPaymentModalOpen(true);
-                                                                    }}
-                                                                    className="p-1.5 sm:p-2 rounded-lg text-[#E51A1A] hover:bg-[#E51A1A]/10 transition-colors"
-                                                                    title="Payer"
-                                                                >
-                                                                    <AiOutlineDollar size={18} className="sm:w-5 sm:h-5" />
-                                                                </button>
-                                                            )}
-                                                        </td>
-                                                    </tr>
+                                                             </td>
+                                                            <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-xs sm:text-sm whitespace-nowrap">
+                                                                {formatCurrency(amount)}
+                                                             </td>
+                                                            <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-green-600 text-xs sm:text-sm whitespace-nowrap">
+                                                                {formatCurrency(totalPaid)}
+                                                             </td>
+                                                            <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-red-600 text-xs sm:text-sm whitespace-nowrap">
+                                                                {formatCurrency(remaining)}
+                                                             </td>
+                                                            <td className="px-3 sm:px-4 py-3 sm:py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                                                {isPaid ? (
+                                                                    <span
+                                                                        className="inline-flex items-center justify-center text-green-600"
+                                                                        title="Réglé"
+                                                                    >
+                                                                        <AiOutlineCheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                                                                    </span>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setSelectedContribution(contribution);
+                                                                            setIsPaymentModalOpen(true);
+                                                                        }}
+                                                                        className="p-1.5 sm:p-2 rounded-lg text-[#E51A1A] hover:bg-[#E51A1A]/10 transition-colors"
+                                                                        title="Payer"
+                                                                    >
+                                                                        <AiOutlineDollar size={18} className="sm:w-5 sm:h-5" />
+                                                                    </button>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                        {isExpanded && hasPayments && (
+                                                            <tr className="bg-gray-50">
+                                                                <td colSpan={7} className="px-4 py-3">
+                                                                    <div className="space-y-2">
+                                                                        <p className="text-[10px] font-bold text-gray-500 uppercase">Historique des paiements</p>
+                                                                        <div className="space-y-1">
+                                                                            {contribution.payments.map((payment: PaymentResponse) => (
+                                                                                <div key={payment.id} className="flex items-center justify-between py-1 group">
+                                                                                    <div className="flex items-center gap-3">
+                                                                                        <AiOutlineCheckCircle size={10} className="text-green-500" />
+                                                                                        <span className="text-xs text-gray-600">
+                                                                                            {formatDate(payment.paymentDate)}
+                                                                                        </span>
+                                                                                        <span className="text-[10px] text-gray-400">
+                                                                                            par {payment.receivedBy}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <div className="flex items-center gap-3">
+                                                                                        <span className="font-bold text-sm text-green-600">
+                                                                                            {formatCurrency(payment.amountPaid)}
+                                                                                        </span>
+                                                                                        <button
+                                                                                            onClick={() => handleEditPayment(payment, contribution)}
+                                                                                            className="opacity-0 group-hover:opacity-100 p-1 text-amber-500 hover:bg-amber-50 rounded transition-all"
+                                                                                            title="Modifier"
+                                                                                        >
+                                                                                            <AiOutlineEdit size={14} />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={() => handleDeletePayment(payment.id, contribution.id)}
+                                                                                            className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-50 rounded transition-all"
+                                                                                            title="Supprimer"
+                                                                                        >
+                                                                                            <AiOutlineDelete size={14} />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </React.Fragment>
                                                 );
                                             })
                                         )}
@@ -750,7 +838,18 @@ const AdminFinance: React.FC = () => {
                     onSuccess={() => {
                         setIsPaymentModalOpen(false);
                         setSelectedContribution(null);
+                        refetch();
                     }}
+                />
+            )}
+
+            {editingPayment && (
+                <EditPaymentModal
+                    isOpen={!!editingPayment}
+                    onClose={() => setEditingPayment(null)}
+                    payment={editingPayment.payment}
+                    contributionAmount={editingPayment.contribution.amount}
+                    onSuccess={handlePaymentUpdateSuccess}
                 />
             )}
         </div>
