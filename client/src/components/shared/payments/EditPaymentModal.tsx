@@ -5,6 +5,7 @@ import {
   AiOutlineCalendar,
   AiOutlineDollar,
   AiOutlineUser,
+  AiOutlineEdit,
 } from 'react-icons/ai';
 import { usePayment } from '../../../hooks/usePayment';
 import { PaymentResponse, PaymentStatus } from '../../../lib/types';
@@ -97,71 +98,103 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({
   if (!isOpen || !payment) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl w-full max-w-md shadow-xl overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-red-600">
-          <h2 className="text-white font-bold">Modifier le paiement</h2>
-          <button onClick={onClose} className="text-white/70 hover:text-white">
-            <AiOutlineClose size={18} />
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-[2.5rem] w-full max-w-md flex flex-col shadow-2xl overflow-hidden border-4 border-white">
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white">
+              <AiOutlineEdit size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-black uppercase">Modifier le paiement</h2>
+              <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                Modifiez le montant ou la date
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all"
+            disabled={isLoading}
+          >
+            <AiOutlineClose size={20} />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
-          <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-500">Montant total de la cotisation</p>
-            <p className="text-xl font-bold text-gray-800">{formatCurrency(contributionAmount)}</p>
+        {/* Body */}
+        <div className="p-6 space-y-5">
+          {/* Montant total de la cotisation */}
+          <div className="bg-gray-50 rounded-2xl p-4 text-center border-2 border-gray-200">
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">
+              Montant total de la cotisation
+            </p>
+            <p className="text-2xl font-black text-gray-800 mt-1">
+              {formatCurrency(contributionAmount)}
+            </p>
           </div>
 
+          {/* Montant payé */}
           <Input
-            label="Montant payé"
+            label="MONTANT PAYÉ"
             type="number"
             value={amount.toString()}
             onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
             icon={<AiOutlineDollar />}
-            onError={error}
+            error={error || undefined}
+            placeholder="0"
+            step="1000"
+            required
           />
 
+          {/* Date du paiement */}
           <Input
-            label="Date du paiement"
+            label="DATE DU PAIEMENT"
             type="date"
             value={paymentDate}
             onChange={(e) => setPaymentDate(e.target.value)}
             icon={<AiOutlineCalendar />}
+            required
           />
 
-          <div className="text-xs text-gray-400 flex items-center gap-1">
-            <AiOutlineUser size={12} />
-            Reçu par : {payment.receivedBy}
+          {/* Reçu par */}
+          <div className="bg-gray-50 rounded-xl p-3 border-2 border-gray-200 flex items-center gap-2">
+            <AiOutlineUser size={14} className="text-gray-400" />
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+              Reçu par : <span className="text-gray-700">{payment.receivedBy}</span>
+            </p>
           </div>
+        </div>
 
-          <div className="flex gap-3 pt-4 border-t border-gray-100">
-            <Button
-              type="button"
-              variant="danger"
-              onClick={handleDelete}
-              isLoading={isLoading}
-              className="flex-1 bg-red-500 hover:bg-red-600"
-            >
-              Supprimer
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Annuler
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleUpdate}
-              isLoading={isLoading}
-              className="flex-1 bg-red-600 hover:bg-red-700"
-            >
-              Modifier
-            </Button>
-          </div>
+        {/* Footer */}
+        <div className="px-6 py-5 bg-gray-50 border-t-2 border-gray-200 flex flex-col md:flex-row items-center gap-3 shrink-0">
+          <Button
+            type="button"
+            variant="danger"
+            onClick={handleDelete}
+            isLoading={isLoading}
+            className="w-full md:w-auto px-6 bg-red-500 hover:bg-red-600 text-white"
+          >
+            SUPPRIMER
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+            className="w-full md:w-auto px-6"
+            disabled={isLoading}
+          >
+            ANNULER
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={handleUpdate}
+            isLoading={isLoading}
+            className="w-full md:flex-1 bg-red-600 hover:bg-red-700"
+          >
+            MODIFIER
+          </Button>
         </div>
       </div>
     </div>,
