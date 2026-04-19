@@ -1,4 +1,3 @@
-// client/src/components/admin/members/MembersTableRow.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import { PersonResponse, Gender, MemberStatus } from '../../../lib/types';
 import {
@@ -23,6 +22,7 @@ interface MembersTableRowProps {
 const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDelete, onView }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const isMale = member.gender === Gender.MALE;
   const genderIcon = isMale ? <AiOutlineMan size={14} /> : <AiOutlineWoman size={14} />;
@@ -32,7 +32,8 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node) &&
+          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
       }
     };
@@ -120,52 +121,60 @@ const MembersTableRow: React.FC<MembersTableRowProps> = ({ member, onEdit, onDel
         )}
       </td>
 
-      <td className="px-4 py-3 text-right">
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-            title="Actions"
+      <td className="px-4 py-3 text-right relative">
+        <button
+          ref={buttonRef}
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+          title="Actions"
+        >
+          <AiOutlineMore size={18} />
+        </button>
+
+        {menuOpen && (
+          <div
+            ref={menuRef}
+            className="fixed z-50 bg-white/90 backdrop-blur-md rounded-xl shadow-2xl border border-white/30 overflow-hidden animate-in fade-in zoom-in duration-150"
+            style={{
+              position: 'fixed',
+              top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 4 : 0,
+              right: buttonRef.current ? window.innerWidth - buttonRef.current.getBoundingClientRect().right : 0,
+              minWidth: '160px'
+            }}
           >
-            <AiOutlineMore size={18} />
-          </button>
+            <button
+              onClick={handleView}
+              className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-blue-50/50 transition-all duration-200 group"
+            >
+              <div className="w-7 h-7 rounded-lg bg-blue-100/50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                <AiOutlineEye size={14} className="text-blue-600" />
+              </div>
+              <span className="text-gray-700 group-hover:text-blue-700">Voir</span>
+            </button>
 
-          {menuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white/90 backdrop-blur-md rounded-xl shadow-2xl border border-white/30 z-10 overflow-hidden animate-in fade-in zoom-in duration-150">
-              <button
-                onClick={handleView}
-                className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-blue-50/50 transition-all duration-200 group"
-              >
-                <div className="w-7 h-7 rounded-lg bg-blue-100/50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                  <AiOutlineEye size={14} className="text-blue-600" />
-                </div>
-                <span className="text-gray-700 group-hover:text-blue-700">Voir</span>
-              </button>
+            <button
+              onClick={handleEdit}
+              className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-amber-50/50 transition-all duration-200 group"
+            >
+              <div className="w-7 h-7 rounded-lg bg-amber-100/50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+                <AiOutlineEdit size={14} className="text-amber-600" />
+              </div>
+              <span className="text-gray-700 group-hover:text-amber-700">Modifier</span>
+            </button>
 
-              <button
-                onClick={handleEdit}
-                className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-amber-50/50 transition-all duration-200 group"
-              >
-                <div className="w-7 h-7 rounded-lg bg-amber-100/50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
-                  <AiOutlineEdit size={14} className="text-amber-600" />
-                </div>
-                <span className="text-gray-700 group-hover:text-amber-700">Modifier</span>
-              </button>
+            <div className="mx-3 h-px bg-gray-100" />
 
-              <div className="mx-3 h-px bg-gray-100" />
-
-              <button
-                onClick={handleDelete}
-                className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-red-50/50 transition-all duration-200 group"
-              >
-                <div className="w-7 h-7 rounded-lg bg-red-100/50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
-                  <AiOutlineDelete size={14} className="text-red-600" />
-                </div>
-                <span className="text-red-600 group-hover:text-red-700">Supprimer</span>
-              </button>
-            </div>
-          )}
-        </div>
+            <button
+              onClick={handleDelete}
+              className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-3 hover:bg-red-50/50 transition-all duration-200 group"
+            >
+              <div className="w-7 h-7 rounded-lg bg-red-100/50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
+                <AiOutlineDelete size={14} className="text-red-600" />
+              </div>
+              <span className="text-red-600 group-hover:text-red-700">Supprimer</span>
+            </button>
+          </div>
+        )}
       </td>
     </tr>
   );
